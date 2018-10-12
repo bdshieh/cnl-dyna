@@ -7,73 +7,164 @@
  * problem for the Laplace equation.
  ****************************************************/
 
-pclustergeometry build_clustergeometry(real * nodes, uint nnodes, real dx, real dy, real dz, uint ** idx)
+pclustergeometry build_clustergeometry(pzbem zbem, uint ** idx)
 {
   pclustergeometry cg;
+  real (* nodes)[3] = pzbem->nodes;
+  uint nnodes = pzbem->nnodes;
+  real dx = pzbem->dx;
+  real dy = pzbem->dy;
+  real dz = pzbem->dz;
   uint i;
 
   cg = new_clustergeometry(3, nnodes);
-  *idx = allocuint(nnodes);
+  * idx = allocuint(nnodes);
 
   for (i = 0; i < nnodes; i++) {
-    (*idx)[i] = i;
+	(* idx)[i] = i;
 
-    /* Center of gravity as characteristic point */
-    cg->x[i][0] = nodes[i][0];
-    cg->x[i][1] = nodes[i][1];
-    cg->x[i][2] = nodes[i][2];
+	/* Center of gravity as characteristic point */
+	cg->x[i][0] = nodes[i][0];
+	cg->x[i][1] = nodes[i][1];
+	cg->x[i][2] = nodes[i][2];
 
-    /* Lower front left corner of bounding box */
-    cg->smin[i][0] = nodes[i][0] - dx / 2;
-    cg->smin[i][1] = nodes[i][1] - dy / 2;
-    cg->smin[i][2] = nodes[i][2] - dz / 2;
+	/* Lower front left corner of bounding box */
+	cg->smin[i][0] = nodes[i][0] - dx / 2;
+	cg->smin[i][1] = nodes[i][1] - dy / 2;
+	cg->smin[i][2] = nodes[i][2] - dz / 2;
 
-    /* Upper back right corner of bounding box */
-    cg->smax[i][0] = nodes[i][0] + dx / 2;
-    cg->smax[i][1] = nodes[i][1] + dy / 2;
-    cg->smax[i][2] = nodes[i][2] + dz / 2;
+	/* Upper back right corner of bounding box */
+	cg->smax[i][0] = nodes[i][0] + dx / 2;
+	cg->smax[i][1] = nodes[i][1] + dy / 2;
+	cg->smax[i][2] = nodes[i][2] + dz / 2;
 
-    cg->w[i] = 1;
+	cg->w[i] = 1;
   }
 
   return cg;
 }
 
 
-pbem3d new_bem3d(real k, real accur)
+pzbem new_zbem3d(real k, real accur)
 {
-  pbem3d bem;
+  pzbem zbem;
 
-  bem->k = k;
-  bem->accur = accur;
-  bem->nearfield = ;
-  bem->farfield_rk = assemble_bem3d_ACA_rkmatrix;
+  zbem->k = k;
+  zbem->accur = accur;
+  zbem->nodes = NULL;
+  zbem->par = new_parbem3d();
 
-
-  return bem;
+  return zbem;
 }
 
 
-static void assemble_bem3d_block_hmatrix(pcblock b, uint bname, uint rname, uint cname, uint pardepth, void *data)
+void del_zbem3d(pzbem zbem)
 {
-  pbem3d    bem = (pbem3d) data;
-  paprxbem3d aprx = bem->aprx;
-  pparbem3d par = bem->par;
-  phmatrix *hn = par->hn;
-  phmatrix  G = hn[bname];
+  del_parbem3d(bem->par);
+  freemem(zbem);
+}
 
-  (void) b;
-  (void) pardepth;
+
+static inline field kernel(const real * x, const real * y, pzbem zbem)
+{
+  field kernel_const = zbem->kernel_const;
+  real k_real = REAL(zbem->k);
+  real k_imag = -IMAG(zbem->k);
+  real dist[3];
+  real norm, norm2, rnorm;
+
+  field res;
+
+  dist[0] = x[0] - y[0];
+  dist[1] = x[1] - y[1];
+  dist[2] = x[2] - y[2];
+  norm2 = REAL_NORMSQR3(dist[0], dist[1], dist[2]);
+  rnorm = REAL_RSQRT(norm2);
+
+  norm = norm2 * rnorm;
+  if (k_imag != 0.0) {
+	rnorm *= REAL_EXP(k_imag * norm);
+  }
+  norm = k_real * norm;
+  res = kernel_const * (rnorm * REAL_COS(norm)) + (REAL_SIN(norm) * rnorm) * I;
+
+  return res;
+}
+
+
+static void nearfield(const uint * ridx, const uint * cidx, pzbem zbem, bool ntrans, pamatrix N)
+{
+  const real (* nodes)[3] = (const real(*)[3]) zbem->nodes;
+  field * aa = N->a;
+  uint rows = ntrans ? N->cols : N->rows;
+  uint cols = ntrans ? N->rows : N->cols;
+  longindex ld = N->ld;
+  field kernel_const = zbem->kernel_const
+  field k = zbem->k
+  uint i, j;
+  field sum;
+
+  for (i = 0; i < rows; i++) {
+
+    sum = 0
+
+    for (j = 0; j < cols; j++) {
+      sum += kernel(nodes[i][j][0], nodes[i][j][1], k, kernel_const);
+    }
+
+      if (ntrans) {
+        aa[j + i * ld] = CONJ(sum) * kernel_const;
+      }
+      else {
+        aa[i + j * ld] = sum * kernel_const;
+      }
+  }
+}
+
+
+static void farfield_rk(pccluster rc, pccluster cc, pzbem zbem, prkmatrix R)
+{
+  const real accur = zbem->accur;
+  const uint * ridx = rc->idx;
+  const uint * cidx = cc->idx;
+  const uint rows = rc->size;
+  const uint cols = cc->size;
+
+  pamatrix  G;
+
+  G = new_amatrix(rows, cols);
+  nearfield(ridx, cidx, bem, false, G);
+  decomp_fullaca_rkmatrix(G, accur, NULL, NULL, R);
+
+  del_amatrix(G);
+}
+
+
+static void assemble_block_hmatrix(uint bname, uint rname, uint cname, void * data)
+{
+  pzbem zbem = (pzbem) data;
+  pparbem3d par = zbem->par;
+  phmatrix * hn = par->hn;
+  phmatrix G = hn[bname];
 
   if (G->r) {
-    bem->farfield_rk(G->rc, rname, G->cc, cname, bem, G->r);
-    if (aprx->recomp == true) {
-      trunc_rkmatrix(0, aprx->accur_recomp, G->r);
-    }
+	bem->farfield_rk(G->rc, rname, G->cc, cname, bem, G->r);
   }
   else if (G->f) {
-    bem->nearfield(G->rc->idx, G->cc->idx, bem, false, G->f);
+	bem->nearfield(G->rc->idx, G->cc->idx, bem, false, G->f);
   }
+}
+
+
+void assemble_hmatrix(pzbem zbem, pblock b, phmatrix G)
+{
+  pparbem3d par = zbem->par;
+  par->hn = enumerate_hmatrix(b, G);
+
+  iterate_byrow_block(b, 0, 0, 0, max_pardepth, NULL, assemble_block_hmatrix, bem);
+
+  freemem(par->hn);
+  par->hn = NULL;
 }
 
 
@@ -82,15 +173,14 @@ int main(int argc, char **argv)
   pstopwatch sw;
   pclustergeometry cg;
   pcluster  root;
-  pbem3d bem;
+  pzbem zbem;
   uint clf;
   pblock broot;
-  real eta;
-  phmatrix V;
+  real eta, accur;
+  phmatrix Z;
   pavector gd, b, x;
   uint m;
-  real eps_solve;
-  uint maxiter;
+  field k;
   real t, size, norm;
 
 
@@ -101,38 +191,27 @@ int main(int argc, char **argv)
    * Set up basic parameters
    ****************************************************/
 
-  /* Number of interpolation points */
-  m = 4;
-
-  /* Minimal leaf size for cluster tree construction. */
-  clf = 2 * m * m * m;
-
-  /* Parameter 'eta' within the admissibilty condition. */
-  eta = 1.4;
-
-  /* absolute norm of the residuum for CG-method */
-  eps_solve = 1.0e-10;
-
-  /* maximum number of CG-steps that should be performed. */
-  maxiter = 500;
-
-  /* Stopwatch for measuring the time. */
-  sw = new_stopwatch();
+  m = 4; /* Number of interpolation points */
+  clf = 2 * m * m * m; /* Minimal leaf size for cluster tree construction. */
+  eta = 1.4; /* Parameter 'eta' within the admissibilty condition. */
+  k = 2 * M_PI * 1e6 / 1540.0; /* wavenumber */
+  accur = 1e-3;
+  sw = new_stopwatch(); /* Stopwatch for measuring the time. */
 
   /****************************************************
    * Create geometry
    ****************************************************/
 
-   cg = build_clustergeometry();
+  zbem = new_zbem3d(k, accur)
+  zbem->nodes;
+  zbem->nnodes;
+  zbem->k;
+  idx;
 
-  /****************************************************
-   * Set up basis data structures for H-matrix approximations
-   ****************************************************/
-
-  bem = new_bem3d()
+  cg = build_clustergeometry(zbem, idx);
 
   /* Create cluster tree. */
-  root = build_adaptive_cluster(cg, nnodes, idx, clf);
+  root = build_adaptive_cluster(cg, zbem->nnodes, idx, clf);
 
   /* Create block tree. */
   broot = build_nonstrict_block(root, root, &eta, admissible_2_cluster);
@@ -148,14 +227,14 @@ int main(int argc, char **argv)
   printf("Assemble H-matrix V:\n");
 
   /* Create H-matrix structure from block tree. */
-  V = build_from_block_hmatrix(broot, m * m * m);
+  Z = build_from_block_hmatrix(broot, m * m * m);
 
   start_stopwatch(sw);
   /* Assemble near- and farfield entries of V. */
-  assemble_bem3d_hmatrix(bem, broot, V);
+  assemble_bem3d_hmatrix(bem, broot, Z);
   t = stop_stopwatch(sw);
   /* Get the total memory footprint for V. */
-  size = getsize_hmatrix(V) / 1024.0 / 1024.0;
+  size = getsize_hmatrix(Z) / 1024.0 / 1024.0;
 
   printf("  %.2f s\n", t);
   printf("  %.3f MB\n", size);
@@ -200,12 +279,12 @@ int main(int argc, char **argv)
   del_avector(x);
   del_avector(b);
   del_avector(gd);
-  del_hmatrix(V);
-  del_hmatrix(KM);
+  del_hmatrix(Z);
   del_block(broot);
   /* Permutation array for Dofs was automatically created by
    * 'build_bem3d_cluster', has to be free before the cluster tree. */
   freemem(root->idx);
+  del_zbem3d(zbem);
   del_cluster(root);
   del_stopwatch(sw);
 
