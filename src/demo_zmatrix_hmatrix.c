@@ -17,8 +17,8 @@ struct _zbem3d {
 	real (*nodes) [3];
 	uint nnodes;
 	real dx, dy, dz;
-	void (* nearfield)(const uint * ridx, const uint * cidx, pzbem zbem, bool ntrans, pamatrix N);
-	void (* farfield_rk)(pccluster rc, pccluster cc, pzbem zbem, prkmatrix R);
+	//void (* nearfield)(const uint * ridx, const uint * cidx, pzbem zbem, bool ntrans, pamatrix N);
+	//void (* farfield_rk)(pccluster rc, pccluster cc, pzbem zbem, prkmatrix R);
 	phmatrix * hn;
 };
 
@@ -26,8 +26,9 @@ pclustergeometry build_clustergeometry(pzbem, uint **);
 pzbem new_zbem3d(real, real);
 void del_zbem3d(pzbem);
 field kernel(const real *, const real *, pzbem);
-void nearfield(const uint *, const uint *, pzbem, bool, pamatrix);
-void farfield_rk(pccluster, pccluster, pzbem, prkmatrix);
+void nearfield(const uint *, const uint *, void *, bool, pamatrix);
+void farfield_rk_aca(pccluster, pccluster, pzbem, prkmatrix);
+void farfield_rk_paca(pccluster, pccluster, pzbem, prkmatrix);
 void assemble_block_hmatrix(pcblock, uint, uint, uint, uint, void *);
 void assemble_hmatrix(pzbem, pblock, phmatrix);
 
@@ -80,8 +81,8 @@ pzbem new_zbem3d(real k, real accur)
   zbem->accur = accur;
   zbem->nodes = NULL;
   zbem->hn = NULL;
-  zbem->nearfield = NULL;
-  zbem->farfield_rk = NULL;
+  //zbem->nearfield = NULL;
+  //zbem->farfield_rk = NULL;
 
   return zbem;
 }
@@ -120,8 +121,9 @@ field kernel(const real * x, const real * y, pzbem zbem)
 }
 
 
-void nearfield(const uint * ridx, const uint * cidx, pzbem zbem, bool ntrans, pamatrix N)
+void nearfield(const uint * ridx, const uint * cidx, void * data, bool ntrans, pamatrix N)
 {
+  pzbem zbem = (pzbem) data;
   const real (* nodes)[3] = (const real(*)[3]) zbem->nodes;
   field * aa = N->a;
   uint rows = ntrans ? N->cols : N->rows;
@@ -146,7 +148,7 @@ void nearfield(const uint * ridx, const uint * cidx, pzbem zbem, bool ntrans, pa
 }
 
 
-void farfield_rk(pccluster rc, pccluster cc, pzbem zbem, prkmatrix R)
+void farfield_rk_aca(pccluster rc, pccluster cc, pzbem zbem, prkmatrix R)
 {
   const real accur = zbem->accur;
   const uint * ridx = rc->idx;
@@ -164,6 +166,19 @@ void farfield_rk(pccluster rc, pccluster cc, pzbem zbem, prkmatrix R)
 }
 
 
+void farfield_rk_paca(pccluster rc, pccluster cc, pzbem zbem, prkmatrix R)
+{
+	const uint * ridx = rc->idx;
+	const uint * cidx = cc->idx;
+	const uint rows = rc->size;
+	const uint cols = cc->size;
+	const real accur = zbem->accur;
+	matrixentry_t entry = (matrixentry_t) nearfield;
+
+	decomp_partialaca_rkmatrix(entry, (void *) zbem, ridx, rows, cidx, cols, accur, NULL, NULL, R);
+}
+
+
 void assemble_block_hmatrix(pcblock b, uint bname, uint rname, uint cname, uint par_depth, void * data)
 { 
   pzbem zbem = (pzbem) data;
@@ -178,10 +193,10 @@ void assemble_block_hmatrix(pcblock b, uint bname, uint rname, uint cname, uint 
 
   
   if (G->r) {
-	farfield_rk(G->rc, G->cc, zbem, G->r);
+	farfield_rk_paca(G->rc, G->cc, zbem, G->r);
   }
   else if (G->f) {
-    nearfield(G->rc->idx, G->cc->idx, zbem, false, G->f);
+    nearfield(G->rc->idx, G->cc->idx, (void *) zbem, false, G->f);
   }
 }
 
@@ -223,12 +238,12 @@ int main(int argc, char **argv)
    * Set up basic parameters
    ****************************************************/
 
-  clf = 32; /* Minimal leaf size for cluster tree construction. */
+  clf = 10; /* Minimal leaf size for cluster tree construction. */
   eta = 2; /* Parameter 'eta' within the admissibilty condition. */
   k = 2 * M_PI * 1e6 / 1540.0; /* wavenumber */
-  accur = 1e-3;
-  nnodes_x = 200;
-  nnodes_y = 200;
+  accur = 1e-2;
+  nnodes_x = 316;
+  nnodes_y = 316;
   dx = 4e-6;
   dy = 4e-6;
   dz = 1e-6;
