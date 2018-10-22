@@ -10,5 +10,8 @@ target_link_libraries(demo H2LIB winmm)
 # add_executable (example example_hmatrix_bem3d.c)
 # target_link_libraries(example H2LIB winmm)
 
+add_executable (demo_bem3d demo_bem3d.c)
+target_link_libraries(demo_bem3d H2LIB winmm)
+
 add_compile_definitions(USE_COMPLEX)
 add_compile_options(-lwinmm)
