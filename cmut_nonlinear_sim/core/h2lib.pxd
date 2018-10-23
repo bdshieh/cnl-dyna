@@ -1,8 +1,6 @@
 
 
 cdef extern from '<complex.h>' nogil:
-    
-    ctypedef _Complex complex
 
     double cabs(double complex)
     double carg(double complex)
@@ -14,7 +12,7 @@ cdef extern from '<complex.h>' nogil:
 
 ctypedef double real
 ctypedef float complex field
-
+ctypedef unsigned int uint
 
 cdef extern from 'basic.h':
     void init_h2lib(int *argc, char ***argv)
@@ -24,6 +22,7 @@ cdef extern from 'basic.h':
 cdef extern from 'avector.h':
     
     ctypedef struct _avector
+    ctypedef _avector avector
     ctypedef avector * pavector
     ctypedef const avector * pcavector
 
@@ -39,41 +38,42 @@ cdef extern from 'avector.h':
     real norm2_avector(pcavector v)
 
 
-// cdef extern from 'amatrix.h':
-//     pass
+'''
+cdef extern from 'amatrix.h':
+    pass
 
 
-// cdef extern from 'bem3d.h':
-//     assemble_bem3d_hmatrix
+cdef extern from 'bem3d.h':
+    assemble_bem3d_hmatrix
 
 
-// cdef extern from 'helmholtzbem3d.h':
-//     new_slp_helmholtz_bem3d
-//     new_dlp_helmholtz_bem3d
+cdef extern from 'helmholtzbem3d.h':
+    new_slp_helmholtz_bem3d
+    new_dlp_helmholtz_bem3d
 
-// cdef extern from 'hmatrix.h':
+cdef extern from 'hmatrix.h':
     
 
-// cdef extern from 'harith.h':
-//     pass
+cdef extern from 'harith.h':
+    pass
 
 
-// cdef extern from 'block.h':
-//     build_nonstrict_block
+cdef extern from 'block.h':
+    build_nonstrict_block
 
 
-// cdef extern from 'cluster.h':
-//     pass
+cdef extern from 'cluster.h':
+    pass
 
 
-// cdef extern from 'krylovsolvers.h':
-//     solve_cg_hmatrix_avector
+cdef extern from 'krylovsolvers.h':
+    solve_cg_hmatrix_avector
 
 
-// cdef extern from 'surface3d.h':
-//     pass
+cdef extern from 'surface3d.h':
+    pass
 
 
-// cdef extern from 'macrosurface3d.h':
-//     pass
-
+cdef extern from 'macrosurface3d.h':
+    pass
+'''
