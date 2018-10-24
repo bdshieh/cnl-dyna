@@ -14,13 +14,13 @@ if os.name == 'nt':
 else:
     _LANGUAGE = 'c' # for gcc
 
-_LANGUAGE = 'c'
+# _LANGUAGE = 'c'
 
 ext_modules = [
     Extension(name='pyh2lib',
               sources=['cmut_nonlinear_sim/core/pyh2lib.pyx'],
               include_dirs=['include'],
-              libraries=['math', 'libH2LIB', 'openblas'],
+              libraries=['H2LIB', 'openblas'],
               library_dirs=['lib'],
               language=_LANGUAGE
     )
@@ -33,8 +33,6 @@ setup(
     ext_modules=cythonize(ext_modules),
     packages=find_packages(),
     install_requires=[
-        'numpy',
-        'scipy'
     ],
     setup_requires=[
         'setuptools>=18.0', 
