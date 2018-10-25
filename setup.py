@@ -6,23 +6,17 @@ from setuptools.extension import Extension
 from Cython.Build import cythonize
 
 import numpy as np
-import os
+# import os
 
-# set language argument based on OS
-if os.name == 'nt':
-    _LANGUAGE = 'c++' # for MSVC++
-else:
-    _LANGUAGE = 'c' # for gcc
-
-# _LANGUAGE = 'c'
 
 ext_modules = [
-    Extension(name='pyh2lib',
-              sources=['cmut_nonlinear_sim/core/pyh2lib.pyx'],
+    Extension(name='cmut_nonlinear_sim.core.test',
+              sources=['cmut_nonlinear_sim/core/test.pyx'],
               include_dirs=['include'],
-              libraries=['H2LIB', 'openblas'],
+              libraries=['h2'],
               library_dirs=['lib'],
-              language=_LANGUAGE
+              language='c',
+              extra_compile_args=['-fPIC']
     )
 ]
 
