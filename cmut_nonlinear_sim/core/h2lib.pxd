@@ -20,6 +20,7 @@ ctypedef unsigned int uint
 
 
 cdef extern from 'basic.h' nogil:
+
     void init_h2lib(int *argc, char ***argv)
     void uninit_h2lib()
 
@@ -69,7 +70,17 @@ cdef extern from 'amatrix.h' nogil:
 
 cdef extern from 'bem3d.h' nogil:
 
-    ctypedef struct _bem3d
+    cdef enum basisfunctionbem3d:
+        BASIS_NONE_BEM3D
+        BASIS_CONSTANT_BEM3D
+        BASIS_LINEAR_BEM3D
+
+    cdef struct _bem3d:
+        field k
+        field kernel_const
+        basisfunctionbem3d row_basis
+        basisfunctionbem3d col_basis
+
     ctypedef _bem3d bem3d
     ctypedef bem3d * pbem3d
     ctypedef const bem3d * pcbem3d
@@ -135,21 +146,56 @@ cdef extern from 'block.h' nogil:
 
 cdef extern from 'cluster.h' nogil:
     
-    ctypedef struct _cluster
+    struct _cluster
     ctypedef _cluster cluster
     ctypedef cluster * pcluster
     ctypedef const cluster * pccluster
 
 
 cdef extern from 'krylovsolvers.h' nogil:
+
     solve_cg_hmatrix_avector
 
 
 cdef extern from 'surface3d.h' nogil:
-    pass
+    
+    struct _surface3d
+    ctypedef _surface3d surface3d
+    ctypedef surface3d * psurface3d
+    ctypedef const surface3d pcsurface3d
 
 
 cdef extern from 'macrosurface3d.h' nogil:
-    new_macrosurface3d
-    del_macrosurface3d
 
+    struct _macrosurface3d:
+        uint vertices
+        uint edges
+        uint triangles
+        real (* x)[3]
+        uint (* e)[2]
+        uint (* t)[3]
+        uint (* s)[3]
+        void (* phi) (uint i, real xr1, real xr2, void * phidata, real xt[3])
+
+    ctypedef _macrosurface3d macrosurface3d
+    ctypedef macrosurface3d * pmacrosurface3d
+    ctypedef const macrosurface3d pcmacrosurface3d
+
+    pmacrosurface3d new_macrosurface3d(uint vertices, uint edges, uint triangles)
+    void del_macrosurface3d(pmacrosurface3d mg)
+    psurface3d build_from_macrosurface3d_surface3d(pcmacrosurface3d mg, uint split)
+
+cdef void cube_parametrization(uint i, real xr1, real xr2, void * phidata, real xt[3]):
+
+	cdef pcmacrosurface3d mg = <pcmacrosurface3d> data;
+	cdef const real(*x)[3] = <const real(*)[3]> mg.x;
+	cdef const uint(*t)[3] = <const uint(*)[3]> mg.t;
+
+	assert(i < mg.triangles);
+	assert(t[i][0] < mg.vertices);
+	assert(t[i][1] < mg.vertices);
+	assert(t[i][2] < mg.vertices);
+
+	xt[0] = (x[t[i][0]][0] * (1.0 - xr1 - xr2) + x[t[i][1]][0] * xr1 + x[t[i][2]][0] * xr2);
+	xt[1] = (x[t[i][0]][1] * (1.0 - xr1 - xr2) + x[t[i][1]][1] * xr1 + x[t[i][2]][1] * xr2);
+	xt[2] = (x[t[i][0]][2] * (1.0 - xr1 - xr2) + x[t[i][1]][2] * xr1 + x[t[i][2]][2] * xr2);
