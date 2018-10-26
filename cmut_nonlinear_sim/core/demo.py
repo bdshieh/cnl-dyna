@@ -1,10 +1,10 @@
 
-from . import pyh2lib as lib
+from . pylibh2 import *
 
 
 def new_square_macrosurface(ax, bx):
 
-    ms = lib.Macrosurface3d(4, 5, 2)
+    ms = Macrosurface3d(4, 5, 2)
 
     #  vertices 
     #  bottom left 

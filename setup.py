@@ -10,10 +10,10 @@ import numpy as np
 
 
 ext_modules = [
-    Extension(name='cmut_nonlinear_sim.core.test',
-              sources=['cmut_nonlinear_sim/core/test.pyx'],
+    Extension(name='cmut_nonlinear_sim.core.pylibh2',
+              sources=['cmut_nonlinear_sim/core/pylibh2.pyx'],
               include_dirs=['include'],
-              libraries=['h2'],
+              libraries=['h2', 'openblas'],
               library_dirs=['lib'],
               language='c',
               extra_compile_args=['-fPIC']
