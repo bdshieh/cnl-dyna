@@ -76,7 +76,8 @@ if __name__ == '__main__':
 	refn = 16
 	q_reg = 2
 	q_sing = q_reg + 2
-	# basis = BASIS_LINEAR_BEM3D
+	basis = 'const'
+	alpha = 0.0
 
 	init_libh2()
 	# /****************************************************
@@ -95,7 +96,10 @@ if __name__ == '__main__':
 	# * Set up H-matrix
 	# ****************************************************/
 
-	# bem_slp = new_slp_helmholtz_bem3d(k, gr, q_reg, q_sing, basis, basis)
+	bem_slp = new_slp_bem(k, surf, q_reg, q_sing, basis, basis)
+	print(bem_slp.k)
+	# print(bem_slp.k)
+	# bem_dlp = new_dlp_bem(k, surf, q_reg, q_sing, basis, basis, alpha)
 
 	# # /* create cluster tree. */
 	# root = build_bem3d_cluster(bem_slp, clf, basis)

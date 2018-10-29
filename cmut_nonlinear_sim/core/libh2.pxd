@@ -1,15 +1,16 @@
 
 
 ## complex.h ##
-cdef extern from '<complex.h>' nogil:
+cdef extern from 'complex.h' nogil:
 
     double cabs(double complex)
     double carg(double complex)
     double complex conj(double complex)
     double complex cexp(double complex)
     double creal(double complex)
+    double cimag(double complex)
 
-## basis types ##
+## basic types ##
 ctypedef double real
 ctypedef double complex field
 ctypedef unsigned int uint
@@ -90,7 +91,7 @@ cdef extern from 'surface3d.h' nogil:
 
     ctypedef _surface3d surface3d
     ctypedef surface3d * psurface3d
-    ctypedef const surface3d pcsurface3d
+    ctypedef const surface3d * pcsurface3d
 
     psurface3d new_surface3d(uint vertices, uint edges, uint triangles)
     void del_surface3d(psurface3d gr)
@@ -112,7 +113,7 @@ cdef extern from 'macrosurface3d.h' nogil:
 
     ctypedef _macrosurface3d macrosurface3d
     ctypedef macrosurface3d * pmacrosurface3d
-    ctypedef const macrosurface3d pcmacrosurface3d
+    ctypedef const macrosurface3d * pcmacrosurface3d
 
     pmacrosurface3d new_macrosurface3d(uint vertices, uint edges, uint triangles)
     void del_macrosurface3d(pmacrosurface3d mg)
@@ -208,11 +209,16 @@ cdef extern from 'hmatrix.h' nogil:
     void norm2_hmatrix(pchmatrix H)
 
 
+
 ## bem3d.h ##
-cdef enum basisfunctionbem3d:
-    BASIS_NONE_BEM3D,
-    BASIS_CONSTANT_BEM3D,
-    BASIS_LINEAR_BEM3D,
+cdef extern from 'bem3d.h' nogil:
+
+    cdef enum _basisfunctionbem3d:
+        BASIS_NONE_BEM3D
+        BASIS_CONSTANT_BEM3D
+        BASIS_LINEAR_BEM3D
+    
+    ctypedef _basisfunctionbem3d basisfunctionbem3d
 
 cdef extern from 'bem3d.h' nogil:
 

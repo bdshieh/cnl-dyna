@@ -15,11 +15,37 @@ cpdef build_from_macrosurface_surface(Macrosurface ms, uint refn):
     cdef psurface3d surf = build_from_macrosurface3d_surface3d(<pcmacrosurface3d> ms.ptr, refn)
     return Surface.wrap(surf, True)
 
+cpdef new_slp_bem(field k, Surface surf, uint q_regular, uint q_singular, row_basis, col_basis):
 
+    cdef basisfunctionbem3d rb = BASIS_CONSTANT_BEM3D
+    cdef basisfunctionbem3d cb = BASIS_CONSTANT_BEM3D
 
-# cpdef new_slp_helmholtz_bem3d(field k, Surface3D gr, uint q_reg, uint q_sing, basisfunctionbem3d basis,  
-#         basisfunctionbem3d basis):
-#     pass
+    # if row_basis.lower() in ['const', 'constant']:
+    #     rb = BASIS_CONSTANT_BEM3D
+    # elif row_basis.lower() in ['lin', 'linear']:
+    #     rb = BASIS_LINEAR_BEM3D
+    # else:
+    #     raise TypeError
+
+    # if col_basis.lower() in ['const', 'constant']:
+    #     cb = BASIS_CONSTANT_BEM3D
+    # elif col_basis.lower() in ['lin', 'linear']:
+    #     cb = BASIS_LINEAR_BEM3D
+    # else:
+    #     raise TypeError
+
+    cdef pbem3d bem = new_slp_helmholtz_bem3d(k, <pcsurface3d> surf.ptr, q_regular, q_singular, rb, cb)
+    print(<unsigned long> bem)
+    return Bem.wrap(bem, True)
+
+# cpdef new_dlp_bem(field k, Surface surf, uint q_regular, uint q_singular, row_basis, col_basis, field alpha):
+
+#     cdef basisfunctionbem3d rb = BASIS_CONSTANT_BEM3D
+#     cdef basisfunctionbem3d cb = BASIS_CONSTANT_BEM3D
+#     cdef pbem3d bem
+
+#     bem = new_dlp_helmholtz_bem3d(k, <pcsurface3d> surf.ptr, q_regular, q_singular, rb, cb, alpha)
+#     return Bem.wrap(bem, True)
 
 
 # cpdef build_bem3d_cluster(Bem3d bem_slp, uint clf, basisfunctionbem3d basis):

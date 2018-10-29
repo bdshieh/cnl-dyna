@@ -1,4 +1,5 @@
 
+
 from . libh2 cimport *
 
 
@@ -184,6 +185,8 @@ cdef class Bem:
             del_bem3d(self.ptr)
 
     cdef _setup(self, pbem3d ptr, bint owner):
+        if ptr is NULL:
+            raise MemoryError
         self.ptr = ptr
         self.owner = owner
 
@@ -191,33 +194,33 @@ cdef class Bem:
     def k(self):
         return self.ptr.k
 
-    @k.setter
-    def k(self, val):
-        self.ptr.k = val
+    # @k.setter
+    # def k(self, val):
+        # self.ptr.k = val
 
     @property
     def kernel_const(self):
         return self.ptr.kernel_const
 
-    @kernel_const.setter
-    def kernel_const(self, val):
-        self.ptr.kernel_const = val
+    # @kernel_const.setter
+    # def kernel_const(self, val):
+        # self.ptr.kernel_const = val
 
-    @property
-    def row_basis(self):
-        return self.ptr.row_basis
+    # @property
+    # def row_basis(self):
+        # return self.ptr.row_basis
 
-    @row_basis.setter
-    def row_basis(self, val):
-        self.ptr.row_basis = val
+    # @row_basis.setter
+    # def row_basis(self, val):
+        # self.ptr.row_basis = val
 
-    @property
-    def col_basis(self):
-        return self.ptr.col_basis
+    # @property
+    # def col_basis(self):
+        # return self.ptr.col_basis
 
-    @col_basis.setter
-    def col_basis(self, val):
-        self.ptr.col_basis = val
+    # @col_basis.setter
+    # def col_basis(self, val):
+        # self.ptr.col_basis = val
 
     @staticmethod
     cdef wrap(pbem3d ptr, bint owner=False):
