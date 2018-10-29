@@ -73,22 +73,23 @@ if __name__ == '__main__':
 	accur = 1e-12 # /* accuracy of rk as a fraction of the norm */
 	ax = 100e-6
 	bx = 100e-6
-	refn = 32
+	refn = 16
 	q_reg = 2
 	q_sing = q_reg + 2
 	# basis = BASIS_LINEAR_BEM3D
 
-
+	init_libh2()
 	# /****************************************************
 	# * Create geometry
 	# ****************************************************/
+	
 
-	ms = new_square_macrosurface3d(ax, bx)
-	surf = build_from_macrosurface3d_surface3d(ms, refn)
-	print("Mesh:\n")
-	print("  %u vertices\n", surf.vertices)
-	print("  %u edges\n", surf.edges)
-	print("  %u triangles\n", surf.triangles)
+	ms = new_square_macrosurface(ax, bx)
+	surf = build_from_macrosurface_surface(ms, refn)
+	# print("Mesh:\n")
+	# print("  %u vertices\n", surf.vertices)
+	# print("  %u edges\n", surf.edges)
+	# print("  %u triangles\n", surf.triangles)
 
 	# /****************************************************
 	# * Set up H-matrix
@@ -220,3 +221,5 @@ if __name__ == '__main__':
 	# # /* Calculate RMSE referenced to H-matrix solution */
 	# add_avector(-alpha, x, x_chol)
 	# rmse = norm2_avector(x_chol) / norm2_avector(x)
+
+	# uninit_libh2()

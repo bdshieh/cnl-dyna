@@ -4,10 +4,17 @@ from . libh2 cimport *
 from . libh2_classes cimport *
 
 
+def init_libh2():
+    init_h2lib(NULL, NULL)
+
+def uninit_libh2():
+    uninit_h2lib()
+
 cpdef build_from_macrosurface_surface(Macrosurface ms, uint refn):
 
-    surf = build_from_macrosurface3d_surface3d(<pcmacrosurface3d> ms.ptr, refn)
-    return Surface.wrap(ptr=surf, owner=True)
+    cdef psurface3d surf = build_from_macrosurface3d_surface3d(<pcmacrosurface3d> ms.ptr, refn)
+    return Surface.wrap(surf, True)
+
 
 
 # cpdef new_slp_helmholtz_bem3d(field k, Surface3D gr, uint q_reg, uint q_sing, basisfunctionbem3d basis,  
