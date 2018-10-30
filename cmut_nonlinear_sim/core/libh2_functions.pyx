@@ -1,8 +1,7 @@
+## libh2.classes.pyx ##
 
-
-from . libh2 cimport *
 from . libh2_classes cimport *
-
+from . helmholtzbem3d cimport *
 
 def init_libh2():
     init_h2lib(NULL, NULL)
@@ -14,6 +13,10 @@ cpdef build_from_macrosurface_surface(Macrosurface ms, uint refn):
 
     cdef psurface3d surf = build_from_macrosurface3d_surface3d(<pcmacrosurface3d> ms.ptr, refn)
     return Surface.wrap(surf, True)
+
+cdef extern from 'helmholtzbem3d.h':
+    pbem3d new_slp_helmholtz_bem3d(field k, pcsurface3d gr, uint q_regular, uint q_singular, 
+        basisfunctionbem3d rb, basisfunctionbem3d cb)
 
 cpdef new_slp_bem(field k, Surface surf, uint q_regular, uint q_singular):
 
@@ -34,11 +37,11 @@ cpdef new_slp_bem(field k, Surface surf, uint q_regular, uint q_singular):
     # else:
     #     raise TypeError
 
-    cdef pbem3d bem = new_slp_helmholtz_bem3d(k, <pcsurface3d> surf.ptr, q_regular, q_singular, rb, cb)
-    # cdef pbem3d bem = new_bem3d(surf.ptr, rb, cb)
-    # print(<unsigned long> bem)
-    print(bem.k)
-    # return Bem.wrap(bem, False)
+    cdef pbem3d bem 
+    bem = new_slp_helmholtz_bem3d(k, <pcsurface3d> surf.ptr, q_regular, q_singular, rb, cb)
+    # print(creal(bem.k))
+    # print(cimag(bem.k))
+    return Bem.wrap(bem, False)
 
 # cpdef new_dlp_bem(field k, Surface surf, uint q_regular, uint q_singular, row_basis, col_basis, field alpha):
 
