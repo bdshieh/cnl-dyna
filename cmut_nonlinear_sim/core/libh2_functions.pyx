@@ -15,7 +15,7 @@ cpdef build_from_macrosurface_surface(Macrosurface ms, uint refn):
     cdef psurface3d surf = build_from_macrosurface3d_surface3d(<pcmacrosurface3d> ms.ptr, refn)
     return Surface.wrap(surf, True)
 
-cpdef new_slp_bem(field k, Surface surf, uint q_regular, uint q_singular, row_basis, col_basis):
+cpdef new_slp_bem(field k, Surface surf, uint q_regular, uint q_singular):
 
     cdef basisfunctionbem3d rb = BASIS_CONSTANT_BEM3D
     cdef basisfunctionbem3d cb = BASIS_CONSTANT_BEM3D
@@ -35,8 +35,10 @@ cpdef new_slp_bem(field k, Surface surf, uint q_regular, uint q_singular, row_ba
     #     raise TypeError
 
     cdef pbem3d bem = new_slp_helmholtz_bem3d(k, <pcsurface3d> surf.ptr, q_regular, q_singular, rb, cb)
-    print(<unsigned long> bem)
-    return Bem.wrap(bem, True)
+    # cdef pbem3d bem = new_bem3d(surf.ptr, rb, cb)
+    # print(<unsigned long> bem)
+    print(bem.k)
+    # return Bem.wrap(bem, False)
 
 # cpdef new_dlp_bem(field k, Surface surf, uint q_regular, uint q_singular, row_basis, col_basis, field alpha):
 

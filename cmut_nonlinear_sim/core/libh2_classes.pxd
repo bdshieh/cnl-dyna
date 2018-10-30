@@ -53,7 +53,6 @@ cdef class Bem:
 cdef class Cluster:
     cdef pcluster ptr
     cdef bint owner
-    cdef field k
     cdef readonly uint [:] idx
     cdef readonly real [:] bmin
     cdef readonly real [:] bmax

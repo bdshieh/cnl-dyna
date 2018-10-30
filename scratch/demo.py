@@ -1,8 +1,9 @@
 
-from . libh2_classes import *
-from . libh2_functions import *
+from cmut_nonlinear_sim.core.libh2_classes import *
+from cmut_nonlinear_sim.core.libh2_functions import *
 
 import numpy as np
+
 
 def new_square_macrosurface(ax, bx):
 
@@ -96,8 +97,9 @@ if __name__ == '__main__':
 	# * Set up H-matrix
 	# ****************************************************/
 
-	bem_slp = new_slp_bem(k, surf, q_reg, q_sing, basis, basis)
-	print(bem_slp.k)
+	bem_slp = new_slp_bem(k, surf, q_reg, q_sing)
+	# print(bem_slp.k)
+	# print(bem_slp.k)
 	# print(bem_slp.k)
 	# bem_dlp = new_dlp_bem(k, surf, q_reg, q_sing, basis, basis, alpha)
 

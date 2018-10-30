@@ -20,7 +20,7 @@ cdef class Vector:
     cdef _setup(self, pavector ptr, bint owner):
         self.ptr = ptr
         self.owner = owner
-        self.v = <field [:ptr.dim]> ptr.v
+        self.v = <field [:ptr.dim]> (<field *> ptr.v)
 
     @property
     def dim(self):
@@ -50,7 +50,7 @@ cdef class Matrix():
     cdef _setup(self, pamatrix ptr, bint owner):
         self.ptr = ptr
         self.owner = owner
-        self.a = <field [:ptr.rows,:ptr.cols]> ptr.a
+        self.a = <field [:ptr.rows,:ptr.cols]> (<field *> ptr.a)
 
     @property
     def rows(self):

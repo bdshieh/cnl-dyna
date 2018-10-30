@@ -26,7 +26,7 @@ cdef extern from 'basic.h':
 ## vector.h ##
 cdef extern from 'avector.h' nogil:
     
-    cdef struct _avector:
+    struct _avector:
         field * v
         uint dim
 
@@ -49,7 +49,7 @@ cdef extern from 'avector.h' nogil:
 ## amatrix.h ##
 cdef extern from 'amatrix.h' nogil:
 
-    cdef struct _amatrix:
+    struct _amatrix:
         field * a
         uint ld
         uint rows
@@ -79,7 +79,7 @@ cdef extern from 'amatrix.h' nogil:
 ## surface3d.h ##
 cdef extern from 'surface3d.h' nogil:
     
-    cdef struct _surface3d:
+    struct _surface3d:
         uint vertices
         uint edges
         uint triangles
@@ -100,7 +100,7 @@ cdef extern from 'surface3d.h' nogil:
 ## macrosurface3d.h ##
 cdef extern from 'macrosurface3d.h' nogil:
 
-    cdef struct _macrosurface3d:
+    struct _macrosurface3d:
         uint vertices
         uint edges
         uint triangles
@@ -123,7 +123,7 @@ cdef extern from 'macrosurface3d.h' nogil:
 ## cluster.h ##
 cdef extern from 'cluster.h' nogil:
     
-    cdef struct _cluster:
+    struct _cluster:
         uint size
         uint * idx
         uint sons
@@ -144,7 +144,7 @@ cdef extern from 'cluster.h' nogil:
 ## block.h ##
 cdef extern from 'block.h' nogil:
 
-    cdef struct _block:
+    struct _block:
         pcluster rc
         pcluster cc
         bint a
@@ -165,7 +165,7 @@ cdef extern from 'block.h' nogil:
 ## rkmatrix.h ##
 cdef extern from 'rkmatrix.h' nogil:
 
-    cdef struct _rkmatrix:
+    struct _rkmatrix:
         amatrix A
         amatrix B
         uint k
@@ -181,13 +181,13 @@ cdef extern from 'rkmatrix.h' nogil:
 ## hmatrix.h ##
 cdef extern from 'hmatrix.h' nogil:
 
-    cdef struct _hmatrix
+    struct _hmatrix
 
     ctypedef _hmatrix hmatrix
     ctypedef hmatrix * phmatrix
     ctypedef const hmatrix * pchmatrix
 
-    cdef struct _hmatrix:
+    struct _hmatrix:
         pccluster rc
         pccluster cc
         prkmatrix r
@@ -220,13 +220,12 @@ cdef extern from 'bem3d.h' nogil:
     
     ctypedef _basisfunctionbem3d basisfunctionbem3d
 
+
 cdef extern from 'bem3d.h' nogil:
 
-    cdef struct _bem3d:
+    struct _bem3d:
         field k
         field kernel_const
-        basisfunctionbem3d row_basis
-        basisfunctionbem3d col_basis
 
     ctypedef _bem3d bem3d
     ctypedef bem3d * pbem3d
@@ -241,7 +240,7 @@ cdef extern from 'bem3d.h' nogil:
     void setup_hmatrix_aprx_inter_row_bem3d(pbem3d bem, pccluster rc, pccluster cc, pcblock tree, uint m)
     void assemble_bem3d_hmatrix(pbem3d bem, pblock b, phmatrix G)
 
-    
+
 ## helmholtzbem3d.h ##
 cdef extern from 'helmholtzbem3d.h' nogil:
 
@@ -250,11 +249,11 @@ cdef extern from 'helmholtzbem3d.h' nogil:
     pbem3d new_dlp_helmholtz_bem3d(field k, pcsurface3d gr, uint q_regular, uint q_singular, 
         basisfunctionbem3d row_basis, basisfunctionbem3d col_basis, field alpha)
 
-
+        
 ## truncation.h ##
 cdef extern from 'truncation.h' nogil:
     
-    cdef struct _truncmode:
+    struct _truncmode:
         bint frobenius
         bint absolute
         bint blocks
