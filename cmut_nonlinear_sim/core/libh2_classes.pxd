@@ -12,6 +12,11 @@ from . rkmatrix cimport *
 from . hmatrix cimport *
 
 
+cpdef enum basistype:
+    NONE = BASIS_NONE_BEM3D
+    CONSTANT = BASIS_CONSTANT_BEM3D
+    LINEAR = BASIS_LINEAR_BEM3D
+
 cdef class Vector:
     cdef pavector ptr
     cdef bint owner

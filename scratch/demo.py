@@ -97,7 +97,8 @@ if __name__ == '__main__':
 	# * Set up H-matrix
 	# ****************************************************/
 
-	bem_slp = new_slp_bem(k, surf, q_reg, q_sing)
+	bem_slp = new_slp_bem(k, surf, q_reg, q_sing, basistype.CONSTANT, 
+		basistype.CONSTANT)
 	# print(bem_slp.k)
 	# print(bem_slp.k)
 	# print(bem_slp.k)

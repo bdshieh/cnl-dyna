@@ -16,7 +16,7 @@ ext_modules = [
               libraries=['h2', 'openblas'],
               library_dirs=['lib'],
               language='c',
-              extra_compile_args=['-fPIC']
+              extra_compile_args=['-fPIC', '-DUSE_COMPLEX']
     ),
     Extension(name='cmut_nonlinear_sim.core.libh2_functions',
               sources=['cmut_nonlinear_sim/core/libh2_functions.pyx'],
@@ -24,7 +24,7 @@ ext_modules = [
               libraries=['h2', 'openblas'],
               library_dirs=['lib'],
               language='c',
-              extra_compile_args=['-fPIC']
+              extra_compile_args=['-fPIC', '-DUSE_COMPLEX']
     )
 ]
 

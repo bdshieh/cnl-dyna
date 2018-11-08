@@ -199,12 +199,12 @@ cdef class Bem:
 
     @property
     def k(self):
-        return creal(self.ptr.k) + 1j * cimag(self.ptr.k)
+        return self.ptr.k
 
     @property
     def kernel_const(self):
-        return creal(self.ptr.kernel_const) * 1j * cimag(self.ptr.kernel_const)
-
+        return self.ptr.kernel_const
+        
     @staticmethod
     cdef wrap(pbem3d ptr, bint owner=False):
         cdef Bem obj = Bem.__new__(Bem)
