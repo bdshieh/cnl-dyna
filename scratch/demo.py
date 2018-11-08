@@ -77,17 +77,18 @@ if __name__ == '__main__':
 	refn = 16
 	q_reg = 2
 	q_sing = q_reg + 2
-	basis = 'const'
+	basis = basistype.CONSTANT
 	alpha = 0.0
 
-	init_libh2()
+	init_h2lib()
+
 	# /****************************************************
 	# * Create geometry
 	# ****************************************************/
 	
 
 	ms = new_square_macrosurface(ax, bx)
-	surf = build_from_macrosurface_surface(ms, refn)
+	surf = build_from_macrosurface3d_surface3d(ms, refn)
 	# print("Mesh:\n")
 	# print("  %u vertices\n", surf.vertices)
 	# print("  %u edges\n", surf.edges)
@@ -97,22 +98,19 @@ if __name__ == '__main__':
 	# * Set up H-matrix
 	# ****************************************************/
 
-	bem_slp = new_slp_bem(k, surf, q_reg, q_sing, basistype.CONSTANT, 
-		basistype.CONSTANT)
-	# print(bem_slp.k)
-	# print(bem_slp.k)
-	# print(bem_slp.k)
-	# bem_dlp = new_dlp_bem(k, surf, q_reg, q_sing, basis, basis, alpha)
+	bem_slp = new_slp_helmholtz_bem3d(k, surf, q_reg, q_sing, basis, basis)
 
-	# # /* create cluster tree. */
-	# root = build_bem3d_cluster(bem_slp, clf, basis)
+	bem_dlp = new_dlp_helmholtz_bem3d(k, surf, q_reg, q_sing, basis, basis, alpha)
 
-	# # /* create block tree. */
-	# broot = build_nonstrict_block(root, root, &eta, admissible_2_cluster)
+	# /* create cluster tree. */
+	root = build_bem3d_cluster(bem_slp, clf, basis)
+
+	# /* create block tree. */
+	broot = build_nonstrict_block(root, root, eta, '2')
 
 	# # /* Set up interpolation approximation scheme for H-matrix V. */
 	# # //setup_hmatrix_aprx_inter_row_bem3d(bem_slp, root, root, broot, m)
-	# setup_hmatrix_aprx_paca_bem3d(bem_slp, root, root, broot, accur)
+	setup_hmatrix_aprx_paca_bem3d(bem_slp, root, root, broot, accur)
 	# # //setup_hmatrix_aprx_hca_bem3d(bem_slp, root, root, broot, m, accur)
 
 	# # /****************************************************
@@ -229,4 +227,4 @@ if __name__ == '__main__':
 	# add_avector(-alpha, x, x_chol)
 	# rmse = norm2_avector(x_chol) / norm2_avector(x)
 
-	# uninit_libh2()
+	# uninit_h2lib()

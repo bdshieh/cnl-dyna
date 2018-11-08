@@ -1017,6 +1017,24 @@ typedef unsigned int __pyx_t_18cmut_nonlinear_sim_4core_5basic_uint;
  * ## complex.h ##
  */
 typedef unsigned long __pyx_t_18cmut_nonlinear_sim_4core_5basic_size_t;
+
+/* "libh2_classes.pxd":15
+ * from . cimport libh2
+ * 
+ * ctypedef libh2.real real             # <<<<<<<<<<<<<<
+ * ctypedef libh2.field field
+ * ctypedef libh2.uint uint
+ */
+typedef __pyx_t_18cmut_nonlinear_sim_4core_5basic_real __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_real;
+
+/* "libh2_classes.pxd":17
+ * ctypedef libh2.real real
+ * ctypedef libh2.field field
+ * ctypedef libh2.uint uint             # <<<<<<<<<<<<<<
+ * ctypedef libh2.pavector pavector
+ * ctypedef libh2.pamatrix pamatrix
+ */
+typedef __pyx_t_18cmut_nonlinear_sim_4core_5basic_uint __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_uint;
 /* Declarations.proto */
 #if CYTHON_CCOMPLEX
   #ifdef __cplusplus
@@ -1054,19 +1072,19 @@ struct __pyx_opt_args_18cmut_nonlinear_sim_4core_13libh2_classes_5Block_wrap;
 struct __pyx_opt_args_18cmut_nonlinear_sim_4core_13libh2_classes_8RKMatrix_wrap;
 struct __pyx_opt_args_18cmut_nonlinear_sim_4core_13libh2_classes_7HMatrix_wrap;
 
-/* "libh2_classes.pxd":15
+/* "libh2_classes.pxd":36
  * 
  * 
  * cpdef enum basistype:             # <<<<<<<<<<<<<<
- *     NONE = BASIS_NONE_BEM3D
- *     CONSTANT = BASIS_CONSTANT_BEM3D
+ *     NONE = libh2.BASIS_NONE_BEM3D
+ *     CONSTANT = libh2.BASIS_CONSTANT_BEM3D
  */
 enum __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_basistype {
 
-  /* "libh2_classes.pxd":18
- *     NONE = BASIS_NONE_BEM3D
- *     CONSTANT = BASIS_CONSTANT_BEM3D
- *     LINEAR = BASIS_LINEAR_BEM3D             # <<<<<<<<<<<<<<
+  /* "libh2_classes.pxd":39
+ *     NONE = libh2.BASIS_NONE_BEM3D
+ *     CONSTANT = libh2.BASIS_CONSTANT_BEM3D
+ *     LINEAR = libh2.BASIS_LINEAR_BEM3D             # <<<<<<<<<<<<<<
  * 
  * cdef class Vector:
  */
@@ -1075,7 +1093,151 @@ enum __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_basistype {
   __pyx_e_18cmut_nonlinear_sim_4core_13libh2_classes_LINEAR = BASIS_LINEAR_BEM3D
 };
 
+/* "libh2_classes.pxd":18
+ * ctypedef libh2.field field
+ * ctypedef libh2.uint uint
+ * ctypedef libh2.pavector pavector             # <<<<<<<<<<<<<<
+ * ctypedef libh2.pamatrix pamatrix
+ * ctypedef libh2.pmacrosurface3d pmacrosurface3d
+ */
+typedef pavector __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_pavector;
+
+/* "libh2_classes.pxd":19
+ * ctypedef libh2.uint uint
+ * ctypedef libh2.pavector pavector
+ * ctypedef libh2.pamatrix pamatrix             # <<<<<<<<<<<<<<
+ * ctypedef libh2.pmacrosurface3d pmacrosurface3d
+ * ctypedef libh2.pcmacrosurface3d pcmacrosurface3d
+ */
+typedef pamatrix __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_pamatrix;
+
+/* "libh2_classes.pxd":20
+ * ctypedef libh2.pavector pavector
+ * ctypedef libh2.pamatrix pamatrix
+ * ctypedef libh2.pmacrosurface3d pmacrosurface3d             # <<<<<<<<<<<<<<
+ * ctypedef libh2.pcmacrosurface3d pcmacrosurface3d
+ * ctypedef libh2.psurface3d psurface3d
+ */
+typedef pmacrosurface3d __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_pmacrosurface3d;
+
+/* "libh2_classes.pxd":21
+ * ctypedef libh2.pamatrix pamatrix
+ * ctypedef libh2.pmacrosurface3d pmacrosurface3d
+ * ctypedef libh2.pcmacrosurface3d pcmacrosurface3d             # <<<<<<<<<<<<<<
+ * ctypedef libh2.psurface3d psurface3d
+ * ctypedef libh2.pcsurface3d pcsurface3d
+ */
+typedef pcmacrosurface3d __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_pcmacrosurface3d;
+
+/* "libh2_classes.pxd":22
+ * ctypedef libh2.pmacrosurface3d pmacrosurface3d
+ * ctypedef libh2.pcmacrosurface3d pcmacrosurface3d
+ * ctypedef libh2.psurface3d psurface3d             # <<<<<<<<<<<<<<
+ * ctypedef libh2.pcsurface3d pcsurface3d
+ * ctypedef libh2.pbem3d pbem3d
+ */
+typedef psurface3d __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_psurface3d;
+
+/* "libh2_classes.pxd":23
+ * ctypedef libh2.pcmacrosurface3d pcmacrosurface3d
+ * ctypedef libh2.psurface3d psurface3d
+ * ctypedef libh2.pcsurface3d pcsurface3d             # <<<<<<<<<<<<<<
+ * ctypedef libh2.pbem3d pbem3d
+ * ctypedef libh2.pcbem3d pcbem3d
+ */
+typedef pcsurface3d __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_pcsurface3d;
+
+/* "libh2_classes.pxd":24
+ * ctypedef libh2.psurface3d psurface3d
+ * ctypedef libh2.pcsurface3d pcsurface3d
+ * ctypedef libh2.pbem3d pbem3d             # <<<<<<<<<<<<<<
+ * ctypedef libh2.pcbem3d pcbem3d
+ * ctypedef libh2.phmatrix phmatrix
+ */
+typedef pbem3d __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_pbem3d;
+
+/* "libh2_classes.pxd":25
+ * ctypedef libh2.pcsurface3d pcsurface3d
+ * ctypedef libh2.pbem3d pbem3d
+ * ctypedef libh2.pcbem3d pcbem3d             # <<<<<<<<<<<<<<
+ * ctypedef libh2.phmatrix phmatrix
+ * ctypedef libh2.prkmatrix prkmatrix
+ */
+typedef pcbem3d __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_pcbem3d;
+
 /* "libh2_classes.pxd":26
+ * ctypedef libh2.pbem3d pbem3d
+ * ctypedef libh2.pcbem3d pcbem3d
+ * ctypedef libh2.phmatrix phmatrix             # <<<<<<<<<<<<<<
+ * ctypedef libh2.prkmatrix prkmatrix
+ * ctypedef libh2.pcluster pcluster
+ */
+typedef phmatrix __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_phmatrix;
+
+/* "libh2_classes.pxd":27
+ * ctypedef libh2.pcbem3d pcbem3d
+ * ctypedef libh2.phmatrix phmatrix
+ * ctypedef libh2.prkmatrix prkmatrix             # <<<<<<<<<<<<<<
+ * ctypedef libh2.pcluster pcluster
+ * ctypedef libh2.pccluster pccluster
+ */
+typedef prkmatrix __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_prkmatrix;
+
+/* "libh2_classes.pxd":28
+ * ctypedef libh2.phmatrix phmatrix
+ * ctypedef libh2.prkmatrix prkmatrix
+ * ctypedef libh2.pcluster pcluster             # <<<<<<<<<<<<<<
+ * ctypedef libh2.pccluster pccluster
+ * ctypedef libh2.pblock pblock
+ */
+typedef pcluster __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_pcluster;
+
+/* "libh2_classes.pxd":29
+ * ctypedef libh2.prkmatrix prkmatrix
+ * ctypedef libh2.pcluster pcluster
+ * ctypedef libh2.pccluster pccluster             # <<<<<<<<<<<<<<
+ * ctypedef libh2.pblock pblock
+ * ctypedef libh2.pcblock pcblock
+ */
+typedef pccluster __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_pccluster;
+
+/* "libh2_classes.pxd":30
+ * ctypedef libh2.pcluster pcluster
+ * ctypedef libh2.pccluster pccluster
+ * ctypedef libh2.pblock pblock             # <<<<<<<<<<<<<<
+ * ctypedef libh2.pcblock pcblock
+ * ctypedef libh2.basisfunctionbem3d basisfunctionbem3d
+ */
+typedef pblock __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_pblock;
+
+/* "libh2_classes.pxd":31
+ * ctypedef libh2.pccluster pccluster
+ * ctypedef libh2.pblock pblock
+ * ctypedef libh2.pcblock pcblock             # <<<<<<<<<<<<<<
+ * ctypedef libh2.basisfunctionbem3d basisfunctionbem3d
+ * ctypedef libh2.admissible admissible
+ */
+typedef pcblock __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_pcblock;
+
+/* "libh2_classes.pxd":32
+ * ctypedef libh2.pblock pblock
+ * ctypedef libh2.pcblock pcblock
+ * ctypedef libh2.basisfunctionbem3d basisfunctionbem3d             # <<<<<<<<<<<<<<
+ * ctypedef libh2.admissible admissible
+ * 
+ */
+typedef basisfunctionbem3d __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_basisfunctionbem3d;
+
+/* "libh2_classes.pxd":33
+ * ctypedef libh2.pcblock pcblock
+ * ctypedef libh2.basisfunctionbem3d basisfunctionbem3d
+ * ctypedef libh2.admissible admissible             # <<<<<<<<<<<<<<
+ * 
+ * 
+ */
+typedef admissible __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_admissible;
+
+/* "libh2_classes.pxd":47
  *     cdef _setup(self, pavector ptr, bint owner)
  *     @staticmethod
  *     cdef wrap(pavector ptr, bint owner=*)             # <<<<<<<<<<<<<<
@@ -1087,7 +1249,7 @@ struct __pyx_opt_args_18cmut_nonlinear_sim_4core_13libh2_classes_6Vector_wrap {
   int owner;
 };
 
-/* "libh2_classes.pxd":34
+/* "libh2_classes.pxd":55
  *     cdef _setup(self, pamatrix ptr, bint owner)
  *     @staticmethod
  *     cdef wrap(pamatrix ptr, bint owner=*)             # <<<<<<<<<<<<<<
@@ -1099,7 +1261,7 @@ struct __pyx_opt_args_18cmut_nonlinear_sim_4core_13libh2_classes_6Matrix_wrap {
   int owner;
 };
 
-/* "libh2_classes.pxd":45
+/* "libh2_classes.pxd":66
  *     cdef _setup(self, pmacrosurface3d ptr, bint owner)
  *     @staticmethod
  *     cdef wrap(pmacrosurface3d ptr, bint owner=*)             # <<<<<<<<<<<<<<
@@ -1111,7 +1273,7 @@ struct __pyx_opt_args_18cmut_nonlinear_sim_4core_13libh2_classes_12Macrosurface_
   int owner;
 };
 
-/* "libh2_classes.pxd":57
+/* "libh2_classes.pxd":78
  *     cdef _setup(self, psurface3d ptr, bint owner)
  *     @staticmethod
  *     cdef wrap(psurface3d ptr, bint owner=*)             # <<<<<<<<<<<<<<
@@ -1123,7 +1285,7 @@ struct __pyx_opt_args_18cmut_nonlinear_sim_4core_13libh2_classes_7Surface_wrap {
   int owner;
 };
 
-/* "libh2_classes.pxd":64
+/* "libh2_classes.pxd":85
  *     cdef _setup(self, pbem3d ptr, bint owner)
  *     @staticmethod
  *     cdef wrap(pbem3d ptr, bint owner=*)             # <<<<<<<<<<<<<<
@@ -1135,7 +1297,7 @@ struct __pyx_opt_args_18cmut_nonlinear_sim_4core_13libh2_classes_3Bem_wrap {
   int owner;
 };
 
-/* "libh2_classes.pxd":74
+/* "libh2_classes.pxd":95
  *     cdef _setup(self, pcluster ptr, bint owner)
  *     @staticmethod
  *     cdef wrap(pcluster ptr, bint owner=*)             # <<<<<<<<<<<<<<
@@ -1147,7 +1309,7 @@ struct __pyx_opt_args_18cmut_nonlinear_sim_4core_13libh2_classes_7Cluster_wrap {
   int owner;
 };
 
-/* "libh2_classes.pxd":81
+/* "libh2_classes.pxd":102
  *     cdef _setup(self, pblock ptr, bint owner)
  *     @staticmethod
  *     cdef wrap(pblock ptr, bint owner=*)             # <<<<<<<<<<<<<<
@@ -1159,7 +1321,7 @@ struct __pyx_opt_args_18cmut_nonlinear_sim_4core_13libh2_classes_5Block_wrap {
   int owner;
 };
 
-/* "libh2_classes.pxd":88
+/* "libh2_classes.pxd":109
  *     cdef _setup(self, prkmatrix ptr, bint owner)
  *     @staticmethod
  *     cdef wrap(prkmatrix ptr, bint owner=*)             # <<<<<<<<<<<<<<
@@ -1171,7 +1333,7 @@ struct __pyx_opt_args_18cmut_nonlinear_sim_4core_13libh2_classes_8RKMatrix_wrap 
   int owner;
 };
 
-/* "libh2_classes.pxd":95
+/* "libh2_classes.pxd":116
  *     cdef _setup(self, phmatrix ptr, bint owner)
  *     @staticmethod
  *     cdef wrap(phmatrix ptr, bint owner=*)             # <<<<<<<<<<<<<<
@@ -1181,8 +1343,8 @@ struct __pyx_opt_args_18cmut_nonlinear_sim_4core_13libh2_classes_7HMatrix_wrap {
   int owner;
 };
 
-/* "libh2_classes.pxd":20
- *     LINEAR = BASIS_LINEAR_BEM3D
+/* "libh2_classes.pxd":41
+ *     LINEAR = libh2.BASIS_LINEAR_BEM3D
  * 
  * cdef class Vector:             # <<<<<<<<<<<<<<
  *     cdef pavector ptr
@@ -1191,13 +1353,13 @@ struct __pyx_opt_args_18cmut_nonlinear_sim_4core_13libh2_classes_7HMatrix_wrap {
 struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_Vector {
   PyObject_HEAD
   struct __pyx_vtabstruct_18cmut_nonlinear_sim_4core_13libh2_classes_Vector *__pyx_vtab;
-  pavector ptr;
+  __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_pavector ptr;
   int owner;
   __Pyx_memviewslice v;
 };
 
 
-/* "libh2_classes.pxd":28
+/* "libh2_classes.pxd":49
  *     cdef wrap(pavector ptr, bint owner=*)
  * 
  * cdef class Matrix:             # <<<<<<<<<<<<<<
@@ -1207,13 +1369,13 @@ struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_Vector {
 struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_Matrix {
   PyObject_HEAD
   struct __pyx_vtabstruct_18cmut_nonlinear_sim_4core_13libh2_classes_Matrix *__pyx_vtab;
-  pamatrix ptr;
+  __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_pamatrix ptr;
   int owner;
   __Pyx_memviewslice a;
 };
 
 
-/* "libh2_classes.pxd":36
+/* "libh2_classes.pxd":57
  *     cdef wrap(pamatrix ptr, bint owner=*)
  * 
  * cdef class Macrosurface:             # <<<<<<<<<<<<<<
@@ -1223,7 +1385,7 @@ struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_Matrix {
 struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_Macrosurface {
   PyObject_HEAD
   struct __pyx_vtabstruct_18cmut_nonlinear_sim_4core_13libh2_classes_Macrosurface *__pyx_vtab;
-  pmacrosurface3d ptr;
+  __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_pmacrosurface3d ptr;
   int owner;
   __Pyx_memviewslice x;
   __Pyx_memviewslice e;
@@ -1232,7 +1394,7 @@ struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_Macrosurface {
 };
 
 
-/* "libh2_classes.pxd":47
+/* "libh2_classes.pxd":68
  *     cdef wrap(pmacrosurface3d ptr, bint owner=*)
  * 
  * cdef class Surface:             # <<<<<<<<<<<<<<
@@ -1242,7 +1404,7 @@ struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_Macrosurface {
 struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_Surface {
   PyObject_HEAD
   struct __pyx_vtabstruct_18cmut_nonlinear_sim_4core_13libh2_classes_Surface *__pyx_vtab;
-  psurface3d ptr;
+  __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_psurface3d ptr;
   int owner;
   __Pyx_memviewslice x;
   __Pyx_memviewslice e;
@@ -1252,7 +1414,7 @@ struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_Surface {
 };
 
 
-/* "libh2_classes.pxd":59
+/* "libh2_classes.pxd":80
  *     cdef wrap(psurface3d ptr, bint owner=*)
  * 
  * cdef class Bem:             # <<<<<<<<<<<<<<
@@ -1262,12 +1424,12 @@ struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_Surface {
 struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_Bem {
   PyObject_HEAD
   struct __pyx_vtabstruct_18cmut_nonlinear_sim_4core_13libh2_classes_Bem *__pyx_vtab;
-  pbem3d ptr;
+  __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_pbem3d ptr;
   int owner;
 };
 
 
-/* "libh2_classes.pxd":66
+/* "libh2_classes.pxd":87
  *     cdef wrap(pbem3d ptr, bint owner=*)
  * 
  * cdef class Cluster:             # <<<<<<<<<<<<<<
@@ -1277,7 +1439,7 @@ struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_Bem {
 struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_Cluster {
   PyObject_HEAD
   struct __pyx_vtabstruct_18cmut_nonlinear_sim_4core_13libh2_classes_Cluster *__pyx_vtab;
-  pcluster ptr;
+  __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_pcluster ptr;
   int owner;
   __Pyx_memviewslice idx;
   __Pyx_memviewslice bmin;
@@ -1285,7 +1447,7 @@ struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_Cluster {
 };
 
 
-/* "libh2_classes.pxd":76
+/* "libh2_classes.pxd":97
  *     cdef wrap(pcluster ptr, bint owner=*)
  * 
  * cdef class Block:             # <<<<<<<<<<<<<<
@@ -1295,12 +1457,12 @@ struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_Cluster {
 struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_Block {
   PyObject_HEAD
   struct __pyx_vtabstruct_18cmut_nonlinear_sim_4core_13libh2_classes_Block *__pyx_vtab;
-  pblock ptr;
+  __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_pblock ptr;
   int owner;
 };
 
 
-/* "libh2_classes.pxd":83
+/* "libh2_classes.pxd":104
  *     cdef wrap(pblock ptr, bint owner=*)
  * 
  * cdef class RKMatrix:             # <<<<<<<<<<<<<<
@@ -1310,12 +1472,12 @@ struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_Block {
 struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_RKMatrix {
   PyObject_HEAD
   struct __pyx_vtabstruct_18cmut_nonlinear_sim_4core_13libh2_classes_RKMatrix *__pyx_vtab;
-  prkmatrix ptr;
+  __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_prkmatrix ptr;
   int owner;
 };
 
 
-/* "libh2_classes.pxd":90
+/* "libh2_classes.pxd":111
  *     cdef wrap(prkmatrix ptr, bint owner=*)
  * 
  * cdef class HMatrix:             # <<<<<<<<<<<<<<
@@ -1325,7 +1487,7 @@ struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_RKMatrix {
 struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_HMatrix {
   PyObject_HEAD
   struct __pyx_vtabstruct_18cmut_nonlinear_sim_4core_13libh2_classes_HMatrix *__pyx_vtab;
-  phmatrix ptr;
+  __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_phmatrix ptr;
   int owner;
 };
 
@@ -1408,8 +1570,8 @@ struct __pyx_memoryviewslice_obj {
 
 
 
-/* "libh2_classes.pxd":20
- *     LINEAR = BASIS_LINEAR_BEM3D
+/* "libh2_classes.pxd":41
+ *     LINEAR = libh2.BASIS_LINEAR_BEM3D
  * 
  * cdef class Vector:             # <<<<<<<<<<<<<<
  *     cdef pavector ptr
@@ -1417,13 +1579,13 @@ struct __pyx_memoryviewslice_obj {
  */
 
 struct __pyx_vtabstruct_18cmut_nonlinear_sim_4core_13libh2_classes_Vector {
-  PyObject *(*_setup)(struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_Vector *, pavector, int);
-  PyObject *(*wrap)(pavector, struct __pyx_opt_args_18cmut_nonlinear_sim_4core_13libh2_classes_6Vector_wrap *__pyx_optional_args);
+  PyObject *(*_setup)(struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_Vector *, __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_pavector, int);
+  PyObject *(*wrap)(__pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_pavector, struct __pyx_opt_args_18cmut_nonlinear_sim_4core_13libh2_classes_6Vector_wrap *__pyx_optional_args);
 };
 static struct __pyx_vtabstruct_18cmut_nonlinear_sim_4core_13libh2_classes_Vector *__pyx_vtabptr_18cmut_nonlinear_sim_4core_13libh2_classes_Vector;
 
 
-/* "libh2_classes.pxd":28
+/* "libh2_classes.pxd":49
  *     cdef wrap(pavector ptr, bint owner=*)
  * 
  * cdef class Matrix:             # <<<<<<<<<<<<<<
@@ -1432,13 +1594,13 @@ static struct __pyx_vtabstruct_18cmut_nonlinear_sim_4core_13libh2_classes_Vector
  */
 
 struct __pyx_vtabstruct_18cmut_nonlinear_sim_4core_13libh2_classes_Matrix {
-  PyObject *(*_setup)(struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_Matrix *, pamatrix, int);
-  PyObject *(*wrap)(pamatrix, struct __pyx_opt_args_18cmut_nonlinear_sim_4core_13libh2_classes_6Matrix_wrap *__pyx_optional_args);
+  PyObject *(*_setup)(struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_Matrix *, __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_pamatrix, int);
+  PyObject *(*wrap)(__pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_pamatrix, struct __pyx_opt_args_18cmut_nonlinear_sim_4core_13libh2_classes_6Matrix_wrap *__pyx_optional_args);
 };
 static struct __pyx_vtabstruct_18cmut_nonlinear_sim_4core_13libh2_classes_Matrix *__pyx_vtabptr_18cmut_nonlinear_sim_4core_13libh2_classes_Matrix;
 
 
-/* "libh2_classes.pxd":36
+/* "libh2_classes.pxd":57
  *     cdef wrap(pamatrix ptr, bint owner=*)
  * 
  * cdef class Macrosurface:             # <<<<<<<<<<<<<<
@@ -1447,13 +1609,13 @@ static struct __pyx_vtabstruct_18cmut_nonlinear_sim_4core_13libh2_classes_Matrix
  */
 
 struct __pyx_vtabstruct_18cmut_nonlinear_sim_4core_13libh2_classes_Macrosurface {
-  PyObject *(*_setup)(struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_Macrosurface *, pmacrosurface3d, int);
-  PyObject *(*wrap)(pmacrosurface3d, struct __pyx_opt_args_18cmut_nonlinear_sim_4core_13libh2_classes_12Macrosurface_wrap *__pyx_optional_args);
+  PyObject *(*_setup)(struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_Macrosurface *, __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_pmacrosurface3d, int);
+  PyObject *(*wrap)(__pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_pmacrosurface3d, struct __pyx_opt_args_18cmut_nonlinear_sim_4core_13libh2_classes_12Macrosurface_wrap *__pyx_optional_args);
 };
 static struct __pyx_vtabstruct_18cmut_nonlinear_sim_4core_13libh2_classes_Macrosurface *__pyx_vtabptr_18cmut_nonlinear_sim_4core_13libh2_classes_Macrosurface;
 
 
-/* "libh2_classes.pxd":47
+/* "libh2_classes.pxd":68
  *     cdef wrap(pmacrosurface3d ptr, bint owner=*)
  * 
  * cdef class Surface:             # <<<<<<<<<<<<<<
@@ -1462,13 +1624,13 @@ static struct __pyx_vtabstruct_18cmut_nonlinear_sim_4core_13libh2_classes_Macros
  */
 
 struct __pyx_vtabstruct_18cmut_nonlinear_sim_4core_13libh2_classes_Surface {
-  PyObject *(*_setup)(struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_Surface *, psurface3d, int);
-  PyObject *(*wrap)(psurface3d, struct __pyx_opt_args_18cmut_nonlinear_sim_4core_13libh2_classes_7Surface_wrap *__pyx_optional_args);
+  PyObject *(*_setup)(struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_Surface *, __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_psurface3d, int);
+  PyObject *(*wrap)(__pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_psurface3d, struct __pyx_opt_args_18cmut_nonlinear_sim_4core_13libh2_classes_7Surface_wrap *__pyx_optional_args);
 };
 static struct __pyx_vtabstruct_18cmut_nonlinear_sim_4core_13libh2_classes_Surface *__pyx_vtabptr_18cmut_nonlinear_sim_4core_13libh2_classes_Surface;
 
 
-/* "libh2_classes.pxd":59
+/* "libh2_classes.pxd":80
  *     cdef wrap(psurface3d ptr, bint owner=*)
  * 
  * cdef class Bem:             # <<<<<<<<<<<<<<
@@ -1477,13 +1639,13 @@ static struct __pyx_vtabstruct_18cmut_nonlinear_sim_4core_13libh2_classes_Surfac
  */
 
 struct __pyx_vtabstruct_18cmut_nonlinear_sim_4core_13libh2_classes_Bem {
-  PyObject *(*_setup)(struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_Bem *, pbem3d, int);
-  PyObject *(*wrap)(pbem3d, struct __pyx_opt_args_18cmut_nonlinear_sim_4core_13libh2_classes_3Bem_wrap *__pyx_optional_args);
+  PyObject *(*_setup)(struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_Bem *, __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_pbem3d, int);
+  PyObject *(*wrap)(__pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_pbem3d, struct __pyx_opt_args_18cmut_nonlinear_sim_4core_13libh2_classes_3Bem_wrap *__pyx_optional_args);
 };
 static struct __pyx_vtabstruct_18cmut_nonlinear_sim_4core_13libh2_classes_Bem *__pyx_vtabptr_18cmut_nonlinear_sim_4core_13libh2_classes_Bem;
 
 
-/* "libh2_classes.pxd":66
+/* "libh2_classes.pxd":87
  *     cdef wrap(pbem3d ptr, bint owner=*)
  * 
  * cdef class Cluster:             # <<<<<<<<<<<<<<
@@ -1492,13 +1654,13 @@ static struct __pyx_vtabstruct_18cmut_nonlinear_sim_4core_13libh2_classes_Bem *_
  */
 
 struct __pyx_vtabstruct_18cmut_nonlinear_sim_4core_13libh2_classes_Cluster {
-  PyObject *(*_setup)(struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_Cluster *, pcluster, int);
-  PyObject *(*wrap)(pcluster, struct __pyx_opt_args_18cmut_nonlinear_sim_4core_13libh2_classes_7Cluster_wrap *__pyx_optional_args);
+  PyObject *(*_setup)(struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_Cluster *, __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_pcluster, int);
+  PyObject *(*wrap)(__pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_pcluster, struct __pyx_opt_args_18cmut_nonlinear_sim_4core_13libh2_classes_7Cluster_wrap *__pyx_optional_args);
 };
 static struct __pyx_vtabstruct_18cmut_nonlinear_sim_4core_13libh2_classes_Cluster *__pyx_vtabptr_18cmut_nonlinear_sim_4core_13libh2_classes_Cluster;
 
 
-/* "libh2_classes.pxd":76
+/* "libh2_classes.pxd":97
  *     cdef wrap(pcluster ptr, bint owner=*)
  * 
  * cdef class Block:             # <<<<<<<<<<<<<<
@@ -1507,13 +1669,13 @@ static struct __pyx_vtabstruct_18cmut_nonlinear_sim_4core_13libh2_classes_Cluste
  */
 
 struct __pyx_vtabstruct_18cmut_nonlinear_sim_4core_13libh2_classes_Block {
-  PyObject *(*_setup)(struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_Block *, pblock, int);
-  PyObject *(*wrap)(pblock, struct __pyx_opt_args_18cmut_nonlinear_sim_4core_13libh2_classes_5Block_wrap *__pyx_optional_args);
+  PyObject *(*_setup)(struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_Block *, __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_pblock, int);
+  PyObject *(*wrap)(__pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_pblock, struct __pyx_opt_args_18cmut_nonlinear_sim_4core_13libh2_classes_5Block_wrap *__pyx_optional_args);
 };
 static struct __pyx_vtabstruct_18cmut_nonlinear_sim_4core_13libh2_classes_Block *__pyx_vtabptr_18cmut_nonlinear_sim_4core_13libh2_classes_Block;
 
 
-/* "libh2_classes.pxd":83
+/* "libh2_classes.pxd":104
  *     cdef wrap(pblock ptr, bint owner=*)
  * 
  * cdef class RKMatrix:             # <<<<<<<<<<<<<<
@@ -1522,13 +1684,13 @@ static struct __pyx_vtabstruct_18cmut_nonlinear_sim_4core_13libh2_classes_Block 
  */
 
 struct __pyx_vtabstruct_18cmut_nonlinear_sim_4core_13libh2_classes_RKMatrix {
-  PyObject *(*_setup)(struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_RKMatrix *, prkmatrix, int);
-  PyObject *(*wrap)(prkmatrix, struct __pyx_opt_args_18cmut_nonlinear_sim_4core_13libh2_classes_8RKMatrix_wrap *__pyx_optional_args);
+  PyObject *(*_setup)(struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_RKMatrix *, __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_prkmatrix, int);
+  PyObject *(*wrap)(__pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_prkmatrix, struct __pyx_opt_args_18cmut_nonlinear_sim_4core_13libh2_classes_8RKMatrix_wrap *__pyx_optional_args);
 };
 static struct __pyx_vtabstruct_18cmut_nonlinear_sim_4core_13libh2_classes_RKMatrix *__pyx_vtabptr_18cmut_nonlinear_sim_4core_13libh2_classes_RKMatrix;
 
 
-/* "libh2_classes.pxd":90
+/* "libh2_classes.pxd":111
  *     cdef wrap(prkmatrix ptr, bint owner=*)
  * 
  * cdef class HMatrix:             # <<<<<<<<<<<<<<
@@ -1537,8 +1699,8 @@ static struct __pyx_vtabstruct_18cmut_nonlinear_sim_4core_13libh2_classes_RKMatr
  */
 
 struct __pyx_vtabstruct_18cmut_nonlinear_sim_4core_13libh2_classes_HMatrix {
-  PyObject *(*_setup)(struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_HMatrix *, phmatrix, int);
-  PyObject *(*wrap)(phmatrix, struct __pyx_opt_args_18cmut_nonlinear_sim_4core_13libh2_classes_7HMatrix_wrap *__pyx_optional_args);
+  PyObject *(*_setup)(struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_HMatrix *, __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_phmatrix, int);
+  PyObject *(*wrap)(__pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_phmatrix, struct __pyx_opt_args_18cmut_nonlinear_sim_4core_13libh2_classes_7HMatrix_wrap *__pyx_optional_args);
 };
 static struct __pyx_vtabstruct_18cmut_nonlinear_sim_4core_13libh2_classes_HMatrix *__pyx_vtabptr_18cmut_nonlinear_sim_4core_13libh2_classes_HMatrix;
 
@@ -1672,6 +1834,13 @@ static int __Pyx_ParseOptionalKeywords(PyObject *kwds, PyObject **argnames[],\
         __Pyx__ArgTypeTest(obj, type, name, exact))
 static int __Pyx__ArgTypeTest(PyObject *obj, PyTypeObject *type, const char *name, int exact);
 
+/* PyObjectCall.proto */
+#if CYTHON_COMPILING_IN_CPYTHON
+static CYTHON_INLINE PyObject* __Pyx_PyObject_Call(PyObject *func, PyObject *arg, PyObject *kw);
+#else
+#define __Pyx_PyObject_Call(func, arg, kw) PyObject_Call(func, arg, kw)
+#endif
+
 /* PyObjectGetAttrStr.proto */
 #if CYTHON_USE_TYPE_SLOTS
 static CYTHON_INLINE PyObject* __Pyx_PyObject_GetAttrStr(PyObject* obj, PyObject* attr_name);
@@ -1679,15 +1848,53 @@ static CYTHON_INLINE PyObject* __Pyx_PyObject_GetAttrStr(PyObject* obj, PyObject
 #define __Pyx_PyObject_GetAttrStr(o,n) PyObject_GetAttr(o,n)
 #endif
 
+/* UnpackUnboundCMethod.proto */
+typedef struct {
+    PyObject *type;
+    PyObject **method_name;
+    PyCFunction func;
+    PyObject *method;
+    int flag;
+} __Pyx_CachedCFunction;
+
+/* CallUnboundCMethod0.proto */
+static PyObject* __Pyx__CallUnboundCMethod0(__Pyx_CachedCFunction* cfunc, PyObject* self);
+#if CYTHON_COMPILING_IN_CPYTHON
+#define __Pyx_CallUnboundCMethod0(cfunc, self)\
+    (likely((cfunc)->func) ?\
+        (likely((cfunc)->flag == METH_NOARGS) ?  (*((cfunc)->func))(self, NULL) :\
+         (PY_VERSION_HEX >= 0x030600B1 && likely((cfunc)->flag == METH_FASTCALL) ?\
+            (PY_VERSION_HEX >= 0x030700A0 ?\
+                (*(__Pyx_PyCFunctionFast)(void*)(PyCFunction)(cfunc)->func)(self, &__pyx_empty_tuple, 0) :\
+                (*(__Pyx_PyCFunctionFastWithKeywords)(void*)(PyCFunction)(cfunc)->func)(self, &__pyx_empty_tuple, 0, NULL)) :\
+          (PY_VERSION_HEX >= 0x030700A0 && (cfunc)->flag == (METH_FASTCALL | METH_KEYWORDS) ?\
+            (*(__Pyx_PyCFunctionFastWithKeywords)(void*)(PyCFunction)(cfunc)->func)(self, &__pyx_empty_tuple, 0, NULL) :\
+            (likely((cfunc)->flag == (METH_VARARGS | METH_KEYWORDS)) ?  ((*(PyCFunctionWithKeywords)(void*)(PyCFunction)(cfunc)->func)(self, __pyx_empty_tuple, NULL)) :\
+               ((cfunc)->flag == METH_VARARGS ?  (*((cfunc)->func))(self, __pyx_empty_tuple) :\
+               __Pyx__CallUnboundCMethod0(cfunc, self)))))) :\
+        __Pyx__CallUnboundCMethod0(cfunc, self))
+#else
+#define __Pyx_CallUnboundCMethod0(cfunc, self)  __Pyx__CallUnboundCMethod0(cfunc, self)
+#endif
+
+/* IncludeStringH.proto */
+#include <string.h>
+
+/* BytesEquals.proto */
+static CYTHON_INLINE int __Pyx_PyBytes_Equals(PyObject* s1, PyObject* s2, int equals);
+
+/* UnicodeEquals.proto */
+static CYTHON_INLINE int __Pyx_PyUnicode_Equals(PyObject* s1, PyObject* s2, int equals);
+
+/* StrEquals.proto */
+#if PY_MAJOR_VERSION >= 3
+#define __Pyx_PyString_Equals __Pyx_PyUnicode_Equals
+#else
+#define __Pyx_PyString_Equals __Pyx_PyBytes_Equals
+#endif
+
 /* GetBuiltinName.proto */
 static PyObject *__Pyx_GetBuiltinName(PyObject *name);
-
-/* PyObjectCall.proto */
-#if CYTHON_COMPILING_IN_CPYTHON
-static CYTHON_INLINE PyObject* __Pyx_PyObject_Call(PyObject *func, PyObject *arg, PyObject *kw);
-#else
-#define __Pyx_PyObject_Call(func, arg, kw) PyObject_Call(func, arg, kw)
-#endif
 
 /* PyThreadStateGet.proto */
 #if CYTHON_FAST_THREAD_STATE
@@ -1768,22 +1975,6 @@ static CYTHON_INLINE PyObject* __Pyx_PyObject_CallMethO(PyObject *func, PyObject
 
 /* PyObjectCallOneArg.proto */
 static CYTHON_INLINE PyObject* __Pyx_PyObject_CallOneArg(PyObject *func, PyObject *arg);
-
-/* IncludeStringH.proto */
-#include <string.h>
-
-/* BytesEquals.proto */
-static CYTHON_INLINE int __Pyx_PyBytes_Equals(PyObject* s1, PyObject* s2, int equals);
-
-/* UnicodeEquals.proto */
-static CYTHON_INLINE int __Pyx_PyUnicode_Equals(PyObject* s1, PyObject* s2, int equals);
-
-/* StrEquals.proto */
-#if PY_MAJOR_VERSION >= 3
-#define __Pyx_PyString_Equals __Pyx_PyUnicode_Equals
-#else
-#define __Pyx_PyString_Equals __Pyx_PyBytes_Equals
-#endif
 
 /* None.proto */
 static CYTHON_INLINE Py_ssize_t __Pyx_div_Py_ssize_t(Py_ssize_t, Py_ssize_t);
@@ -2239,6 +2430,8 @@ static PyObject *__pyx_memoryview_assign_item_from_object(struct __pyx_memoryvie
 static PyObject *__pyx_memoryviewslice_convert_item_to_object(struct __pyx_memoryviewslice_obj *__pyx_v_self, char *__pyx_v_itemp); /* proto*/
 static PyObject *__pyx_memoryviewslice_assign_item_from_object(struct __pyx_memoryviewslice_obj *__pyx_v_self, char *__pyx_v_itemp, PyObject *__pyx_v_value); /* proto*/
 
+/* Module declarations from 'cmut_nonlinear_sim.core' */
+
 /* Module declarations from 'cmut_nonlinear_sim.core.basic' */
 
 /* Module declarations from 'cmut_nonlinear_sim.core.avector' */
@@ -2259,6 +2452,10 @@ static PyObject *__pyx_memoryviewslice_assign_item_from_object(struct __pyx_memo
 
 /* Module declarations from 'cmut_nonlinear_sim.core.bem3d' */
 
+/* Module declarations from 'cmut_nonlinear_sim.core.helmholtzbem3d' */
+
+/* Module declarations from 'cmut_nonlinear_sim.core.libh2' */
+
 /* Module declarations from 'cmut_nonlinear_sim.core.libh2_classes' */
 static PyTypeObject *__pyx_ptype_18cmut_nonlinear_sim_4core_13libh2_classes_Vector = 0;
 static PyTypeObject *__pyx_ptype_18cmut_nonlinear_sim_4core_13libh2_classes_Matrix = 0;
@@ -2269,8 +2466,6 @@ static PyTypeObject *__pyx_ptype_18cmut_nonlinear_sim_4core_13libh2_classes_Clus
 static PyTypeObject *__pyx_ptype_18cmut_nonlinear_sim_4core_13libh2_classes_Block = 0;
 static PyTypeObject *__pyx_ptype_18cmut_nonlinear_sim_4core_13libh2_classes_RKMatrix = 0;
 static PyTypeObject *__pyx_ptype_18cmut_nonlinear_sim_4core_13libh2_classes_HMatrix = 0;
-
-/* Module declarations from 'cmut_nonlinear_sim.core.helmholtzbem3d' */
 
 /* Module declarations from 'cmut_nonlinear_sim.core.libh2_functions' */
 static PyTypeObject *__pyx_array_type = 0;
@@ -2284,8 +2479,12 @@ static PyObject *contiguous = 0;
 static PyObject *indirect_contiguous = 0;
 static int __pyx_memoryview_thread_locks_used;
 static PyThread_type_lock __pyx_memoryview_thread_locks[8];
-static PyObject *__pyx_f_18cmut_nonlinear_sim_4core_15libh2_functions_build_from_macrosurface_surface(struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_Macrosurface *, __pyx_t_18cmut_nonlinear_sim_4core_5basic_uint, int __pyx_skip_dispatch); /*proto*/
-static PyObject *__pyx_f_18cmut_nonlinear_sim_4core_15libh2_functions_new_slp_bem(__pyx_t_double_complex, struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_Surface *, __pyx_t_18cmut_nonlinear_sim_4core_5basic_uint, __pyx_t_18cmut_nonlinear_sim_4core_5basic_uint, enum __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_basistype, enum __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_basistype, int __pyx_skip_dispatch); /*proto*/
+static PyObject *__pyx_f_18cmut_nonlinear_sim_4core_15libh2_functions_build_from_macrosurface3d_surface3d(struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_Macrosurface *, __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_uint, int __pyx_skip_dispatch); /*proto*/
+static PyObject *__pyx_f_18cmut_nonlinear_sim_4core_15libh2_functions_new_slp_helmholtz_bem3d(__pyx_t_double_complex, struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_Surface *, __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_uint, __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_uint, enum __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_basistype, enum __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_basistype, int __pyx_skip_dispatch); /*proto*/
+static PyObject *__pyx_f_18cmut_nonlinear_sim_4core_15libh2_functions_new_dlp_helmholtz_bem3d(__pyx_t_double_complex, struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_Surface *, __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_uint, __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_uint, enum __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_basistype, enum __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_basistype, __pyx_t_double_complex, int __pyx_skip_dispatch); /*proto*/
+static PyObject *__pyx_f_18cmut_nonlinear_sim_4core_15libh2_functions_build_bem3d_cluster(struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_Bem *, __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_uint, enum __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_basistype, int __pyx_skip_dispatch); /*proto*/
+static PyObject *__pyx_f_18cmut_nonlinear_sim_4core_15libh2_functions_build_nonstrict_block(struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_Cluster *, struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_Cluster *, __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_real, PyObject *, int __pyx_skip_dispatch); /*proto*/
+static PyObject *__pyx_f_18cmut_nonlinear_sim_4core_15libh2_functions_setup_hmatrix_aprx_paca_bem3d(struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_Bem *, struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_Cluster *, struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_Cluster *, struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_Block *, __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_real, int __pyx_skip_dispatch); /*proto*/
 static struct __pyx_array_obj *__pyx_array_new(PyObject *, Py_ssize_t, char *, char *, char *); /*proto*/
 static void *__pyx_align_pointer(void *, size_t); /*proto*/
 static PyObject *__pyx_memoryview_new(PyObject *, int, int, __Pyx_TypeInfo *); /*proto*/
@@ -2332,11 +2531,17 @@ static PyObject *__pyx_builtin_TypeError;
 static PyObject *__pyx_builtin_Ellipsis;
 static PyObject *__pyx_builtin_id;
 static PyObject *__pyx_builtin_IndexError;
+static const char __pyx_k_2[] = "2";
 static const char __pyx_k_O[] = "O";
 static const char __pyx_k_c[] = "c";
 static const char __pyx_k_k[] = "k";
+static const char __pyx_k_cc[] = "cc";
 static const char __pyx_k_id[] = "id";
 static const char __pyx_k_ms[] = "ms";
+static const char __pyx_k_rc[] = "rc";
+static const char __pyx_k_bem[] = "bem";
+static const char __pyx_k_clf[] = "clf";
+static const char __pyx_k_eta[] = "eta";
 static const char __pyx_k_new[] = "__new__";
 static const char __pyx_k_obj[] = "obj";
 static const char __pyx_k_base[] = "base";
@@ -2352,10 +2557,15 @@ static const char __pyx_k_step[] = "step";
 static const char __pyx_k_stop[] = "stop";
 static const char __pyx_k_surf[] = "surf";
 static const char __pyx_k_test[] = "__test__";
+static const char __pyx_k_tree[] = "tree";
 static const char __pyx_k_ASCII[] = "ASCII";
+static const char __pyx_k_accur[] = "accur";
+static const char __pyx_k_alpha[] = "alpha";
+static const char __pyx_k_basis[] = "basis";
 static const char __pyx_k_class[] = "__class__";
 static const char __pyx_k_error[] = "error";
 static const char __pyx_k_flags[] = "flags";
+static const char __pyx_k_lower[] = "lower";
 static const char __pyx_k_range[] = "range";
 static const char __pyx_k_shape[] = "shape";
 static const char __pyx_k_start[] = "start";
@@ -2384,7 +2594,8 @@ static const char __pyx_k_reduce_ex[] = "__reduce_ex__";
 static const char __pyx_k_row_basis[] = "row_basis";
 static const char __pyx_k_IndexError[] = "IndexError";
 static const char __pyx_k_ValueError[] = "ValueError";
-static const char __pyx_k_init_libh2[] = "init_libh2";
+static const char __pyx_k_init_h2lib[] = "init_h2lib";
+static const char __pyx_k_maxcluster[] = "maxcluster";
 static const char __pyx_k_pyx_result[] = "__pyx_result";
 static const char __pyx_k_pyx_vtable[] = "__pyx_vtable__";
 static const char __pyx_k_q_singular[] = "q_singular";
@@ -2392,7 +2603,8 @@ static const char __pyx_k_MemoryError[] = "MemoryError";
 static const char __pyx_k_PickleError[] = "PickleError";
 static const char __pyx_k_pyx_checksum[] = "__pyx_checksum";
 static const char __pyx_k_stringsource[] = "stringsource";
-static const char __pyx_k_uninit_libh2[] = "uninit_libh2";
+static const char __pyx_k_uninit_h2lib[] = "uninit_h2lib";
+static const char __pyx_k_admissibility[] = "admissibility";
 static const char __pyx_k_pyx_getbuffer[] = "__pyx_getbuffer";
 static const char __pyx_k_reduce_cython[] = "__reduce_cython__";
 static const char __pyx_k_View_MemoryView[] = "View.MemoryView";
@@ -2428,6 +2640,7 @@ static const char __pyx_k_got_differing_extents_in_dimensi[] = "got differing ex
 static const char __pyx_k_no_default___reduce___due_to_non[] = "no default __reduce__ due to non-trivial __cinit__";
 static const char __pyx_k_unable_to_allocate_shape_and_str[] = "unable to allocate shape and strides.";
 static const char __pyx_k_cmut_nonlinear_sim_core_libh2_fu_2[] = "cmut_nonlinear_sim.core.libh2_functions";
+static PyObject *__pyx_kp_s_2;
 static PyObject *__pyx_n_s_ASCII;
 static PyObject *__pyx_kp_s_Buffer_view_does_not_expose_stri;
 static PyObject *__pyx_kp_s_Can_only_create_a_buffer_that_is;
@@ -2451,11 +2664,18 @@ static PyObject *__pyx_n_s_TypeError;
 static PyObject *__pyx_kp_s_Unable_to_convert_item_to_object;
 static PyObject *__pyx_n_s_ValueError;
 static PyObject *__pyx_n_s_View_MemoryView;
+static PyObject *__pyx_n_s_accur;
+static PyObject *__pyx_n_s_admissibility;
 static PyObject *__pyx_n_s_allocate_buffer;
+static PyObject *__pyx_n_s_alpha;
 static PyObject *__pyx_n_s_base;
+static PyObject *__pyx_n_s_basis;
+static PyObject *__pyx_n_s_bem;
 static PyObject *__pyx_n_s_c;
 static PyObject *__pyx_n_u_c;
+static PyObject *__pyx_n_s_cc;
 static PyObject *__pyx_n_s_class;
+static PyObject *__pyx_n_s_clf;
 static PyObject *__pyx_n_s_cline_in_traceback;
 static PyObject *__pyx_kp_s_cmut_nonlinear_sim_core_libh2_fu;
 static PyObject *__pyx_n_s_cmut_nonlinear_sim_core_libh2_fu_2;
@@ -2467,6 +2687,7 @@ static PyObject *__pyx_n_s_dtype_is_object;
 static PyObject *__pyx_n_s_encode;
 static PyObject *__pyx_n_s_enumerate;
 static PyObject *__pyx_n_s_error;
+static PyObject *__pyx_n_s_eta;
 static PyObject *__pyx_n_s_flags;
 static PyObject *__pyx_n_s_format;
 static PyObject *__pyx_n_s_fortran;
@@ -2475,11 +2696,13 @@ static PyObject *__pyx_n_s_getstate;
 static PyObject *__pyx_kp_s_got_differing_extents_in_dimensi;
 static PyObject *__pyx_n_s_id;
 static PyObject *__pyx_n_s_import;
-static PyObject *__pyx_n_s_init_libh2;
+static PyObject *__pyx_n_s_init_h2lib;
 static PyObject *__pyx_n_s_itemsize;
 static PyObject *__pyx_kp_s_itemsize_0_for_cython_array;
 static PyObject *__pyx_n_s_k;
+static PyObject *__pyx_n_s_lower;
 static PyObject *__pyx_n_s_main;
+static PyObject *__pyx_n_s_maxcluster;
 static PyObject *__pyx_n_s_memview;
 static PyObject *__pyx_n_s_mode;
 static PyObject *__pyx_n_s_ms;
@@ -2502,6 +2725,7 @@ static PyObject *__pyx_n_s_pyx_vtable;
 static PyObject *__pyx_n_s_q_regular;
 static PyObject *__pyx_n_s_q_singular;
 static PyObject *__pyx_n_s_range;
+static PyObject *__pyx_n_s_rc;
 static PyObject *__pyx_n_s_reduce;
 static PyObject *__pyx_n_s_reduce_cython;
 static PyObject *__pyx_n_s_reduce_ex;
@@ -2521,15 +2745,20 @@ static PyObject *__pyx_kp_s_stringsource;
 static PyObject *__pyx_n_s_struct;
 static PyObject *__pyx_n_s_surf;
 static PyObject *__pyx_n_s_test;
+static PyObject *__pyx_n_s_tree;
 static PyObject *__pyx_kp_s_unable_to_allocate_array_data;
 static PyObject *__pyx_kp_s_unable_to_allocate_shape_and_str;
-static PyObject *__pyx_n_s_uninit_libh2;
+static PyObject *__pyx_n_s_uninit_h2lib;
 static PyObject *__pyx_n_s_unpack;
 static PyObject *__pyx_n_s_update;
-static PyObject *__pyx_pf_18cmut_nonlinear_sim_4core_15libh2_functions_init_libh2(CYTHON_UNUSED PyObject *__pyx_self); /* proto */
-static PyObject *__pyx_pf_18cmut_nonlinear_sim_4core_15libh2_functions_2uninit_libh2(CYTHON_UNUSED PyObject *__pyx_self); /* proto */
-static PyObject *__pyx_pf_18cmut_nonlinear_sim_4core_15libh2_functions_4build_from_macrosurface_surface(CYTHON_UNUSED PyObject *__pyx_self, struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_Macrosurface *__pyx_v_ms, __pyx_t_18cmut_nonlinear_sim_4core_5basic_uint __pyx_v_refn); /* proto */
-static PyObject *__pyx_pf_18cmut_nonlinear_sim_4core_15libh2_functions_6new_slp_bem(CYTHON_UNUSED PyObject *__pyx_self, __pyx_t_double_complex __pyx_v_k, struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_Surface *__pyx_v_surf, __pyx_t_18cmut_nonlinear_sim_4core_5basic_uint __pyx_v_q_regular, __pyx_t_18cmut_nonlinear_sim_4core_5basic_uint __pyx_v_q_singular, enum __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_basistype __pyx_v_row_basis, enum __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_basistype __pyx_v_col_basis); /* proto */
+static PyObject *__pyx_pf_18cmut_nonlinear_sim_4core_15libh2_functions_init_h2lib(CYTHON_UNUSED PyObject *__pyx_self); /* proto */
+static PyObject *__pyx_pf_18cmut_nonlinear_sim_4core_15libh2_functions_2uninit_h2lib(CYTHON_UNUSED PyObject *__pyx_self); /* proto */
+static PyObject *__pyx_pf_18cmut_nonlinear_sim_4core_15libh2_functions_4build_from_macrosurface3d_surface3d(CYTHON_UNUSED PyObject *__pyx_self, struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_Macrosurface *__pyx_v_ms, __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_uint __pyx_v_refn); /* proto */
+static PyObject *__pyx_pf_18cmut_nonlinear_sim_4core_15libh2_functions_6new_slp_helmholtz_bem3d(CYTHON_UNUSED PyObject *__pyx_self, __pyx_t_double_complex __pyx_v_k, struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_Surface *__pyx_v_surf, __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_uint __pyx_v_q_regular, __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_uint __pyx_v_q_singular, enum __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_basistype __pyx_v_row_basis, enum __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_basistype __pyx_v_col_basis); /* proto */
+static PyObject *__pyx_pf_18cmut_nonlinear_sim_4core_15libh2_functions_8new_dlp_helmholtz_bem3d(CYTHON_UNUSED PyObject *__pyx_self, __pyx_t_double_complex __pyx_v_k, struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_Surface *__pyx_v_surf, __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_uint __pyx_v_q_regular, __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_uint __pyx_v_q_singular, enum __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_basistype __pyx_v_row_basis, enum __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_basistype __pyx_v_col_basis, __pyx_t_double_complex __pyx_v_alpha); /* proto */
+static PyObject *__pyx_pf_18cmut_nonlinear_sim_4core_15libh2_functions_10build_bem3d_cluster(CYTHON_UNUSED PyObject *__pyx_self, struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_Bem *__pyx_v_bem, __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_uint __pyx_v_clf, enum __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_basistype __pyx_v_basis); /* proto */
+static PyObject *__pyx_pf_18cmut_nonlinear_sim_4core_15libh2_functions_12build_nonstrict_block(CYTHON_UNUSED PyObject *__pyx_self, struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_Cluster *__pyx_v_rc, struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_Cluster *__pyx_v_cc, __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_real __pyx_v_eta, PyObject *__pyx_v_admissibility); /* proto */
+static PyObject *__pyx_pf_18cmut_nonlinear_sim_4core_15libh2_functions_14setup_hmatrix_aprx_paca_bem3d(CYTHON_UNUSED PyObject *__pyx_self, struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_Bem *__pyx_v_bem, struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_Cluster *__pyx_v_rc, struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_Cluster *__pyx_v_cc, struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_Block *__pyx_v_tree, __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_real __pyx_v_accur); /* proto */
 static int __pyx_array___pyx_pf_15View_dot_MemoryView_5array___cinit__(struct __pyx_array_obj *__pyx_v_self, PyObject *__pyx_v_shape, Py_ssize_t __pyx_v_itemsize, PyObject *__pyx_v_format, PyObject *__pyx_v_mode, int __pyx_v_allocate_buffer); /* proto */
 static int __pyx_array___pyx_pf_15View_dot_MemoryView_5array_2__getbuffer__(struct __pyx_array_obj *__pyx_v_self, Py_buffer *__pyx_v_info, int __pyx_v_flags); /* proto */
 static void __pyx_array___pyx_pf_15View_dot_MemoryView_5array_4__dealloc__(struct __pyx_array_obj *__pyx_v_self); /* proto */
@@ -2576,6 +2805,7 @@ static PyObject *__pyx_tp_new_array(PyTypeObject *t, PyObject *a, PyObject *k); 
 static PyObject *__pyx_tp_new_Enum(PyTypeObject *t, PyObject *a, PyObject *k); /*proto*/
 static PyObject *__pyx_tp_new_memoryview(PyTypeObject *t, PyObject *a, PyObject *k); /*proto*/
 static PyObject *__pyx_tp_new__memoryviewslice(PyTypeObject *t, PyObject *a, PyObject *k); /*proto*/
+static __Pyx_CachedCFunction __pyx_umethod_PyString_Type_lower = {0, &__pyx_n_s_lower, 0, 0, 0};
 static PyObject *__pyx_int_0;
 static PyObject *__pyx_int_1;
 static PyObject *__pyx_int_184977713;
@@ -2609,47 +2839,47 @@ static PyObject *__pyx_codeobj__20;
 static PyObject *__pyx_codeobj__27;
 /* Late includes */
 
-/* "cmut_nonlinear_sim/core/libh2_functions.pyx":6
- * from . helmholtzbem3d cimport *
+/* "cmut_nonlinear_sim/core/libh2_functions.pyx":7
  * 
- * def init_libh2():             # <<<<<<<<<<<<<<
- *     init_h2lib(NULL, NULL)
+ * 
+ * def init_h2lib():             # <<<<<<<<<<<<<<
+ *     libh2.init_h2lib(NULL, NULL)
  * 
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_18cmut_nonlinear_sim_4core_15libh2_functions_1init_libh2(PyObject *__pyx_self, CYTHON_UNUSED PyObject *unused); /*proto*/
-static PyMethodDef __pyx_mdef_18cmut_nonlinear_sim_4core_15libh2_functions_1init_libh2 = {"init_libh2", (PyCFunction)__pyx_pw_18cmut_nonlinear_sim_4core_15libh2_functions_1init_libh2, METH_NOARGS, 0};
-static PyObject *__pyx_pw_18cmut_nonlinear_sim_4core_15libh2_functions_1init_libh2(PyObject *__pyx_self, CYTHON_UNUSED PyObject *unused) {
+static PyObject *__pyx_pw_18cmut_nonlinear_sim_4core_15libh2_functions_1init_h2lib(PyObject *__pyx_self, CYTHON_UNUSED PyObject *unused); /*proto*/
+static PyMethodDef __pyx_mdef_18cmut_nonlinear_sim_4core_15libh2_functions_1init_h2lib = {"init_h2lib", (PyCFunction)__pyx_pw_18cmut_nonlinear_sim_4core_15libh2_functions_1init_h2lib, METH_NOARGS, 0};
+static PyObject *__pyx_pw_18cmut_nonlinear_sim_4core_15libh2_functions_1init_h2lib(PyObject *__pyx_self, CYTHON_UNUSED PyObject *unused) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
-  __Pyx_RefNannySetupContext("init_libh2 (wrapper)", 0);
-  __pyx_r = __pyx_pf_18cmut_nonlinear_sim_4core_15libh2_functions_init_libh2(__pyx_self);
+  __Pyx_RefNannySetupContext("init_h2lib (wrapper)", 0);
+  __pyx_r = __pyx_pf_18cmut_nonlinear_sim_4core_15libh2_functions_init_h2lib(__pyx_self);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_18cmut_nonlinear_sim_4core_15libh2_functions_init_libh2(CYTHON_UNUSED PyObject *__pyx_self) {
+static PyObject *__pyx_pf_18cmut_nonlinear_sim_4core_15libh2_functions_init_h2lib(CYTHON_UNUSED PyObject *__pyx_self) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
-  __Pyx_RefNannySetupContext("init_libh2", 0);
+  __Pyx_RefNannySetupContext("init_h2lib", 0);
 
-  /* "cmut_nonlinear_sim/core/libh2_functions.pyx":7
+  /* "cmut_nonlinear_sim/core/libh2_functions.pyx":8
  * 
- * def init_libh2():
- *     init_h2lib(NULL, NULL)             # <<<<<<<<<<<<<<
+ * def init_h2lib():
+ *     libh2.init_h2lib(NULL, NULL)             # <<<<<<<<<<<<<<
  * 
- * def uninit_libh2():
+ * 
  */
   init_h2lib(NULL, NULL);
 
-  /* "cmut_nonlinear_sim/core/libh2_functions.pyx":6
- * from . helmholtzbem3d cimport *
+  /* "cmut_nonlinear_sim/core/libh2_functions.pyx":7
  * 
- * def init_libh2():             # <<<<<<<<<<<<<<
- *     init_h2lib(NULL, NULL)
+ * 
+ * def init_h2lib():             # <<<<<<<<<<<<<<
+ *     libh2.init_h2lib(NULL, NULL)
  * 
  */
 
@@ -2660,47 +2890,47 @@ static PyObject *__pyx_pf_18cmut_nonlinear_sim_4core_15libh2_functions_init_libh
   return __pyx_r;
 }
 
-/* "cmut_nonlinear_sim/core/libh2_functions.pyx":9
- *     init_h2lib(NULL, NULL)
+/* "cmut_nonlinear_sim/core/libh2_functions.pyx":11
  * 
- * def uninit_libh2():             # <<<<<<<<<<<<<<
- *     uninit_h2lib()
+ * 
+ * def uninit_h2lib():             # <<<<<<<<<<<<<<
+ *     libh2.uninit_h2lib()
  * 
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_18cmut_nonlinear_sim_4core_15libh2_functions_3uninit_libh2(PyObject *__pyx_self, CYTHON_UNUSED PyObject *unused); /*proto*/
-static PyMethodDef __pyx_mdef_18cmut_nonlinear_sim_4core_15libh2_functions_3uninit_libh2 = {"uninit_libh2", (PyCFunction)__pyx_pw_18cmut_nonlinear_sim_4core_15libh2_functions_3uninit_libh2, METH_NOARGS, 0};
-static PyObject *__pyx_pw_18cmut_nonlinear_sim_4core_15libh2_functions_3uninit_libh2(PyObject *__pyx_self, CYTHON_UNUSED PyObject *unused) {
+static PyObject *__pyx_pw_18cmut_nonlinear_sim_4core_15libh2_functions_3uninit_h2lib(PyObject *__pyx_self, CYTHON_UNUSED PyObject *unused); /*proto*/
+static PyMethodDef __pyx_mdef_18cmut_nonlinear_sim_4core_15libh2_functions_3uninit_h2lib = {"uninit_h2lib", (PyCFunction)__pyx_pw_18cmut_nonlinear_sim_4core_15libh2_functions_3uninit_h2lib, METH_NOARGS, 0};
+static PyObject *__pyx_pw_18cmut_nonlinear_sim_4core_15libh2_functions_3uninit_h2lib(PyObject *__pyx_self, CYTHON_UNUSED PyObject *unused) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
-  __Pyx_RefNannySetupContext("uninit_libh2 (wrapper)", 0);
-  __pyx_r = __pyx_pf_18cmut_nonlinear_sim_4core_15libh2_functions_2uninit_libh2(__pyx_self);
+  __Pyx_RefNannySetupContext("uninit_h2lib (wrapper)", 0);
+  __pyx_r = __pyx_pf_18cmut_nonlinear_sim_4core_15libh2_functions_2uninit_h2lib(__pyx_self);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_18cmut_nonlinear_sim_4core_15libh2_functions_2uninit_libh2(CYTHON_UNUSED PyObject *__pyx_self) {
+static PyObject *__pyx_pf_18cmut_nonlinear_sim_4core_15libh2_functions_2uninit_h2lib(CYTHON_UNUSED PyObject *__pyx_self) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
-  __Pyx_RefNannySetupContext("uninit_libh2", 0);
+  __Pyx_RefNannySetupContext("uninit_h2lib", 0);
 
-  /* "cmut_nonlinear_sim/core/libh2_functions.pyx":10
+  /* "cmut_nonlinear_sim/core/libh2_functions.pyx":12
  * 
- * def uninit_libh2():
- *     uninit_h2lib()             # <<<<<<<<<<<<<<
+ * def uninit_h2lib():
+ *     libh2.uninit_h2lib()             # <<<<<<<<<<<<<<
  * 
- * cpdef build_from_macrosurface_surface(Macrosurface ms, uint refn):
+ * 
  */
   uninit_h2lib();
 
-  /* "cmut_nonlinear_sim/core/libh2_functions.pyx":9
- *     init_h2lib(NULL, NULL)
+  /* "cmut_nonlinear_sim/core/libh2_functions.pyx":11
  * 
- * def uninit_libh2():             # <<<<<<<<<<<<<<
- *     uninit_h2lib()
+ * 
+ * def uninit_h2lib():             # <<<<<<<<<<<<<<
+ *     libh2.uninit_h2lib()
  * 
  */
 
@@ -2711,60 +2941,60 @@ static PyObject *__pyx_pf_18cmut_nonlinear_sim_4core_15libh2_functions_2uninit_l
   return __pyx_r;
 }
 
-/* "cmut_nonlinear_sim/core/libh2_functions.pyx":12
- *     uninit_h2lib()
+/* "cmut_nonlinear_sim/core/libh2_functions.pyx":15
  * 
- * cpdef build_from_macrosurface_surface(Macrosurface ms, uint refn):             # <<<<<<<<<<<<<<
  * 
- *     cdef psurface3d surf = build_from_macrosurface3d_surface3d(<pcmacrosurface3d> ms.ptr, refn)
+ * cpdef build_from_macrosurface3d_surface3d(Macrosurface ms, uint refn):             # <<<<<<<<<<<<<<
+ * 
+ *     cdef psurface3d surf = libh2.build_from_macrosurface3d_surface3d(<pcmacrosurface3d> ms.ptr, refn)
  */
 
-static PyObject *__pyx_pw_18cmut_nonlinear_sim_4core_15libh2_functions_5build_from_macrosurface_surface(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyObject *__pyx_f_18cmut_nonlinear_sim_4core_15libh2_functions_build_from_macrosurface_surface(struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_Macrosurface *__pyx_v_ms, __pyx_t_18cmut_nonlinear_sim_4core_5basic_uint __pyx_v_refn, CYTHON_UNUSED int __pyx_skip_dispatch) {
-  psurface3d __pyx_v_surf;
+static PyObject *__pyx_pw_18cmut_nonlinear_sim_4core_15libh2_functions_5build_from_macrosurface3d_surface3d(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyObject *__pyx_f_18cmut_nonlinear_sim_4core_15libh2_functions_build_from_macrosurface3d_surface3d(struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_Macrosurface *__pyx_v_ms, __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_uint __pyx_v_refn, CYTHON_UNUSED int __pyx_skip_dispatch) {
+  __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_psurface3d __pyx_v_surf;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
   struct __pyx_opt_args_18cmut_nonlinear_sim_4core_13libh2_classes_7Surface_wrap __pyx_t_2;
-  __Pyx_RefNannySetupContext("build_from_macrosurface_surface", 0);
+  __Pyx_RefNannySetupContext("build_from_macrosurface3d_surface3d", 0);
 
-  /* "cmut_nonlinear_sim/core/libh2_functions.pyx":14
- * cpdef build_from_macrosurface_surface(Macrosurface ms, uint refn):
+  /* "cmut_nonlinear_sim/core/libh2_functions.pyx":17
+ * cpdef build_from_macrosurface3d_surface3d(Macrosurface ms, uint refn):
  * 
- *     cdef psurface3d surf = build_from_macrosurface3d_surface3d(<pcmacrosurface3d> ms.ptr, refn)             # <<<<<<<<<<<<<<
+ *     cdef psurface3d surf = libh2.build_from_macrosurface3d_surface3d(<pcmacrosurface3d> ms.ptr, refn)             # <<<<<<<<<<<<<<
  *     return Surface.wrap(surf, True)
  * 
  */
-  __pyx_v_surf = build_from_macrosurface3d_surface3d(((pcmacrosurface3d)__pyx_v_ms->ptr), __pyx_v_refn);
+  __pyx_v_surf = build_from_macrosurface3d_surface3d(((__pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_pcmacrosurface3d)__pyx_v_ms->ptr), __pyx_v_refn);
 
-  /* "cmut_nonlinear_sim/core/libh2_functions.pyx":15
+  /* "cmut_nonlinear_sim/core/libh2_functions.pyx":18
  * 
- *     cdef psurface3d surf = build_from_macrosurface3d_surface3d(<pcmacrosurface3d> ms.ptr, refn)
+ *     cdef psurface3d surf = libh2.build_from_macrosurface3d_surface3d(<pcmacrosurface3d> ms.ptr, refn)
  *     return Surface.wrap(surf, True)             # <<<<<<<<<<<<<<
  * 
- * cpdef new_slp_bem(field k, Surface surf, uint q_regular, uint q_singular,
+ * 
  */
   __Pyx_XDECREF(__pyx_r);
   __pyx_t_2.__pyx_n = 1;
   __pyx_t_2.owner = 1;
-  __pyx_t_1 = __pyx_vtabptr_18cmut_nonlinear_sim_4core_13libh2_classes_Surface->wrap(__pyx_v_surf, &__pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 15, __pyx_L1_error)
+  __pyx_t_1 = __pyx_vtabptr_18cmut_nonlinear_sim_4core_13libh2_classes_Surface->wrap(__pyx_v_surf, &__pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 18, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "cmut_nonlinear_sim/core/libh2_functions.pyx":12
- *     uninit_h2lib()
+  /* "cmut_nonlinear_sim/core/libh2_functions.pyx":15
  * 
- * cpdef build_from_macrosurface_surface(Macrosurface ms, uint refn):             # <<<<<<<<<<<<<<
  * 
- *     cdef psurface3d surf = build_from_macrosurface3d_surface3d(<pcmacrosurface3d> ms.ptr, refn)
+ * cpdef build_from_macrosurface3d_surface3d(Macrosurface ms, uint refn):             # <<<<<<<<<<<<<<
+ * 
+ *     cdef psurface3d surf = libh2.build_from_macrosurface3d_surface3d(<pcmacrosurface3d> ms.ptr, refn)
  */
 
   /* function exit code */
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_1);
-  __Pyx_AddTraceback("cmut_nonlinear_sim.core.libh2_functions.build_from_macrosurface_surface", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("cmut_nonlinear_sim.core.libh2_functions.build_from_macrosurface3d_surface3d", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = 0;
   __pyx_L0:;
   __Pyx_XGIVEREF(__pyx_r);
@@ -2773,13 +3003,13 @@ static PyObject *__pyx_f_18cmut_nonlinear_sim_4core_15libh2_functions_build_from
 }
 
 /* Python wrapper */
-static PyObject *__pyx_pw_18cmut_nonlinear_sim_4core_15libh2_functions_5build_from_macrosurface_surface(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyObject *__pyx_pw_18cmut_nonlinear_sim_4core_15libh2_functions_5build_from_macrosurface_surface(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_18cmut_nonlinear_sim_4core_15libh2_functions_5build_from_macrosurface3d_surface3d(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyObject *__pyx_pw_18cmut_nonlinear_sim_4core_15libh2_functions_5build_from_macrosurface3d_surface3d(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_Macrosurface *__pyx_v_ms = 0;
-  __pyx_t_18cmut_nonlinear_sim_4core_5basic_uint __pyx_v_refn;
+  __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_uint __pyx_v_refn;
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
-  __Pyx_RefNannySetupContext("build_from_macrosurface_surface (wrapper)", 0);
+  __Pyx_RefNannySetupContext("build_from_macrosurface3d_surface3d (wrapper)", 0);
   {
     static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_ms,&__pyx_n_s_refn,0};
     PyObject* values[2] = {0,0};
@@ -2803,11 +3033,11 @@ static PyObject *__pyx_pw_18cmut_nonlinear_sim_4core_15libh2_functions_5build_fr
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_refn)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("build_from_macrosurface_surface", 1, 2, 2, 1); __PYX_ERR(0, 12, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("build_from_macrosurface3d_surface3d", 1, 2, 2, 1); __PYX_ERR(0, 15, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "build_from_macrosurface_surface") < 0)) __PYX_ERR(0, 12, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "build_from_macrosurface3d_surface3d") < 0)) __PYX_ERR(0, 15, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 2) {
       goto __pyx_L5_argtuple_error;
@@ -2816,18 +3046,18 @@ static PyObject *__pyx_pw_18cmut_nonlinear_sim_4core_15libh2_functions_5build_fr
       values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
     }
     __pyx_v_ms = ((struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_Macrosurface *)values[0]);
-    __pyx_v_refn = __Pyx_PyInt_As_unsigned_int(values[1]); if (unlikely((__pyx_v_refn == (unsigned int)-1) && PyErr_Occurred())) __PYX_ERR(0, 12, __pyx_L3_error)
+    __pyx_v_refn = __Pyx_PyInt_As_unsigned_int(values[1]); if (unlikely((__pyx_v_refn == (unsigned int)-1) && PyErr_Occurred())) __PYX_ERR(0, 15, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("build_from_macrosurface_surface", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 12, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("build_from_macrosurface3d_surface3d", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 15, __pyx_L3_error)
   __pyx_L3_error:;
-  __Pyx_AddTraceback("cmut_nonlinear_sim.core.libh2_functions.build_from_macrosurface_surface", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("cmut_nonlinear_sim.core.libh2_functions.build_from_macrosurface3d_surface3d", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_ms), __pyx_ptype_18cmut_nonlinear_sim_4core_13libh2_classes_Macrosurface, 1, "ms", 0))) __PYX_ERR(0, 12, __pyx_L1_error)
-  __pyx_r = __pyx_pf_18cmut_nonlinear_sim_4core_15libh2_functions_4build_from_macrosurface_surface(__pyx_self, __pyx_v_ms, __pyx_v_refn);
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_ms), __pyx_ptype_18cmut_nonlinear_sim_4core_13libh2_classes_Macrosurface, 1, "ms", 0))) __PYX_ERR(0, 15, __pyx_L1_error)
+  __pyx_r = __pyx_pf_18cmut_nonlinear_sim_4core_15libh2_functions_4build_from_macrosurface3d_surface3d(__pyx_self, __pyx_v_ms, __pyx_v_refn);
 
   /* function exit code */
   goto __pyx_L0;
@@ -2838,13 +3068,13 @@ static PyObject *__pyx_pw_18cmut_nonlinear_sim_4core_15libh2_functions_5build_fr
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_18cmut_nonlinear_sim_4core_15libh2_functions_4build_from_macrosurface_surface(CYTHON_UNUSED PyObject *__pyx_self, struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_Macrosurface *__pyx_v_ms, __pyx_t_18cmut_nonlinear_sim_4core_5basic_uint __pyx_v_refn) {
+static PyObject *__pyx_pf_18cmut_nonlinear_sim_4core_15libh2_functions_4build_from_macrosurface3d_surface3d(CYTHON_UNUSED PyObject *__pyx_self, struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_Macrosurface *__pyx_v_ms, __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_uint __pyx_v_refn) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
-  __Pyx_RefNannySetupContext("build_from_macrosurface_surface", 0);
+  __Pyx_RefNannySetupContext("build_from_macrosurface3d_surface3d", 0);
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __pyx_f_18cmut_nonlinear_sim_4core_15libh2_functions_build_from_macrosurface_surface(__pyx_v_ms, __pyx_v_refn, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 12, __pyx_L1_error)
+  __pyx_t_1 = __pyx_f_18cmut_nonlinear_sim_4core_15libh2_functions_build_from_macrosurface3d_surface3d(__pyx_v_ms, __pyx_v_refn, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 15, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -2853,7 +3083,7 @@ static PyObject *__pyx_pf_18cmut_nonlinear_sim_4core_15libh2_functions_4build_fr
   /* function exit code */
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_1);
-  __Pyx_AddTraceback("cmut_nonlinear_sim.core.libh2_functions.build_from_macrosurface_surface", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("cmut_nonlinear_sim.core.libh2_functions.build_from_macrosurface3d_surface3d", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XGIVEREF(__pyx_r);
@@ -2861,52 +3091,52 @@ static PyObject *__pyx_pf_18cmut_nonlinear_sim_4core_15libh2_functions_4build_fr
   return __pyx_r;
 }
 
-/* "cmut_nonlinear_sim/core/libh2_functions.pyx":17
- *     return Surface.wrap(surf, True)
+/* "cmut_nonlinear_sim/core/libh2_functions.pyx":21
  * 
- * cpdef new_slp_bem(field k, Surface surf, uint q_regular, uint q_singular,             # <<<<<<<<<<<<<<
+ * 
+ * cpdef new_slp_helmholtz_bem3d(field k, Surface surf, uint q_regular, uint q_singular,             # <<<<<<<<<<<<<<
  *     basistype row_basis, basistype col_basis):
  * 
  */
 
-static PyObject *__pyx_pw_18cmut_nonlinear_sim_4core_15libh2_functions_7new_slp_bem(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyObject *__pyx_f_18cmut_nonlinear_sim_4core_15libh2_functions_new_slp_bem(__pyx_t_double_complex __pyx_v_k, struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_Surface *__pyx_v_surf, __pyx_t_18cmut_nonlinear_sim_4core_5basic_uint __pyx_v_q_regular, __pyx_t_18cmut_nonlinear_sim_4core_5basic_uint __pyx_v_q_singular, enum __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_basistype __pyx_v_row_basis, enum __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_basistype __pyx_v_col_basis, CYTHON_UNUSED int __pyx_skip_dispatch) {
-  pbem3d __pyx_v_bem;
+static PyObject *__pyx_pw_18cmut_nonlinear_sim_4core_15libh2_functions_7new_slp_helmholtz_bem3d(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyObject *__pyx_f_18cmut_nonlinear_sim_4core_15libh2_functions_new_slp_helmholtz_bem3d(__pyx_t_double_complex __pyx_v_k, struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_Surface *__pyx_v_surf, __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_uint __pyx_v_q_regular, __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_uint __pyx_v_q_singular, enum __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_basistype __pyx_v_row_basis, enum __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_basistype __pyx_v_col_basis, CYTHON_UNUSED int __pyx_skip_dispatch) {
+  __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_pbem3d __pyx_v_bem;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
   struct __pyx_opt_args_18cmut_nonlinear_sim_4core_13libh2_classes_3Bem_wrap __pyx_t_2;
-  __Pyx_RefNannySetupContext("new_slp_bem", 0);
+  __Pyx_RefNannySetupContext("new_slp_helmholtz_bem3d", 0);
 
-  /* "cmut_nonlinear_sim/core/libh2_functions.pyx":34
- *     #     raise TypeError
+  /* "cmut_nonlinear_sim/core/libh2_functions.pyx":24
+ *     basistype row_basis, basistype col_basis):
  * 
- *     cdef pbem3d bem = new_slp_helmholtz_bem3d(k, <pcsurface3d> surf.ptr, q_regular, q_singular,             # <<<<<<<<<<<<<<
+ *     cdef pbem3d bem = libh2.new_slp_helmholtz_bem3d(k, <pcsurface3d> surf.ptr, q_regular, q_singular,             # <<<<<<<<<<<<<<
  *         <basisfunctionbem3d> row_basis, <basisfunctionbem3d> col_basis)
- * 
+ *     return Bem.wrap(bem, True)
  */
-  __pyx_v_bem = new_slp_helmholtz_bem3d(__pyx_v_k, ((pcsurface3d)__pyx_v_surf->ptr), __pyx_v_q_regular, __pyx_v_q_singular, ((basisfunctionbem3d)__pyx_v_row_basis), ((basisfunctionbem3d)__pyx_v_col_basis));
+  __pyx_v_bem = new_slp_helmholtz_bem3d(__pyx_v_k, ((__pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_pcsurface3d)__pyx_v_surf->ptr), __pyx_v_q_regular, __pyx_v_q_singular, ((__pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_basisfunctionbem3d)__pyx_v_row_basis), ((__pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_basisfunctionbem3d)__pyx_v_col_basis));
 
-  /* "cmut_nonlinear_sim/core/libh2_functions.pyx":37
+  /* "cmut_nonlinear_sim/core/libh2_functions.pyx":26
+ *     cdef pbem3d bem = libh2.new_slp_helmholtz_bem3d(k, <pcsurface3d> surf.ptr, q_regular, q_singular,
  *         <basisfunctionbem3d> row_basis, <basisfunctionbem3d> col_basis)
- * 
  *     return Bem.wrap(bem, True)             # <<<<<<<<<<<<<<
  * 
- * # cpdef new_dlp_bem(field k, Surface surf, uint q_regular, uint q_singular, row_basis, col_basis, field alpha):
+ * 
  */
   __Pyx_XDECREF(__pyx_r);
   __pyx_t_2.__pyx_n = 1;
   __pyx_t_2.owner = 1;
-  __pyx_t_1 = __pyx_vtabptr_18cmut_nonlinear_sim_4core_13libh2_classes_Bem->wrap(__pyx_v_bem, &__pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 37, __pyx_L1_error)
+  __pyx_t_1 = __pyx_vtabptr_18cmut_nonlinear_sim_4core_13libh2_classes_Bem->wrap(__pyx_v_bem, &__pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 26, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "cmut_nonlinear_sim/core/libh2_functions.pyx":17
- *     return Surface.wrap(surf, True)
+  /* "cmut_nonlinear_sim/core/libh2_functions.pyx":21
  * 
- * cpdef new_slp_bem(field k, Surface surf, uint q_regular, uint q_singular,             # <<<<<<<<<<<<<<
+ * 
+ * cpdef new_slp_helmholtz_bem3d(field k, Surface surf, uint q_regular, uint q_singular,             # <<<<<<<<<<<<<<
  *     basistype row_basis, basistype col_basis):
  * 
  */
@@ -2914,7 +3144,7 @@ static PyObject *__pyx_f_18cmut_nonlinear_sim_4core_15libh2_functions_new_slp_be
   /* function exit code */
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_1);
-  __Pyx_AddTraceback("cmut_nonlinear_sim.core.libh2_functions.new_slp_bem", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("cmut_nonlinear_sim.core.libh2_functions.new_slp_helmholtz_bem3d", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = 0;
   __pyx_L0:;
   __Pyx_XGIVEREF(__pyx_r);
@@ -2923,17 +3153,17 @@ static PyObject *__pyx_f_18cmut_nonlinear_sim_4core_15libh2_functions_new_slp_be
 }
 
 /* Python wrapper */
-static PyObject *__pyx_pw_18cmut_nonlinear_sim_4core_15libh2_functions_7new_slp_bem(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyObject *__pyx_pw_18cmut_nonlinear_sim_4core_15libh2_functions_7new_slp_bem(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_18cmut_nonlinear_sim_4core_15libh2_functions_7new_slp_helmholtz_bem3d(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyObject *__pyx_pw_18cmut_nonlinear_sim_4core_15libh2_functions_7new_slp_helmholtz_bem3d(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   __pyx_t_double_complex __pyx_v_k;
   struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_Surface *__pyx_v_surf = 0;
-  __pyx_t_18cmut_nonlinear_sim_4core_5basic_uint __pyx_v_q_regular;
-  __pyx_t_18cmut_nonlinear_sim_4core_5basic_uint __pyx_v_q_singular;
+  __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_uint __pyx_v_q_regular;
+  __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_uint __pyx_v_q_singular;
   enum __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_basistype __pyx_v_row_basis;
   enum __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_basistype __pyx_v_col_basis;
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
-  __Pyx_RefNannySetupContext("new_slp_bem (wrapper)", 0);
+  __Pyx_RefNannySetupContext("new_slp_helmholtz_bem3d (wrapper)", 0);
   {
     static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_k,&__pyx_n_s_surf,&__pyx_n_s_q_regular,&__pyx_n_s_q_singular,&__pyx_n_s_row_basis,&__pyx_n_s_col_basis,0};
     PyObject* values[6] = {0,0,0,0,0,0};
@@ -2965,35 +3195,35 @@ static PyObject *__pyx_pw_18cmut_nonlinear_sim_4core_15libh2_functions_7new_slp_
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_surf)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("new_slp_bem", 1, 6, 6, 1); __PYX_ERR(0, 17, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("new_slp_helmholtz_bem3d", 1, 6, 6, 1); __PYX_ERR(0, 21, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
         if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_q_regular)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("new_slp_bem", 1, 6, 6, 2); __PYX_ERR(0, 17, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("new_slp_helmholtz_bem3d", 1, 6, 6, 2); __PYX_ERR(0, 21, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  3:
         if (likely((values[3] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_q_singular)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("new_slp_bem", 1, 6, 6, 3); __PYX_ERR(0, 17, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("new_slp_helmholtz_bem3d", 1, 6, 6, 3); __PYX_ERR(0, 21, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  4:
         if (likely((values[4] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_row_basis)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("new_slp_bem", 1, 6, 6, 4); __PYX_ERR(0, 17, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("new_slp_helmholtz_bem3d", 1, 6, 6, 4); __PYX_ERR(0, 21, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  5:
         if (likely((values[5] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_col_basis)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("new_slp_bem", 1, 6, 6, 5); __PYX_ERR(0, 17, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("new_slp_helmholtz_bem3d", 1, 6, 6, 5); __PYX_ERR(0, 21, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "new_slp_bem") < 0)) __PYX_ERR(0, 17, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "new_slp_helmholtz_bem3d") < 0)) __PYX_ERR(0, 21, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 6) {
       goto __pyx_L5_argtuple_error;
@@ -3005,23 +3235,23 @@ static PyObject *__pyx_pw_18cmut_nonlinear_sim_4core_15libh2_functions_7new_slp_
       values[4] = PyTuple_GET_ITEM(__pyx_args, 4);
       values[5] = PyTuple_GET_ITEM(__pyx_args, 5);
     }
-    __pyx_v_k = __Pyx_PyComplex_As___pyx_t_double_complex(values[0]); if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 17, __pyx_L3_error)
+    __pyx_v_k = __Pyx_PyComplex_As___pyx_t_double_complex(values[0]); if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 21, __pyx_L3_error)
     __pyx_v_surf = ((struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_Surface *)values[1]);
-    __pyx_v_q_regular = __Pyx_PyInt_As_unsigned_int(values[2]); if (unlikely((__pyx_v_q_regular == (unsigned int)-1) && PyErr_Occurred())) __PYX_ERR(0, 17, __pyx_L3_error)
-    __pyx_v_q_singular = __Pyx_PyInt_As_unsigned_int(values[3]); if (unlikely((__pyx_v_q_singular == (unsigned int)-1) && PyErr_Occurred())) __PYX_ERR(0, 17, __pyx_L3_error)
-    __pyx_v_row_basis = ((enum __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_basistype)__Pyx_PyInt_As_enum____pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_basistype(values[4])); if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 18, __pyx_L3_error)
-    __pyx_v_col_basis = ((enum __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_basistype)__Pyx_PyInt_As_enum____pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_basistype(values[5])); if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 18, __pyx_L3_error)
+    __pyx_v_q_regular = __Pyx_PyInt_As_unsigned_int(values[2]); if (unlikely((__pyx_v_q_regular == (unsigned int)-1) && PyErr_Occurred())) __PYX_ERR(0, 21, __pyx_L3_error)
+    __pyx_v_q_singular = __Pyx_PyInt_As_unsigned_int(values[3]); if (unlikely((__pyx_v_q_singular == (unsigned int)-1) && PyErr_Occurred())) __PYX_ERR(0, 21, __pyx_L3_error)
+    __pyx_v_row_basis = ((enum __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_basistype)__Pyx_PyInt_As_enum____pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_basistype(values[4])); if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 22, __pyx_L3_error)
+    __pyx_v_col_basis = ((enum __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_basistype)__Pyx_PyInt_As_enum____pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_basistype(values[5])); if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 22, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("new_slp_bem", 1, 6, 6, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 17, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("new_slp_helmholtz_bem3d", 1, 6, 6, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 21, __pyx_L3_error)
   __pyx_L3_error:;
-  __Pyx_AddTraceback("cmut_nonlinear_sim.core.libh2_functions.new_slp_bem", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("cmut_nonlinear_sim.core.libh2_functions.new_slp_helmholtz_bem3d", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_surf), __pyx_ptype_18cmut_nonlinear_sim_4core_13libh2_classes_Surface, 1, "surf", 0))) __PYX_ERR(0, 17, __pyx_L1_error)
-  __pyx_r = __pyx_pf_18cmut_nonlinear_sim_4core_15libh2_functions_6new_slp_bem(__pyx_self, __pyx_v_k, __pyx_v_surf, __pyx_v_q_regular, __pyx_v_q_singular, __pyx_v_row_basis, __pyx_v_col_basis);
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_surf), __pyx_ptype_18cmut_nonlinear_sim_4core_13libh2_classes_Surface, 1, "surf", 0))) __PYX_ERR(0, 21, __pyx_L1_error)
+  __pyx_r = __pyx_pf_18cmut_nonlinear_sim_4core_15libh2_functions_6new_slp_helmholtz_bem3d(__pyx_self, __pyx_v_k, __pyx_v_surf, __pyx_v_q_regular, __pyx_v_q_singular, __pyx_v_row_basis, __pyx_v_col_basis);
 
   /* function exit code */
   goto __pyx_L0;
@@ -3032,13 +3262,13 @@ static PyObject *__pyx_pw_18cmut_nonlinear_sim_4core_15libh2_functions_7new_slp_
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_18cmut_nonlinear_sim_4core_15libh2_functions_6new_slp_bem(CYTHON_UNUSED PyObject *__pyx_self, __pyx_t_double_complex __pyx_v_k, struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_Surface *__pyx_v_surf, __pyx_t_18cmut_nonlinear_sim_4core_5basic_uint __pyx_v_q_regular, __pyx_t_18cmut_nonlinear_sim_4core_5basic_uint __pyx_v_q_singular, enum __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_basistype __pyx_v_row_basis, enum __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_basistype __pyx_v_col_basis) {
+static PyObject *__pyx_pf_18cmut_nonlinear_sim_4core_15libh2_functions_6new_slp_helmholtz_bem3d(CYTHON_UNUSED PyObject *__pyx_self, __pyx_t_double_complex __pyx_v_k, struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_Surface *__pyx_v_surf, __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_uint __pyx_v_q_regular, __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_uint __pyx_v_q_singular, enum __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_basistype __pyx_v_row_basis, enum __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_basistype __pyx_v_col_basis) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
-  __Pyx_RefNannySetupContext("new_slp_bem", 0);
+  __Pyx_RefNannySetupContext("new_slp_helmholtz_bem3d", 0);
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __pyx_f_18cmut_nonlinear_sim_4core_15libh2_functions_new_slp_bem(__pyx_v_k, __pyx_v_surf, __pyx_v_q_regular, __pyx_v_q_singular, __pyx_v_row_basis, __pyx_v_col_basis, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 17, __pyx_L1_error)
+  __pyx_t_1 = __pyx_f_18cmut_nonlinear_sim_4core_15libh2_functions_new_slp_helmholtz_bem3d(__pyx_v_k, __pyx_v_surf, __pyx_v_q_regular, __pyx_v_q_singular, __pyx_v_row_basis, __pyx_v_col_basis, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 21, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -3047,7 +3277,775 @@ static PyObject *__pyx_pf_18cmut_nonlinear_sim_4core_15libh2_functions_6new_slp_
   /* function exit code */
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_1);
-  __Pyx_AddTraceback("cmut_nonlinear_sim.core.libh2_functions.new_slp_bem", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("cmut_nonlinear_sim.core.libh2_functions.new_slp_helmholtz_bem3d", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = NULL;
+  __pyx_L0:;
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "cmut_nonlinear_sim/core/libh2_functions.pyx":29
+ * 
+ * 
+ * cpdef new_dlp_helmholtz_bem3d(field k, Surface surf, uint q_regular, uint q_singular,             # <<<<<<<<<<<<<<
+ *     basistype row_basis, basistype col_basis, field alpha):
+ * 
+ */
+
+static PyObject *__pyx_pw_18cmut_nonlinear_sim_4core_15libh2_functions_9new_dlp_helmholtz_bem3d(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyObject *__pyx_f_18cmut_nonlinear_sim_4core_15libh2_functions_new_dlp_helmholtz_bem3d(__pyx_t_double_complex __pyx_v_k, struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_Surface *__pyx_v_surf, __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_uint __pyx_v_q_regular, __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_uint __pyx_v_q_singular, enum __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_basistype __pyx_v_row_basis, enum __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_basistype __pyx_v_col_basis, __pyx_t_double_complex __pyx_v_alpha, CYTHON_UNUSED int __pyx_skip_dispatch) {
+  __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_pbem3d __pyx_v_bem;
+  PyObject *__pyx_r = NULL;
+  __Pyx_RefNannyDeclarations
+  PyObject *__pyx_t_1 = NULL;
+  struct __pyx_opt_args_18cmut_nonlinear_sim_4core_13libh2_classes_3Bem_wrap __pyx_t_2;
+  __Pyx_RefNannySetupContext("new_dlp_helmholtz_bem3d", 0);
+
+  /* "cmut_nonlinear_sim/core/libh2_functions.pyx":32
+ *     basistype row_basis, basistype col_basis, field alpha):
+ * 
+ *     cdef pbem3d bem = libh2.new_dlp_helmholtz_bem3d(k, <pcsurface3d> surf.ptr, q_regular, q_singular,             # <<<<<<<<<<<<<<
+ *         <basisfunctionbem3d> row_basis, <basisfunctionbem3d> col_basis, alpha)
+ *     return Bem.wrap(bem, True)
+ */
+  __pyx_v_bem = new_dlp_helmholtz_bem3d(__pyx_v_k, ((__pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_pcsurface3d)__pyx_v_surf->ptr), __pyx_v_q_regular, __pyx_v_q_singular, ((__pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_basisfunctionbem3d)__pyx_v_row_basis), ((__pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_basisfunctionbem3d)__pyx_v_col_basis), __pyx_v_alpha);
+
+  /* "cmut_nonlinear_sim/core/libh2_functions.pyx":34
+ *     cdef pbem3d bem = libh2.new_dlp_helmholtz_bem3d(k, <pcsurface3d> surf.ptr, q_regular, q_singular,
+ *         <basisfunctionbem3d> row_basis, <basisfunctionbem3d> col_basis, alpha)
+ *     return Bem.wrap(bem, True)             # <<<<<<<<<<<<<<
+ * 
+ * 
+ */
+  __Pyx_XDECREF(__pyx_r);
+  __pyx_t_2.__pyx_n = 1;
+  __pyx_t_2.owner = 1;
+  __pyx_t_1 = __pyx_vtabptr_18cmut_nonlinear_sim_4core_13libh2_classes_Bem->wrap(__pyx_v_bem, &__pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 34, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_r = __pyx_t_1;
+  __pyx_t_1 = 0;
+  goto __pyx_L0;
+
+  /* "cmut_nonlinear_sim/core/libh2_functions.pyx":29
+ * 
+ * 
+ * cpdef new_dlp_helmholtz_bem3d(field k, Surface surf, uint q_regular, uint q_singular,             # <<<<<<<<<<<<<<
+ *     basistype row_basis, basistype col_basis, field alpha):
+ * 
+ */
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_AddTraceback("cmut_nonlinear_sim.core.libh2_functions.new_dlp_helmholtz_bem3d", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = 0;
+  __pyx_L0:;
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* Python wrapper */
+static PyObject *__pyx_pw_18cmut_nonlinear_sim_4core_15libh2_functions_9new_dlp_helmholtz_bem3d(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyObject *__pyx_pw_18cmut_nonlinear_sim_4core_15libh2_functions_9new_dlp_helmholtz_bem3d(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+  __pyx_t_double_complex __pyx_v_k;
+  struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_Surface *__pyx_v_surf = 0;
+  __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_uint __pyx_v_q_regular;
+  __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_uint __pyx_v_q_singular;
+  enum __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_basistype __pyx_v_row_basis;
+  enum __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_basistype __pyx_v_col_basis;
+  __pyx_t_double_complex __pyx_v_alpha;
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("new_dlp_helmholtz_bem3d (wrapper)", 0);
+  {
+    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_k,&__pyx_n_s_surf,&__pyx_n_s_q_regular,&__pyx_n_s_q_singular,&__pyx_n_s_row_basis,&__pyx_n_s_col_basis,&__pyx_n_s_alpha,0};
+    PyObject* values[7] = {0,0,0,0,0,0,0};
+    if (unlikely(__pyx_kwds)) {
+      Py_ssize_t kw_args;
+      const Py_ssize_t pos_args = PyTuple_GET_SIZE(__pyx_args);
+      switch (pos_args) {
+        case  7: values[6] = PyTuple_GET_ITEM(__pyx_args, 6);
+        CYTHON_FALLTHROUGH;
+        case  6: values[5] = PyTuple_GET_ITEM(__pyx_args, 5);
+        CYTHON_FALLTHROUGH;
+        case  5: values[4] = PyTuple_GET_ITEM(__pyx_args, 4);
+        CYTHON_FALLTHROUGH;
+        case  4: values[3] = PyTuple_GET_ITEM(__pyx_args, 3);
+        CYTHON_FALLTHROUGH;
+        case  3: values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
+        CYTHON_FALLTHROUGH;
+        case  2: values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
+        CYTHON_FALLTHROUGH;
+        case  1: values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
+        CYTHON_FALLTHROUGH;
+        case  0: break;
+        default: goto __pyx_L5_argtuple_error;
+      }
+      kw_args = PyDict_Size(__pyx_kwds);
+      switch (pos_args) {
+        case  0:
+        if (likely((values[0] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_k)) != 0)) kw_args--;
+        else goto __pyx_L5_argtuple_error;
+        CYTHON_FALLTHROUGH;
+        case  1:
+        if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_surf)) != 0)) kw_args--;
+        else {
+          __Pyx_RaiseArgtupleInvalid("new_dlp_helmholtz_bem3d", 1, 7, 7, 1); __PYX_ERR(0, 29, __pyx_L3_error)
+        }
+        CYTHON_FALLTHROUGH;
+        case  2:
+        if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_q_regular)) != 0)) kw_args--;
+        else {
+          __Pyx_RaiseArgtupleInvalid("new_dlp_helmholtz_bem3d", 1, 7, 7, 2); __PYX_ERR(0, 29, __pyx_L3_error)
+        }
+        CYTHON_FALLTHROUGH;
+        case  3:
+        if (likely((values[3] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_q_singular)) != 0)) kw_args--;
+        else {
+          __Pyx_RaiseArgtupleInvalid("new_dlp_helmholtz_bem3d", 1, 7, 7, 3); __PYX_ERR(0, 29, __pyx_L3_error)
+        }
+        CYTHON_FALLTHROUGH;
+        case  4:
+        if (likely((values[4] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_row_basis)) != 0)) kw_args--;
+        else {
+          __Pyx_RaiseArgtupleInvalid("new_dlp_helmholtz_bem3d", 1, 7, 7, 4); __PYX_ERR(0, 29, __pyx_L3_error)
+        }
+        CYTHON_FALLTHROUGH;
+        case  5:
+        if (likely((values[5] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_col_basis)) != 0)) kw_args--;
+        else {
+          __Pyx_RaiseArgtupleInvalid("new_dlp_helmholtz_bem3d", 1, 7, 7, 5); __PYX_ERR(0, 29, __pyx_L3_error)
+        }
+        CYTHON_FALLTHROUGH;
+        case  6:
+        if (likely((values[6] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_alpha)) != 0)) kw_args--;
+        else {
+          __Pyx_RaiseArgtupleInvalid("new_dlp_helmholtz_bem3d", 1, 7, 7, 6); __PYX_ERR(0, 29, __pyx_L3_error)
+        }
+      }
+      if (unlikely(kw_args > 0)) {
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "new_dlp_helmholtz_bem3d") < 0)) __PYX_ERR(0, 29, __pyx_L3_error)
+      }
+    } else if (PyTuple_GET_SIZE(__pyx_args) != 7) {
+      goto __pyx_L5_argtuple_error;
+    } else {
+      values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
+      values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
+      values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
+      values[3] = PyTuple_GET_ITEM(__pyx_args, 3);
+      values[4] = PyTuple_GET_ITEM(__pyx_args, 4);
+      values[5] = PyTuple_GET_ITEM(__pyx_args, 5);
+      values[6] = PyTuple_GET_ITEM(__pyx_args, 6);
+    }
+    __pyx_v_k = __Pyx_PyComplex_As___pyx_t_double_complex(values[0]); if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 29, __pyx_L3_error)
+    __pyx_v_surf = ((struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_Surface *)values[1]);
+    __pyx_v_q_regular = __Pyx_PyInt_As_unsigned_int(values[2]); if (unlikely((__pyx_v_q_regular == (unsigned int)-1) && PyErr_Occurred())) __PYX_ERR(0, 29, __pyx_L3_error)
+    __pyx_v_q_singular = __Pyx_PyInt_As_unsigned_int(values[3]); if (unlikely((__pyx_v_q_singular == (unsigned int)-1) && PyErr_Occurred())) __PYX_ERR(0, 29, __pyx_L3_error)
+    __pyx_v_row_basis = ((enum __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_basistype)__Pyx_PyInt_As_enum____pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_basistype(values[4])); if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 30, __pyx_L3_error)
+    __pyx_v_col_basis = ((enum __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_basistype)__Pyx_PyInt_As_enum____pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_basistype(values[5])); if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 30, __pyx_L3_error)
+    __pyx_v_alpha = __Pyx_PyComplex_As___pyx_t_double_complex(values[6]); if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 30, __pyx_L3_error)
+  }
+  goto __pyx_L4_argument_unpacking_done;
+  __pyx_L5_argtuple_error:;
+  __Pyx_RaiseArgtupleInvalid("new_dlp_helmholtz_bem3d", 1, 7, 7, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 29, __pyx_L3_error)
+  __pyx_L3_error:;
+  __Pyx_AddTraceback("cmut_nonlinear_sim.core.libh2_functions.new_dlp_helmholtz_bem3d", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_RefNannyFinishContext();
+  return NULL;
+  __pyx_L4_argument_unpacking_done:;
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_surf), __pyx_ptype_18cmut_nonlinear_sim_4core_13libh2_classes_Surface, 1, "surf", 0))) __PYX_ERR(0, 29, __pyx_L1_error)
+  __pyx_r = __pyx_pf_18cmut_nonlinear_sim_4core_15libh2_functions_8new_dlp_helmholtz_bem3d(__pyx_self, __pyx_v_k, __pyx_v_surf, __pyx_v_q_regular, __pyx_v_q_singular, __pyx_v_row_basis, __pyx_v_col_basis, __pyx_v_alpha);
+
+  /* function exit code */
+  goto __pyx_L0;
+  __pyx_L1_error:;
+  __pyx_r = NULL;
+  __pyx_L0:;
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static PyObject *__pyx_pf_18cmut_nonlinear_sim_4core_15libh2_functions_8new_dlp_helmholtz_bem3d(CYTHON_UNUSED PyObject *__pyx_self, __pyx_t_double_complex __pyx_v_k, struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_Surface *__pyx_v_surf, __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_uint __pyx_v_q_regular, __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_uint __pyx_v_q_singular, enum __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_basistype __pyx_v_row_basis, enum __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_basistype __pyx_v_col_basis, __pyx_t_double_complex __pyx_v_alpha) {
+  PyObject *__pyx_r = NULL;
+  __Pyx_RefNannyDeclarations
+  PyObject *__pyx_t_1 = NULL;
+  __Pyx_RefNannySetupContext("new_dlp_helmholtz_bem3d", 0);
+  __Pyx_XDECREF(__pyx_r);
+  __pyx_t_1 = __pyx_f_18cmut_nonlinear_sim_4core_15libh2_functions_new_dlp_helmholtz_bem3d(__pyx_v_k, __pyx_v_surf, __pyx_v_q_regular, __pyx_v_q_singular, __pyx_v_row_basis, __pyx_v_col_basis, __pyx_v_alpha, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 29, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_r = __pyx_t_1;
+  __pyx_t_1 = 0;
+  goto __pyx_L0;
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_AddTraceback("cmut_nonlinear_sim.core.libh2_functions.new_dlp_helmholtz_bem3d", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = NULL;
+  __pyx_L0:;
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "cmut_nonlinear_sim/core/libh2_functions.pyx":37
+ * 
+ * 
+ * cpdef build_bem3d_cluster(Bem bem, uint clf, basistype basis):             # <<<<<<<<<<<<<<
+ * 
+ *     cdef pcluster cluster = libh2.build_bem3d_cluster(<pcbem3d> bem.ptr, clf, <basisfunctionbem3d> basis)
+ */
+
+static PyObject *__pyx_pw_18cmut_nonlinear_sim_4core_15libh2_functions_11build_bem3d_cluster(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyObject *__pyx_f_18cmut_nonlinear_sim_4core_15libh2_functions_build_bem3d_cluster(struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_Bem *__pyx_v_bem, __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_uint __pyx_v_clf, enum __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_basistype __pyx_v_basis, CYTHON_UNUSED int __pyx_skip_dispatch) {
+  __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_pcluster __pyx_v_cluster;
+  PyObject *__pyx_r = NULL;
+  __Pyx_RefNannyDeclarations
+  PyObject *__pyx_t_1 = NULL;
+  struct __pyx_opt_args_18cmut_nonlinear_sim_4core_13libh2_classes_7Cluster_wrap __pyx_t_2;
+  __Pyx_RefNannySetupContext("build_bem3d_cluster", 0);
+
+  /* "cmut_nonlinear_sim/core/libh2_functions.pyx":39
+ * cpdef build_bem3d_cluster(Bem bem, uint clf, basistype basis):
+ * 
+ *     cdef pcluster cluster = libh2.build_bem3d_cluster(<pcbem3d> bem.ptr, clf, <basisfunctionbem3d> basis)             # <<<<<<<<<<<<<<
+ *     return Cluster.wrap(cluster, True)
+ * 
+ */
+  __pyx_v_cluster = build_bem3d_cluster(((__pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_pcbem3d)__pyx_v_bem->ptr), __pyx_v_clf, ((__pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_basisfunctionbem3d)__pyx_v_basis));
+
+  /* "cmut_nonlinear_sim/core/libh2_functions.pyx":40
+ * 
+ *     cdef pcluster cluster = libh2.build_bem3d_cluster(<pcbem3d> bem.ptr, clf, <basisfunctionbem3d> basis)
+ *     return Cluster.wrap(cluster, True)             # <<<<<<<<<<<<<<
+ * 
+ * 
+ */
+  __Pyx_XDECREF(__pyx_r);
+  __pyx_t_2.__pyx_n = 1;
+  __pyx_t_2.owner = 1;
+  __pyx_t_1 = __pyx_vtabptr_18cmut_nonlinear_sim_4core_13libh2_classes_Cluster->wrap(__pyx_v_cluster, &__pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 40, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_r = __pyx_t_1;
+  __pyx_t_1 = 0;
+  goto __pyx_L0;
+
+  /* "cmut_nonlinear_sim/core/libh2_functions.pyx":37
+ * 
+ * 
+ * cpdef build_bem3d_cluster(Bem bem, uint clf, basistype basis):             # <<<<<<<<<<<<<<
+ * 
+ *     cdef pcluster cluster = libh2.build_bem3d_cluster(<pcbem3d> bem.ptr, clf, <basisfunctionbem3d> basis)
+ */
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_AddTraceback("cmut_nonlinear_sim.core.libh2_functions.build_bem3d_cluster", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = 0;
+  __pyx_L0:;
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* Python wrapper */
+static PyObject *__pyx_pw_18cmut_nonlinear_sim_4core_15libh2_functions_11build_bem3d_cluster(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyObject *__pyx_pw_18cmut_nonlinear_sim_4core_15libh2_functions_11build_bem3d_cluster(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+  struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_Bem *__pyx_v_bem = 0;
+  __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_uint __pyx_v_clf;
+  enum __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_basistype __pyx_v_basis;
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("build_bem3d_cluster (wrapper)", 0);
+  {
+    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_bem,&__pyx_n_s_clf,&__pyx_n_s_basis,0};
+    PyObject* values[3] = {0,0,0};
+    if (unlikely(__pyx_kwds)) {
+      Py_ssize_t kw_args;
+      const Py_ssize_t pos_args = PyTuple_GET_SIZE(__pyx_args);
+      switch (pos_args) {
+        case  3: values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
+        CYTHON_FALLTHROUGH;
+        case  2: values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
+        CYTHON_FALLTHROUGH;
+        case  1: values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
+        CYTHON_FALLTHROUGH;
+        case  0: break;
+        default: goto __pyx_L5_argtuple_error;
+      }
+      kw_args = PyDict_Size(__pyx_kwds);
+      switch (pos_args) {
+        case  0:
+        if (likely((values[0] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_bem)) != 0)) kw_args--;
+        else goto __pyx_L5_argtuple_error;
+        CYTHON_FALLTHROUGH;
+        case  1:
+        if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_clf)) != 0)) kw_args--;
+        else {
+          __Pyx_RaiseArgtupleInvalid("build_bem3d_cluster", 1, 3, 3, 1); __PYX_ERR(0, 37, __pyx_L3_error)
+        }
+        CYTHON_FALLTHROUGH;
+        case  2:
+        if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_basis)) != 0)) kw_args--;
+        else {
+          __Pyx_RaiseArgtupleInvalid("build_bem3d_cluster", 1, 3, 3, 2); __PYX_ERR(0, 37, __pyx_L3_error)
+        }
+      }
+      if (unlikely(kw_args > 0)) {
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "build_bem3d_cluster") < 0)) __PYX_ERR(0, 37, __pyx_L3_error)
+      }
+    } else if (PyTuple_GET_SIZE(__pyx_args) != 3) {
+      goto __pyx_L5_argtuple_error;
+    } else {
+      values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
+      values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
+      values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
+    }
+    __pyx_v_bem = ((struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_Bem *)values[0]);
+    __pyx_v_clf = __Pyx_PyInt_As_unsigned_int(values[1]); if (unlikely((__pyx_v_clf == (unsigned int)-1) && PyErr_Occurred())) __PYX_ERR(0, 37, __pyx_L3_error)
+    __pyx_v_basis = ((enum __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_basistype)__Pyx_PyInt_As_enum____pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_basistype(values[2])); if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 37, __pyx_L3_error)
+  }
+  goto __pyx_L4_argument_unpacking_done;
+  __pyx_L5_argtuple_error:;
+  __Pyx_RaiseArgtupleInvalid("build_bem3d_cluster", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 37, __pyx_L3_error)
+  __pyx_L3_error:;
+  __Pyx_AddTraceback("cmut_nonlinear_sim.core.libh2_functions.build_bem3d_cluster", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_RefNannyFinishContext();
+  return NULL;
+  __pyx_L4_argument_unpacking_done:;
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_bem), __pyx_ptype_18cmut_nonlinear_sim_4core_13libh2_classes_Bem, 1, "bem", 0))) __PYX_ERR(0, 37, __pyx_L1_error)
+  __pyx_r = __pyx_pf_18cmut_nonlinear_sim_4core_15libh2_functions_10build_bem3d_cluster(__pyx_self, __pyx_v_bem, __pyx_v_clf, __pyx_v_basis);
+
+  /* function exit code */
+  goto __pyx_L0;
+  __pyx_L1_error:;
+  __pyx_r = NULL;
+  __pyx_L0:;
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static PyObject *__pyx_pf_18cmut_nonlinear_sim_4core_15libh2_functions_10build_bem3d_cluster(CYTHON_UNUSED PyObject *__pyx_self, struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_Bem *__pyx_v_bem, __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_uint __pyx_v_clf, enum __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_basistype __pyx_v_basis) {
+  PyObject *__pyx_r = NULL;
+  __Pyx_RefNannyDeclarations
+  PyObject *__pyx_t_1 = NULL;
+  __Pyx_RefNannySetupContext("build_bem3d_cluster", 0);
+  __Pyx_XDECREF(__pyx_r);
+  __pyx_t_1 = __pyx_f_18cmut_nonlinear_sim_4core_15libh2_functions_build_bem3d_cluster(__pyx_v_bem, __pyx_v_clf, __pyx_v_basis, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 37, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_r = __pyx_t_1;
+  __pyx_t_1 = 0;
+  goto __pyx_L0;
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_AddTraceback("cmut_nonlinear_sim.core.libh2_functions.build_bem3d_cluster", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = NULL;
+  __pyx_L0:;
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "cmut_nonlinear_sim/core/libh2_functions.pyx":43
+ * 
+ * 
+ * cpdef build_nonstrict_block(Cluster rc, Cluster cc, real eta, str admissibility):             # <<<<<<<<<<<<<<
+ * 
+ *     cdef admissible admis
+ */
+
+static PyObject *__pyx_pw_18cmut_nonlinear_sim_4core_15libh2_functions_13build_nonstrict_block(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyObject *__pyx_f_18cmut_nonlinear_sim_4core_15libh2_functions_build_nonstrict_block(struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_Cluster *__pyx_v_rc, struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_Cluster *__pyx_v_cc, __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_real __pyx_v_eta, PyObject *__pyx_v_admissibility, CYTHON_UNUSED int __pyx_skip_dispatch) {
+  __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_admissible __pyx_v_admis;
+  __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_pblock __pyx_v_block;
+  PyObject *__pyx_r = NULL;
+  __Pyx_RefNannyDeclarations
+  PyObject *__pyx_t_1 = NULL;
+  int __pyx_t_2;
+  int __pyx_t_3;
+  struct __pyx_opt_args_18cmut_nonlinear_sim_4core_13libh2_classes_5Block_wrap __pyx_t_4;
+  __Pyx_RefNannySetupContext("build_nonstrict_block", 0);
+
+  /* "cmut_nonlinear_sim/core/libh2_functions.pyx":47
+ *     cdef admissible admis
+ * 
+ *     if admissibility.lower() in ['2']:             # <<<<<<<<<<<<<<
+ *         admis = libh2.admissible_2_cluster
+ *     elif admissibility.lower() in ['maxcluster']:
+ */
+  __pyx_t_1 = __Pyx_CallUnboundCMethod0(&__pyx_umethod_PyString_Type_lower, __pyx_v_admissibility); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 47, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_t_2 = (__Pyx_PyString_Equals(__pyx_t_1, __pyx_kp_s_2, Py_EQ)); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 47, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __pyx_t_3 = (__pyx_t_2 != 0);
+  if (__pyx_t_3) {
+
+    /* "cmut_nonlinear_sim/core/libh2_functions.pyx":48
+ * 
+ *     if admissibility.lower() in ['2']:
+ *         admis = libh2.admissible_2_cluster             # <<<<<<<<<<<<<<
+ *     elif admissibility.lower() in ['maxcluster']:
+ *         admis = libh2.admissible_max_cluster
+ */
+    __pyx_v_admis = admissible_2_cluster;
+
+    /* "cmut_nonlinear_sim/core/libh2_functions.pyx":47
+ *     cdef admissible admis
+ * 
+ *     if admissibility.lower() in ['2']:             # <<<<<<<<<<<<<<
+ *         admis = libh2.admissible_2_cluster
+ *     elif admissibility.lower() in ['maxcluster']:
+ */
+    goto __pyx_L3;
+  }
+
+  /* "cmut_nonlinear_sim/core/libh2_functions.pyx":49
+ *     if admissibility.lower() in ['2']:
+ *         admis = libh2.admissible_2_cluster
+ *     elif admissibility.lower() in ['maxcluster']:             # <<<<<<<<<<<<<<
+ *         admis = libh2.admissible_max_cluster
+ * 
+ */
+  __pyx_t_1 = __Pyx_CallUnboundCMethod0(&__pyx_umethod_PyString_Type_lower, __pyx_v_admissibility); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 49, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_t_3 = (__Pyx_PyString_Equals(__pyx_t_1, __pyx_n_s_maxcluster, Py_EQ)); if (unlikely(__pyx_t_3 < 0)) __PYX_ERR(0, 49, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __pyx_t_2 = (__pyx_t_3 != 0);
+  if (__pyx_t_2) {
+
+    /* "cmut_nonlinear_sim/core/libh2_functions.pyx":50
+ *         admis = libh2.admissible_2_cluster
+ *     elif admissibility.lower() in ['maxcluster']:
+ *         admis = libh2.admissible_max_cluster             # <<<<<<<<<<<<<<
+ * 
+ *     cdef pblock block = libh2.build_nonstrict_block(rc.ptr, cc.ptr, &eta, admis)
+ */
+    __pyx_v_admis = admissible_max_cluster;
+
+    /* "cmut_nonlinear_sim/core/libh2_functions.pyx":49
+ *     if admissibility.lower() in ['2']:
+ *         admis = libh2.admissible_2_cluster
+ *     elif admissibility.lower() in ['maxcluster']:             # <<<<<<<<<<<<<<
+ *         admis = libh2.admissible_max_cluster
+ * 
+ */
+  }
+  __pyx_L3:;
+
+  /* "cmut_nonlinear_sim/core/libh2_functions.pyx":52
+ *         admis = libh2.admissible_max_cluster
+ * 
+ *     cdef pblock block = libh2.build_nonstrict_block(rc.ptr, cc.ptr, &eta, admis)             # <<<<<<<<<<<<<<
+ *     return Block.wrap(block, True)
+ * 
+ */
+  __pyx_v_block = build_nonstrict_block(__pyx_v_rc->ptr, __pyx_v_cc->ptr, (&__pyx_v_eta), __pyx_v_admis);
+
+  /* "cmut_nonlinear_sim/core/libh2_functions.pyx":53
+ * 
+ *     cdef pblock block = libh2.build_nonstrict_block(rc.ptr, cc.ptr, &eta, admis)
+ *     return Block.wrap(block, True)             # <<<<<<<<<<<<<<
+ * 
+ * cpdef setup_hmatrix_aprx_paca_bem3d(Bem bem, Cluster rc, Cluster cc, Block tree, real accur):
+ */
+  __Pyx_XDECREF(__pyx_r);
+  __pyx_t_4.__pyx_n = 1;
+  __pyx_t_4.owner = 1;
+  __pyx_t_1 = __pyx_vtabptr_18cmut_nonlinear_sim_4core_13libh2_classes_Block->wrap(__pyx_v_block, &__pyx_t_4); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 53, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_r = __pyx_t_1;
+  __pyx_t_1 = 0;
+  goto __pyx_L0;
+
+  /* "cmut_nonlinear_sim/core/libh2_functions.pyx":43
+ * 
+ * 
+ * cpdef build_nonstrict_block(Cluster rc, Cluster cc, real eta, str admissibility):             # <<<<<<<<<<<<<<
+ * 
+ *     cdef admissible admis
+ */
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_AddTraceback("cmut_nonlinear_sim.core.libh2_functions.build_nonstrict_block", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = 0;
+  __pyx_L0:;
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* Python wrapper */
+static PyObject *__pyx_pw_18cmut_nonlinear_sim_4core_15libh2_functions_13build_nonstrict_block(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyObject *__pyx_pw_18cmut_nonlinear_sim_4core_15libh2_functions_13build_nonstrict_block(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+  struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_Cluster *__pyx_v_rc = 0;
+  struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_Cluster *__pyx_v_cc = 0;
+  __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_real __pyx_v_eta;
+  PyObject *__pyx_v_admissibility = 0;
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("build_nonstrict_block (wrapper)", 0);
+  {
+    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_rc,&__pyx_n_s_cc,&__pyx_n_s_eta,&__pyx_n_s_admissibility,0};
+    PyObject* values[4] = {0,0,0,0};
+    if (unlikely(__pyx_kwds)) {
+      Py_ssize_t kw_args;
+      const Py_ssize_t pos_args = PyTuple_GET_SIZE(__pyx_args);
+      switch (pos_args) {
+        case  4: values[3] = PyTuple_GET_ITEM(__pyx_args, 3);
+        CYTHON_FALLTHROUGH;
+        case  3: values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
+        CYTHON_FALLTHROUGH;
+        case  2: values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
+        CYTHON_FALLTHROUGH;
+        case  1: values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
+        CYTHON_FALLTHROUGH;
+        case  0: break;
+        default: goto __pyx_L5_argtuple_error;
+      }
+      kw_args = PyDict_Size(__pyx_kwds);
+      switch (pos_args) {
+        case  0:
+        if (likely((values[0] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_rc)) != 0)) kw_args--;
+        else goto __pyx_L5_argtuple_error;
+        CYTHON_FALLTHROUGH;
+        case  1:
+        if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_cc)) != 0)) kw_args--;
+        else {
+          __Pyx_RaiseArgtupleInvalid("build_nonstrict_block", 1, 4, 4, 1); __PYX_ERR(0, 43, __pyx_L3_error)
+        }
+        CYTHON_FALLTHROUGH;
+        case  2:
+        if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_eta)) != 0)) kw_args--;
+        else {
+          __Pyx_RaiseArgtupleInvalid("build_nonstrict_block", 1, 4, 4, 2); __PYX_ERR(0, 43, __pyx_L3_error)
+        }
+        CYTHON_FALLTHROUGH;
+        case  3:
+        if (likely((values[3] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_admissibility)) != 0)) kw_args--;
+        else {
+          __Pyx_RaiseArgtupleInvalid("build_nonstrict_block", 1, 4, 4, 3); __PYX_ERR(0, 43, __pyx_L3_error)
+        }
+      }
+      if (unlikely(kw_args > 0)) {
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "build_nonstrict_block") < 0)) __PYX_ERR(0, 43, __pyx_L3_error)
+      }
+    } else if (PyTuple_GET_SIZE(__pyx_args) != 4) {
+      goto __pyx_L5_argtuple_error;
+    } else {
+      values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
+      values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
+      values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
+      values[3] = PyTuple_GET_ITEM(__pyx_args, 3);
+    }
+    __pyx_v_rc = ((struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_Cluster *)values[0]);
+    __pyx_v_cc = ((struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_Cluster *)values[1]);
+    __pyx_v_eta = __pyx_PyFloat_AsDouble(values[2]); if (unlikely((__pyx_v_eta == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 43, __pyx_L3_error)
+    __pyx_v_admissibility = ((PyObject*)values[3]);
+  }
+  goto __pyx_L4_argument_unpacking_done;
+  __pyx_L5_argtuple_error:;
+  __Pyx_RaiseArgtupleInvalid("build_nonstrict_block", 1, 4, 4, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 43, __pyx_L3_error)
+  __pyx_L3_error:;
+  __Pyx_AddTraceback("cmut_nonlinear_sim.core.libh2_functions.build_nonstrict_block", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_RefNannyFinishContext();
+  return NULL;
+  __pyx_L4_argument_unpacking_done:;
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_rc), __pyx_ptype_18cmut_nonlinear_sim_4core_13libh2_classes_Cluster, 1, "rc", 0))) __PYX_ERR(0, 43, __pyx_L1_error)
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_cc), __pyx_ptype_18cmut_nonlinear_sim_4core_13libh2_classes_Cluster, 1, "cc", 0))) __PYX_ERR(0, 43, __pyx_L1_error)
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_admissibility), (&PyString_Type), 1, "admissibility", 1))) __PYX_ERR(0, 43, __pyx_L1_error)
+  __pyx_r = __pyx_pf_18cmut_nonlinear_sim_4core_15libh2_functions_12build_nonstrict_block(__pyx_self, __pyx_v_rc, __pyx_v_cc, __pyx_v_eta, __pyx_v_admissibility);
+
+  /* function exit code */
+  goto __pyx_L0;
+  __pyx_L1_error:;
+  __pyx_r = NULL;
+  __pyx_L0:;
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static PyObject *__pyx_pf_18cmut_nonlinear_sim_4core_15libh2_functions_12build_nonstrict_block(CYTHON_UNUSED PyObject *__pyx_self, struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_Cluster *__pyx_v_rc, struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_Cluster *__pyx_v_cc, __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_real __pyx_v_eta, PyObject *__pyx_v_admissibility) {
+  PyObject *__pyx_r = NULL;
+  __Pyx_RefNannyDeclarations
+  PyObject *__pyx_t_1 = NULL;
+  __Pyx_RefNannySetupContext("build_nonstrict_block", 0);
+  __Pyx_XDECREF(__pyx_r);
+  __pyx_t_1 = __pyx_f_18cmut_nonlinear_sim_4core_15libh2_functions_build_nonstrict_block(__pyx_v_rc, __pyx_v_cc, __pyx_v_eta, __pyx_v_admissibility, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 43, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_r = __pyx_t_1;
+  __pyx_t_1 = 0;
+  goto __pyx_L0;
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_AddTraceback("cmut_nonlinear_sim.core.libh2_functions.build_nonstrict_block", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = NULL;
+  __pyx_L0:;
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "cmut_nonlinear_sim/core/libh2_functions.pyx":55
+ *     return Block.wrap(block, True)
+ * 
+ * cpdef setup_hmatrix_aprx_paca_bem3d(Bem bem, Cluster rc, Cluster cc, Block tree, real accur):             # <<<<<<<<<<<<<<
+ *     libh2.setup_hmatrix_aprx_paca_bem3d(<pbem3d> bem.ptr, <pccluster> rc.ptr, <pccluster> cc.ptr, <pcblock> tree, accur)
+ */
+
+static PyObject *__pyx_pw_18cmut_nonlinear_sim_4core_15libh2_functions_15setup_hmatrix_aprx_paca_bem3d(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyObject *__pyx_f_18cmut_nonlinear_sim_4core_15libh2_functions_setup_hmatrix_aprx_paca_bem3d(struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_Bem *__pyx_v_bem, struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_Cluster *__pyx_v_rc, struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_Cluster *__pyx_v_cc, struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_Block *__pyx_v_tree, __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_real __pyx_v_accur, CYTHON_UNUSED int __pyx_skip_dispatch) {
+  PyObject *__pyx_r = NULL;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("setup_hmatrix_aprx_paca_bem3d", 0);
+
+  /* "cmut_nonlinear_sim/core/libh2_functions.pyx":56
+ * 
+ * cpdef setup_hmatrix_aprx_paca_bem3d(Bem bem, Cluster rc, Cluster cc, Block tree, real accur):
+ *     libh2.setup_hmatrix_aprx_paca_bem3d(<pbem3d> bem.ptr, <pccluster> rc.ptr, <pccluster> cc.ptr, <pcblock> tree, accur)             # <<<<<<<<<<<<<<
+ */
+  setup_hmatrix_aprx_paca_bem3d(((__pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_pbem3d)__pyx_v_bem->ptr), ((__pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_pccluster)__pyx_v_rc->ptr), ((__pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_pccluster)__pyx_v_cc->ptr), ((__pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_pcblock)__pyx_v_tree), __pyx_v_accur);
+
+  /* "cmut_nonlinear_sim/core/libh2_functions.pyx":55
+ *     return Block.wrap(block, True)
+ * 
+ * cpdef setup_hmatrix_aprx_paca_bem3d(Bem bem, Cluster rc, Cluster cc, Block tree, real accur):             # <<<<<<<<<<<<<<
+ *     libh2.setup_hmatrix_aprx_paca_bem3d(<pbem3d> bem.ptr, <pccluster> rc.ptr, <pccluster> cc.ptr, <pcblock> tree, accur)
+ */
+
+  /* function exit code */
+  __pyx_r = Py_None; __Pyx_INCREF(Py_None);
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* Python wrapper */
+static PyObject *__pyx_pw_18cmut_nonlinear_sim_4core_15libh2_functions_15setup_hmatrix_aprx_paca_bem3d(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyObject *__pyx_pw_18cmut_nonlinear_sim_4core_15libh2_functions_15setup_hmatrix_aprx_paca_bem3d(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+  struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_Bem *__pyx_v_bem = 0;
+  struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_Cluster *__pyx_v_rc = 0;
+  struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_Cluster *__pyx_v_cc = 0;
+  struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_Block *__pyx_v_tree = 0;
+  __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_real __pyx_v_accur;
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("setup_hmatrix_aprx_paca_bem3d (wrapper)", 0);
+  {
+    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_bem,&__pyx_n_s_rc,&__pyx_n_s_cc,&__pyx_n_s_tree,&__pyx_n_s_accur,0};
+    PyObject* values[5] = {0,0,0,0,0};
+    if (unlikely(__pyx_kwds)) {
+      Py_ssize_t kw_args;
+      const Py_ssize_t pos_args = PyTuple_GET_SIZE(__pyx_args);
+      switch (pos_args) {
+        case  5: values[4] = PyTuple_GET_ITEM(__pyx_args, 4);
+        CYTHON_FALLTHROUGH;
+        case  4: values[3] = PyTuple_GET_ITEM(__pyx_args, 3);
+        CYTHON_FALLTHROUGH;
+        case  3: values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
+        CYTHON_FALLTHROUGH;
+        case  2: values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
+        CYTHON_FALLTHROUGH;
+        case  1: values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
+        CYTHON_FALLTHROUGH;
+        case  0: break;
+        default: goto __pyx_L5_argtuple_error;
+      }
+      kw_args = PyDict_Size(__pyx_kwds);
+      switch (pos_args) {
+        case  0:
+        if (likely((values[0] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_bem)) != 0)) kw_args--;
+        else goto __pyx_L5_argtuple_error;
+        CYTHON_FALLTHROUGH;
+        case  1:
+        if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_rc)) != 0)) kw_args--;
+        else {
+          __Pyx_RaiseArgtupleInvalid("setup_hmatrix_aprx_paca_bem3d", 1, 5, 5, 1); __PYX_ERR(0, 55, __pyx_L3_error)
+        }
+        CYTHON_FALLTHROUGH;
+        case  2:
+        if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_cc)) != 0)) kw_args--;
+        else {
+          __Pyx_RaiseArgtupleInvalid("setup_hmatrix_aprx_paca_bem3d", 1, 5, 5, 2); __PYX_ERR(0, 55, __pyx_L3_error)
+        }
+        CYTHON_FALLTHROUGH;
+        case  3:
+        if (likely((values[3] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_tree)) != 0)) kw_args--;
+        else {
+          __Pyx_RaiseArgtupleInvalid("setup_hmatrix_aprx_paca_bem3d", 1, 5, 5, 3); __PYX_ERR(0, 55, __pyx_L3_error)
+        }
+        CYTHON_FALLTHROUGH;
+        case  4:
+        if (likely((values[4] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_accur)) != 0)) kw_args--;
+        else {
+          __Pyx_RaiseArgtupleInvalid("setup_hmatrix_aprx_paca_bem3d", 1, 5, 5, 4); __PYX_ERR(0, 55, __pyx_L3_error)
+        }
+      }
+      if (unlikely(kw_args > 0)) {
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "setup_hmatrix_aprx_paca_bem3d") < 0)) __PYX_ERR(0, 55, __pyx_L3_error)
+      }
+    } else if (PyTuple_GET_SIZE(__pyx_args) != 5) {
+      goto __pyx_L5_argtuple_error;
+    } else {
+      values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
+      values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
+      values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
+      values[3] = PyTuple_GET_ITEM(__pyx_args, 3);
+      values[4] = PyTuple_GET_ITEM(__pyx_args, 4);
+    }
+    __pyx_v_bem = ((struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_Bem *)values[0]);
+    __pyx_v_rc = ((struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_Cluster *)values[1]);
+    __pyx_v_cc = ((struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_Cluster *)values[2]);
+    __pyx_v_tree = ((struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_Block *)values[3]);
+    __pyx_v_accur = __pyx_PyFloat_AsDouble(values[4]); if (unlikely((__pyx_v_accur == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 55, __pyx_L3_error)
+  }
+  goto __pyx_L4_argument_unpacking_done;
+  __pyx_L5_argtuple_error:;
+  __Pyx_RaiseArgtupleInvalid("setup_hmatrix_aprx_paca_bem3d", 1, 5, 5, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 55, __pyx_L3_error)
+  __pyx_L3_error:;
+  __Pyx_AddTraceback("cmut_nonlinear_sim.core.libh2_functions.setup_hmatrix_aprx_paca_bem3d", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_RefNannyFinishContext();
+  return NULL;
+  __pyx_L4_argument_unpacking_done:;
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_bem), __pyx_ptype_18cmut_nonlinear_sim_4core_13libh2_classes_Bem, 1, "bem", 0))) __PYX_ERR(0, 55, __pyx_L1_error)
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_rc), __pyx_ptype_18cmut_nonlinear_sim_4core_13libh2_classes_Cluster, 1, "rc", 0))) __PYX_ERR(0, 55, __pyx_L1_error)
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_cc), __pyx_ptype_18cmut_nonlinear_sim_4core_13libh2_classes_Cluster, 1, "cc", 0))) __PYX_ERR(0, 55, __pyx_L1_error)
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_tree), __pyx_ptype_18cmut_nonlinear_sim_4core_13libh2_classes_Block, 1, "tree", 0))) __PYX_ERR(0, 55, __pyx_L1_error)
+  __pyx_r = __pyx_pf_18cmut_nonlinear_sim_4core_15libh2_functions_14setup_hmatrix_aprx_paca_bem3d(__pyx_self, __pyx_v_bem, __pyx_v_rc, __pyx_v_cc, __pyx_v_tree, __pyx_v_accur);
+
+  /* function exit code */
+  goto __pyx_L0;
+  __pyx_L1_error:;
+  __pyx_r = NULL;
+  __pyx_L0:;
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static PyObject *__pyx_pf_18cmut_nonlinear_sim_4core_15libh2_functions_14setup_hmatrix_aprx_paca_bem3d(CYTHON_UNUSED PyObject *__pyx_self, struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_Bem *__pyx_v_bem, struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_Cluster *__pyx_v_rc, struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_Cluster *__pyx_v_cc, struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_Block *__pyx_v_tree, __pyx_t_18cmut_nonlinear_sim_4core_13libh2_classes_real __pyx_v_accur) {
+  PyObject *__pyx_r = NULL;
+  __Pyx_RefNannyDeclarations
+  PyObject *__pyx_t_1 = NULL;
+  __Pyx_RefNannySetupContext("setup_hmatrix_aprx_paca_bem3d", 0);
+  __Pyx_XDECREF(__pyx_r);
+  __pyx_t_1 = __pyx_f_18cmut_nonlinear_sim_4core_15libh2_functions_setup_hmatrix_aprx_paca_bem3d(__pyx_v_bem, __pyx_v_rc, __pyx_v_cc, __pyx_v_tree, __pyx_v_accur, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 55, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_r = __pyx_t_1;
+  __pyx_t_1 = 0;
+  goto __pyx_L0;
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_AddTraceback("cmut_nonlinear_sim.core.libh2_functions.setup_hmatrix_aprx_paca_bem3d", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XGIVEREF(__pyx_r);
@@ -16499,8 +17497,12 @@ static PyTypeObject __pyx_type___pyx_memoryviewslice = {
 };
 
 static PyMethodDef __pyx_methods[] = {
-  {"build_from_macrosurface_surface", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_18cmut_nonlinear_sim_4core_15libh2_functions_5build_from_macrosurface_surface, METH_VARARGS|METH_KEYWORDS, 0},
-  {"new_slp_bem", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_18cmut_nonlinear_sim_4core_15libh2_functions_7new_slp_bem, METH_VARARGS|METH_KEYWORDS, 0},
+  {"build_from_macrosurface3d_surface3d", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_18cmut_nonlinear_sim_4core_15libh2_functions_5build_from_macrosurface3d_surface3d, METH_VARARGS|METH_KEYWORDS, 0},
+  {"new_slp_helmholtz_bem3d", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_18cmut_nonlinear_sim_4core_15libh2_functions_7new_slp_helmholtz_bem3d, METH_VARARGS|METH_KEYWORDS, 0},
+  {"new_dlp_helmholtz_bem3d", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_18cmut_nonlinear_sim_4core_15libh2_functions_9new_dlp_helmholtz_bem3d, METH_VARARGS|METH_KEYWORDS, 0},
+  {"build_bem3d_cluster", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_18cmut_nonlinear_sim_4core_15libh2_functions_11build_bem3d_cluster, METH_VARARGS|METH_KEYWORDS, 0},
+  {"build_nonstrict_block", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_18cmut_nonlinear_sim_4core_15libh2_functions_13build_nonstrict_block, METH_VARARGS|METH_KEYWORDS, 0},
+  {"setup_hmatrix_aprx_paca_bem3d", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_18cmut_nonlinear_sim_4core_15libh2_functions_15setup_hmatrix_aprx_paca_bem3d, METH_VARARGS|METH_KEYWORDS, 0},
   {0, 0, 0, 0}
 };
 
@@ -16546,6 +17548,7 @@ static struct PyModuleDef __pyx_moduledef = {
 #endif
 
 static __Pyx_StringTabEntry __pyx_string_tab[] = {
+  {&__pyx_kp_s_2, __pyx_k_2, sizeof(__pyx_k_2), 0, 0, 1, 0},
   {&__pyx_n_s_ASCII, __pyx_k_ASCII, sizeof(__pyx_k_ASCII), 0, 0, 1, 1},
   {&__pyx_kp_s_Buffer_view_does_not_expose_stri, __pyx_k_Buffer_view_does_not_expose_stri, sizeof(__pyx_k_Buffer_view_does_not_expose_stri), 0, 0, 1, 0},
   {&__pyx_kp_s_Can_only_create_a_buffer_that_is, __pyx_k_Can_only_create_a_buffer_that_is, sizeof(__pyx_k_Can_only_create_a_buffer_that_is), 0, 0, 1, 0},
@@ -16569,11 +17572,18 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_kp_s_Unable_to_convert_item_to_object, __pyx_k_Unable_to_convert_item_to_object, sizeof(__pyx_k_Unable_to_convert_item_to_object), 0, 0, 1, 0},
   {&__pyx_n_s_ValueError, __pyx_k_ValueError, sizeof(__pyx_k_ValueError), 0, 0, 1, 1},
   {&__pyx_n_s_View_MemoryView, __pyx_k_View_MemoryView, sizeof(__pyx_k_View_MemoryView), 0, 0, 1, 1},
+  {&__pyx_n_s_accur, __pyx_k_accur, sizeof(__pyx_k_accur), 0, 0, 1, 1},
+  {&__pyx_n_s_admissibility, __pyx_k_admissibility, sizeof(__pyx_k_admissibility), 0, 0, 1, 1},
   {&__pyx_n_s_allocate_buffer, __pyx_k_allocate_buffer, sizeof(__pyx_k_allocate_buffer), 0, 0, 1, 1},
+  {&__pyx_n_s_alpha, __pyx_k_alpha, sizeof(__pyx_k_alpha), 0, 0, 1, 1},
   {&__pyx_n_s_base, __pyx_k_base, sizeof(__pyx_k_base), 0, 0, 1, 1},
+  {&__pyx_n_s_basis, __pyx_k_basis, sizeof(__pyx_k_basis), 0, 0, 1, 1},
+  {&__pyx_n_s_bem, __pyx_k_bem, sizeof(__pyx_k_bem), 0, 0, 1, 1},
   {&__pyx_n_s_c, __pyx_k_c, sizeof(__pyx_k_c), 0, 0, 1, 1},
   {&__pyx_n_u_c, __pyx_k_c, sizeof(__pyx_k_c), 0, 1, 0, 1},
+  {&__pyx_n_s_cc, __pyx_k_cc, sizeof(__pyx_k_cc), 0, 0, 1, 1},
   {&__pyx_n_s_class, __pyx_k_class, sizeof(__pyx_k_class), 0, 0, 1, 1},
+  {&__pyx_n_s_clf, __pyx_k_clf, sizeof(__pyx_k_clf), 0, 0, 1, 1},
   {&__pyx_n_s_cline_in_traceback, __pyx_k_cline_in_traceback, sizeof(__pyx_k_cline_in_traceback), 0, 0, 1, 1},
   {&__pyx_kp_s_cmut_nonlinear_sim_core_libh2_fu, __pyx_k_cmut_nonlinear_sim_core_libh2_fu, sizeof(__pyx_k_cmut_nonlinear_sim_core_libh2_fu), 0, 0, 1, 0},
   {&__pyx_n_s_cmut_nonlinear_sim_core_libh2_fu_2, __pyx_k_cmut_nonlinear_sim_core_libh2_fu_2, sizeof(__pyx_k_cmut_nonlinear_sim_core_libh2_fu_2), 0, 0, 1, 1},
@@ -16585,6 +17595,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_encode, __pyx_k_encode, sizeof(__pyx_k_encode), 0, 0, 1, 1},
   {&__pyx_n_s_enumerate, __pyx_k_enumerate, sizeof(__pyx_k_enumerate), 0, 0, 1, 1},
   {&__pyx_n_s_error, __pyx_k_error, sizeof(__pyx_k_error), 0, 0, 1, 1},
+  {&__pyx_n_s_eta, __pyx_k_eta, sizeof(__pyx_k_eta), 0, 0, 1, 1},
   {&__pyx_n_s_flags, __pyx_k_flags, sizeof(__pyx_k_flags), 0, 0, 1, 1},
   {&__pyx_n_s_format, __pyx_k_format, sizeof(__pyx_k_format), 0, 0, 1, 1},
   {&__pyx_n_s_fortran, __pyx_k_fortran, sizeof(__pyx_k_fortran), 0, 0, 1, 1},
@@ -16593,11 +17604,13 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_kp_s_got_differing_extents_in_dimensi, __pyx_k_got_differing_extents_in_dimensi, sizeof(__pyx_k_got_differing_extents_in_dimensi), 0, 0, 1, 0},
   {&__pyx_n_s_id, __pyx_k_id, sizeof(__pyx_k_id), 0, 0, 1, 1},
   {&__pyx_n_s_import, __pyx_k_import, sizeof(__pyx_k_import), 0, 0, 1, 1},
-  {&__pyx_n_s_init_libh2, __pyx_k_init_libh2, sizeof(__pyx_k_init_libh2), 0, 0, 1, 1},
+  {&__pyx_n_s_init_h2lib, __pyx_k_init_h2lib, sizeof(__pyx_k_init_h2lib), 0, 0, 1, 1},
   {&__pyx_n_s_itemsize, __pyx_k_itemsize, sizeof(__pyx_k_itemsize), 0, 0, 1, 1},
   {&__pyx_kp_s_itemsize_0_for_cython_array, __pyx_k_itemsize_0_for_cython_array, sizeof(__pyx_k_itemsize_0_for_cython_array), 0, 0, 1, 0},
   {&__pyx_n_s_k, __pyx_k_k, sizeof(__pyx_k_k), 0, 0, 1, 1},
+  {&__pyx_n_s_lower, __pyx_k_lower, sizeof(__pyx_k_lower), 0, 0, 1, 1},
   {&__pyx_n_s_main, __pyx_k_main, sizeof(__pyx_k_main), 0, 0, 1, 1},
+  {&__pyx_n_s_maxcluster, __pyx_k_maxcluster, sizeof(__pyx_k_maxcluster), 0, 0, 1, 1},
   {&__pyx_n_s_memview, __pyx_k_memview, sizeof(__pyx_k_memview), 0, 0, 1, 1},
   {&__pyx_n_s_mode, __pyx_k_mode, sizeof(__pyx_k_mode), 0, 0, 1, 1},
   {&__pyx_n_s_ms, __pyx_k_ms, sizeof(__pyx_k_ms), 0, 0, 1, 1},
@@ -16620,6 +17633,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_q_regular, __pyx_k_q_regular, sizeof(__pyx_k_q_regular), 0, 0, 1, 1},
   {&__pyx_n_s_q_singular, __pyx_k_q_singular, sizeof(__pyx_k_q_singular), 0, 0, 1, 1},
   {&__pyx_n_s_range, __pyx_k_range, sizeof(__pyx_k_range), 0, 0, 1, 1},
+  {&__pyx_n_s_rc, __pyx_k_rc, sizeof(__pyx_k_rc), 0, 0, 1, 1},
   {&__pyx_n_s_reduce, __pyx_k_reduce, sizeof(__pyx_k_reduce), 0, 0, 1, 1},
   {&__pyx_n_s_reduce_cython, __pyx_k_reduce_cython, sizeof(__pyx_k_reduce_cython), 0, 0, 1, 1},
   {&__pyx_n_s_reduce_ex, __pyx_k_reduce_ex, sizeof(__pyx_k_reduce_ex), 0, 0, 1, 1},
@@ -16639,9 +17653,10 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_struct, __pyx_k_struct, sizeof(__pyx_k_struct), 0, 0, 1, 1},
   {&__pyx_n_s_surf, __pyx_k_surf, sizeof(__pyx_k_surf), 0, 0, 1, 1},
   {&__pyx_n_s_test, __pyx_k_test, sizeof(__pyx_k_test), 0, 0, 1, 1},
+  {&__pyx_n_s_tree, __pyx_k_tree, sizeof(__pyx_k_tree), 0, 0, 1, 1},
   {&__pyx_kp_s_unable_to_allocate_array_data, __pyx_k_unable_to_allocate_array_data, sizeof(__pyx_k_unable_to_allocate_array_data), 0, 0, 1, 0},
   {&__pyx_kp_s_unable_to_allocate_shape_and_str, __pyx_k_unable_to_allocate_shape_and_str, sizeof(__pyx_k_unable_to_allocate_shape_and_str), 0, 0, 1, 0},
-  {&__pyx_n_s_uninit_libh2, __pyx_k_uninit_libh2, sizeof(__pyx_k_uninit_libh2), 0, 0, 1, 1},
+  {&__pyx_n_s_uninit_h2lib, __pyx_k_uninit_h2lib, sizeof(__pyx_k_uninit_h2lib), 0, 0, 1, 1},
   {&__pyx_n_s_unpack, __pyx_k_unpack, sizeof(__pyx_k_unpack), 0, 0, 1, 1},
   {&__pyx_n_s_update, __pyx_k_update, sizeof(__pyx_k_update), 0, 0, 1, 1},
   {0, 0, 0, 0, 0, 0, 0}
@@ -16878,23 +17893,23 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__18);
   __Pyx_GIVEREF(__pyx_tuple__18);
 
-  /* "cmut_nonlinear_sim/core/libh2_functions.pyx":6
- * from . helmholtzbem3d cimport *
+  /* "cmut_nonlinear_sim/core/libh2_functions.pyx":7
  * 
- * def init_libh2():             # <<<<<<<<<<<<<<
- *     init_h2lib(NULL, NULL)
+ * 
+ * def init_h2lib():             # <<<<<<<<<<<<<<
+ *     libh2.init_h2lib(NULL, NULL)
  * 
  */
-  __pyx_codeobj__19 = (PyObject*)__Pyx_PyCode_New(0, 0, 0, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_cmut_nonlinear_sim_core_libh2_fu, __pyx_n_s_init_libh2, 6, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__19)) __PYX_ERR(0, 6, __pyx_L1_error)
+  __pyx_codeobj__19 = (PyObject*)__Pyx_PyCode_New(0, 0, 0, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_cmut_nonlinear_sim_core_libh2_fu, __pyx_n_s_init_h2lib, 7, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__19)) __PYX_ERR(0, 7, __pyx_L1_error)
 
-  /* "cmut_nonlinear_sim/core/libh2_functions.pyx":9
- *     init_h2lib(NULL, NULL)
+  /* "cmut_nonlinear_sim/core/libh2_functions.pyx":11
  * 
- * def uninit_libh2():             # <<<<<<<<<<<<<<
- *     uninit_h2lib()
+ * 
+ * def uninit_h2lib():             # <<<<<<<<<<<<<<
+ *     libh2.uninit_h2lib()
  * 
  */
-  __pyx_codeobj__20 = (PyObject*)__Pyx_PyCode_New(0, 0, 0, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_cmut_nonlinear_sim_core_libh2_fu, __pyx_n_s_uninit_libh2, 9, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__20)) __PYX_ERR(0, 9, __pyx_L1_error)
+  __pyx_codeobj__20 = (PyObject*)__Pyx_PyCode_New(0, 0, 0, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_cmut_nonlinear_sim_core_libh2_fu, __pyx_n_s_uninit_h2lib, 11, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__20)) __PYX_ERR(0, 11, __pyx_L1_error)
 
   /* "View.MemoryView":285
  *         return self.name
@@ -16968,6 +17983,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
 }
 
 static CYTHON_SMALL_CODE int __Pyx_InitGlobals(void) {
+  __pyx_umethod_PyString_Type_lower.type = (PyObject*)&PyString_Type;
   if (__Pyx_InitStrings(__pyx_string_tab) < 0) __PYX_ERR(0, 1, __pyx_L1_error);
   __pyx_int_0 = PyInt_FromLong(0); if (unlikely(!__pyx_int_0)) __PYX_ERR(0, 1, __pyx_L1_error)
   __pyx_int_1 = PyInt_FromLong(1); if (unlikely(!__pyx_int_1)) __PYX_ERR(0, 1, __pyx_L1_error)
@@ -17074,35 +18090,35 @@ static int __Pyx_modinit_type_import_code(void) {
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("__Pyx_modinit_type_import_code", 0);
   /*--- Type import code ---*/
-  __pyx_t_1 = PyImport_ImportModule("cmut_nonlinear_sim.core.libh2_classes"); if (unlikely(!__pyx_t_1)) __PYX_ERR(2, 20, __pyx_L1_error)
+  __pyx_t_1 = PyImport_ImportModule("cmut_nonlinear_sim.core.libh2_classes"); if (unlikely(!__pyx_t_1)) __PYX_ERR(2, 41, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_ptype_18cmut_nonlinear_sim_4core_13libh2_classes_Vector = __Pyx_ImportType(__pyx_t_1, "cmut_nonlinear_sim.core.libh2_classes", "Vector", sizeof(struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_Vector), __Pyx_ImportType_CheckSize_Warn);
-   if (!__pyx_ptype_18cmut_nonlinear_sim_4core_13libh2_classes_Vector) __PYX_ERR(2, 20, __pyx_L1_error)
-  __pyx_vtabptr_18cmut_nonlinear_sim_4core_13libh2_classes_Vector = (struct __pyx_vtabstruct_18cmut_nonlinear_sim_4core_13libh2_classes_Vector*)__Pyx_GetVtable(__pyx_ptype_18cmut_nonlinear_sim_4core_13libh2_classes_Vector->tp_dict); if (unlikely(!__pyx_vtabptr_18cmut_nonlinear_sim_4core_13libh2_classes_Vector)) __PYX_ERR(2, 20, __pyx_L1_error)
+   if (!__pyx_ptype_18cmut_nonlinear_sim_4core_13libh2_classes_Vector) __PYX_ERR(2, 41, __pyx_L1_error)
+  __pyx_vtabptr_18cmut_nonlinear_sim_4core_13libh2_classes_Vector = (struct __pyx_vtabstruct_18cmut_nonlinear_sim_4core_13libh2_classes_Vector*)__Pyx_GetVtable(__pyx_ptype_18cmut_nonlinear_sim_4core_13libh2_classes_Vector->tp_dict); if (unlikely(!__pyx_vtabptr_18cmut_nonlinear_sim_4core_13libh2_classes_Vector)) __PYX_ERR(2, 41, __pyx_L1_error)
   __pyx_ptype_18cmut_nonlinear_sim_4core_13libh2_classes_Matrix = __Pyx_ImportType(__pyx_t_1, "cmut_nonlinear_sim.core.libh2_classes", "Matrix", sizeof(struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_Matrix), __Pyx_ImportType_CheckSize_Warn);
-   if (!__pyx_ptype_18cmut_nonlinear_sim_4core_13libh2_classes_Matrix) __PYX_ERR(2, 28, __pyx_L1_error)
-  __pyx_vtabptr_18cmut_nonlinear_sim_4core_13libh2_classes_Matrix = (struct __pyx_vtabstruct_18cmut_nonlinear_sim_4core_13libh2_classes_Matrix*)__Pyx_GetVtable(__pyx_ptype_18cmut_nonlinear_sim_4core_13libh2_classes_Matrix->tp_dict); if (unlikely(!__pyx_vtabptr_18cmut_nonlinear_sim_4core_13libh2_classes_Matrix)) __PYX_ERR(2, 28, __pyx_L1_error)
+   if (!__pyx_ptype_18cmut_nonlinear_sim_4core_13libh2_classes_Matrix) __PYX_ERR(2, 49, __pyx_L1_error)
+  __pyx_vtabptr_18cmut_nonlinear_sim_4core_13libh2_classes_Matrix = (struct __pyx_vtabstruct_18cmut_nonlinear_sim_4core_13libh2_classes_Matrix*)__Pyx_GetVtable(__pyx_ptype_18cmut_nonlinear_sim_4core_13libh2_classes_Matrix->tp_dict); if (unlikely(!__pyx_vtabptr_18cmut_nonlinear_sim_4core_13libh2_classes_Matrix)) __PYX_ERR(2, 49, __pyx_L1_error)
   __pyx_ptype_18cmut_nonlinear_sim_4core_13libh2_classes_Macrosurface = __Pyx_ImportType(__pyx_t_1, "cmut_nonlinear_sim.core.libh2_classes", "Macrosurface", sizeof(struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_Macrosurface), __Pyx_ImportType_CheckSize_Warn);
-   if (!__pyx_ptype_18cmut_nonlinear_sim_4core_13libh2_classes_Macrosurface) __PYX_ERR(2, 36, __pyx_L1_error)
-  __pyx_vtabptr_18cmut_nonlinear_sim_4core_13libh2_classes_Macrosurface = (struct __pyx_vtabstruct_18cmut_nonlinear_sim_4core_13libh2_classes_Macrosurface*)__Pyx_GetVtable(__pyx_ptype_18cmut_nonlinear_sim_4core_13libh2_classes_Macrosurface->tp_dict); if (unlikely(!__pyx_vtabptr_18cmut_nonlinear_sim_4core_13libh2_classes_Macrosurface)) __PYX_ERR(2, 36, __pyx_L1_error)
+   if (!__pyx_ptype_18cmut_nonlinear_sim_4core_13libh2_classes_Macrosurface) __PYX_ERR(2, 57, __pyx_L1_error)
+  __pyx_vtabptr_18cmut_nonlinear_sim_4core_13libh2_classes_Macrosurface = (struct __pyx_vtabstruct_18cmut_nonlinear_sim_4core_13libh2_classes_Macrosurface*)__Pyx_GetVtable(__pyx_ptype_18cmut_nonlinear_sim_4core_13libh2_classes_Macrosurface->tp_dict); if (unlikely(!__pyx_vtabptr_18cmut_nonlinear_sim_4core_13libh2_classes_Macrosurface)) __PYX_ERR(2, 57, __pyx_L1_error)
   __pyx_ptype_18cmut_nonlinear_sim_4core_13libh2_classes_Surface = __Pyx_ImportType(__pyx_t_1, "cmut_nonlinear_sim.core.libh2_classes", "Surface", sizeof(struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_Surface), __Pyx_ImportType_CheckSize_Warn);
-   if (!__pyx_ptype_18cmut_nonlinear_sim_4core_13libh2_classes_Surface) __PYX_ERR(2, 47, __pyx_L1_error)
-  __pyx_vtabptr_18cmut_nonlinear_sim_4core_13libh2_classes_Surface = (struct __pyx_vtabstruct_18cmut_nonlinear_sim_4core_13libh2_classes_Surface*)__Pyx_GetVtable(__pyx_ptype_18cmut_nonlinear_sim_4core_13libh2_classes_Surface->tp_dict); if (unlikely(!__pyx_vtabptr_18cmut_nonlinear_sim_4core_13libh2_classes_Surface)) __PYX_ERR(2, 47, __pyx_L1_error)
+   if (!__pyx_ptype_18cmut_nonlinear_sim_4core_13libh2_classes_Surface) __PYX_ERR(2, 68, __pyx_L1_error)
+  __pyx_vtabptr_18cmut_nonlinear_sim_4core_13libh2_classes_Surface = (struct __pyx_vtabstruct_18cmut_nonlinear_sim_4core_13libh2_classes_Surface*)__Pyx_GetVtable(__pyx_ptype_18cmut_nonlinear_sim_4core_13libh2_classes_Surface->tp_dict); if (unlikely(!__pyx_vtabptr_18cmut_nonlinear_sim_4core_13libh2_classes_Surface)) __PYX_ERR(2, 68, __pyx_L1_error)
   __pyx_ptype_18cmut_nonlinear_sim_4core_13libh2_classes_Bem = __Pyx_ImportType(__pyx_t_1, "cmut_nonlinear_sim.core.libh2_classes", "Bem", sizeof(struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_Bem), __Pyx_ImportType_CheckSize_Warn);
-   if (!__pyx_ptype_18cmut_nonlinear_sim_4core_13libh2_classes_Bem) __PYX_ERR(2, 59, __pyx_L1_error)
-  __pyx_vtabptr_18cmut_nonlinear_sim_4core_13libh2_classes_Bem = (struct __pyx_vtabstruct_18cmut_nonlinear_sim_4core_13libh2_classes_Bem*)__Pyx_GetVtable(__pyx_ptype_18cmut_nonlinear_sim_4core_13libh2_classes_Bem->tp_dict); if (unlikely(!__pyx_vtabptr_18cmut_nonlinear_sim_4core_13libh2_classes_Bem)) __PYX_ERR(2, 59, __pyx_L1_error)
+   if (!__pyx_ptype_18cmut_nonlinear_sim_4core_13libh2_classes_Bem) __PYX_ERR(2, 80, __pyx_L1_error)
+  __pyx_vtabptr_18cmut_nonlinear_sim_4core_13libh2_classes_Bem = (struct __pyx_vtabstruct_18cmut_nonlinear_sim_4core_13libh2_classes_Bem*)__Pyx_GetVtable(__pyx_ptype_18cmut_nonlinear_sim_4core_13libh2_classes_Bem->tp_dict); if (unlikely(!__pyx_vtabptr_18cmut_nonlinear_sim_4core_13libh2_classes_Bem)) __PYX_ERR(2, 80, __pyx_L1_error)
   __pyx_ptype_18cmut_nonlinear_sim_4core_13libh2_classes_Cluster = __Pyx_ImportType(__pyx_t_1, "cmut_nonlinear_sim.core.libh2_classes", "Cluster", sizeof(struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_Cluster), __Pyx_ImportType_CheckSize_Warn);
-   if (!__pyx_ptype_18cmut_nonlinear_sim_4core_13libh2_classes_Cluster) __PYX_ERR(2, 66, __pyx_L1_error)
-  __pyx_vtabptr_18cmut_nonlinear_sim_4core_13libh2_classes_Cluster = (struct __pyx_vtabstruct_18cmut_nonlinear_sim_4core_13libh2_classes_Cluster*)__Pyx_GetVtable(__pyx_ptype_18cmut_nonlinear_sim_4core_13libh2_classes_Cluster->tp_dict); if (unlikely(!__pyx_vtabptr_18cmut_nonlinear_sim_4core_13libh2_classes_Cluster)) __PYX_ERR(2, 66, __pyx_L1_error)
+   if (!__pyx_ptype_18cmut_nonlinear_sim_4core_13libh2_classes_Cluster) __PYX_ERR(2, 87, __pyx_L1_error)
+  __pyx_vtabptr_18cmut_nonlinear_sim_4core_13libh2_classes_Cluster = (struct __pyx_vtabstruct_18cmut_nonlinear_sim_4core_13libh2_classes_Cluster*)__Pyx_GetVtable(__pyx_ptype_18cmut_nonlinear_sim_4core_13libh2_classes_Cluster->tp_dict); if (unlikely(!__pyx_vtabptr_18cmut_nonlinear_sim_4core_13libh2_classes_Cluster)) __PYX_ERR(2, 87, __pyx_L1_error)
   __pyx_ptype_18cmut_nonlinear_sim_4core_13libh2_classes_Block = __Pyx_ImportType(__pyx_t_1, "cmut_nonlinear_sim.core.libh2_classes", "Block", sizeof(struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_Block), __Pyx_ImportType_CheckSize_Warn);
-   if (!__pyx_ptype_18cmut_nonlinear_sim_4core_13libh2_classes_Block) __PYX_ERR(2, 76, __pyx_L1_error)
-  __pyx_vtabptr_18cmut_nonlinear_sim_4core_13libh2_classes_Block = (struct __pyx_vtabstruct_18cmut_nonlinear_sim_4core_13libh2_classes_Block*)__Pyx_GetVtable(__pyx_ptype_18cmut_nonlinear_sim_4core_13libh2_classes_Block->tp_dict); if (unlikely(!__pyx_vtabptr_18cmut_nonlinear_sim_4core_13libh2_classes_Block)) __PYX_ERR(2, 76, __pyx_L1_error)
+   if (!__pyx_ptype_18cmut_nonlinear_sim_4core_13libh2_classes_Block) __PYX_ERR(2, 97, __pyx_L1_error)
+  __pyx_vtabptr_18cmut_nonlinear_sim_4core_13libh2_classes_Block = (struct __pyx_vtabstruct_18cmut_nonlinear_sim_4core_13libh2_classes_Block*)__Pyx_GetVtable(__pyx_ptype_18cmut_nonlinear_sim_4core_13libh2_classes_Block->tp_dict); if (unlikely(!__pyx_vtabptr_18cmut_nonlinear_sim_4core_13libh2_classes_Block)) __PYX_ERR(2, 97, __pyx_L1_error)
   __pyx_ptype_18cmut_nonlinear_sim_4core_13libh2_classes_RKMatrix = __Pyx_ImportType(__pyx_t_1, "cmut_nonlinear_sim.core.libh2_classes", "RKMatrix", sizeof(struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_RKMatrix), __Pyx_ImportType_CheckSize_Warn);
-   if (!__pyx_ptype_18cmut_nonlinear_sim_4core_13libh2_classes_RKMatrix) __PYX_ERR(2, 83, __pyx_L1_error)
-  __pyx_vtabptr_18cmut_nonlinear_sim_4core_13libh2_classes_RKMatrix = (struct __pyx_vtabstruct_18cmut_nonlinear_sim_4core_13libh2_classes_RKMatrix*)__Pyx_GetVtable(__pyx_ptype_18cmut_nonlinear_sim_4core_13libh2_classes_RKMatrix->tp_dict); if (unlikely(!__pyx_vtabptr_18cmut_nonlinear_sim_4core_13libh2_classes_RKMatrix)) __PYX_ERR(2, 83, __pyx_L1_error)
+   if (!__pyx_ptype_18cmut_nonlinear_sim_4core_13libh2_classes_RKMatrix) __PYX_ERR(2, 104, __pyx_L1_error)
+  __pyx_vtabptr_18cmut_nonlinear_sim_4core_13libh2_classes_RKMatrix = (struct __pyx_vtabstruct_18cmut_nonlinear_sim_4core_13libh2_classes_RKMatrix*)__Pyx_GetVtable(__pyx_ptype_18cmut_nonlinear_sim_4core_13libh2_classes_RKMatrix->tp_dict); if (unlikely(!__pyx_vtabptr_18cmut_nonlinear_sim_4core_13libh2_classes_RKMatrix)) __PYX_ERR(2, 104, __pyx_L1_error)
   __pyx_ptype_18cmut_nonlinear_sim_4core_13libh2_classes_HMatrix = __Pyx_ImportType(__pyx_t_1, "cmut_nonlinear_sim.core.libh2_classes", "HMatrix", sizeof(struct __pyx_obj_18cmut_nonlinear_sim_4core_13libh2_classes_HMatrix), __Pyx_ImportType_CheckSize_Warn);
-   if (!__pyx_ptype_18cmut_nonlinear_sim_4core_13libh2_classes_HMatrix) __PYX_ERR(2, 90, __pyx_L1_error)
-  __pyx_vtabptr_18cmut_nonlinear_sim_4core_13libh2_classes_HMatrix = (struct __pyx_vtabstruct_18cmut_nonlinear_sim_4core_13libh2_classes_HMatrix*)__Pyx_GetVtable(__pyx_ptype_18cmut_nonlinear_sim_4core_13libh2_classes_HMatrix->tp_dict); if (unlikely(!__pyx_vtabptr_18cmut_nonlinear_sim_4core_13libh2_classes_HMatrix)) __PYX_ERR(2, 90, __pyx_L1_error)
+   if (!__pyx_ptype_18cmut_nonlinear_sim_4core_13libh2_classes_HMatrix) __PYX_ERR(2, 111, __pyx_L1_error)
+  __pyx_vtabptr_18cmut_nonlinear_sim_4core_13libh2_classes_HMatrix = (struct __pyx_vtabstruct_18cmut_nonlinear_sim_4core_13libh2_classes_HMatrix*)__Pyx_GetVtable(__pyx_ptype_18cmut_nonlinear_sim_4core_13libh2_classes_HMatrix->tp_dict); if (unlikely(!__pyx_vtabptr_18cmut_nonlinear_sim_4core_13libh2_classes_HMatrix)) __PYX_ERR(2, 111, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_RefNannyFinishContext();
   return 0;
@@ -17325,32 +18341,32 @@ if (!__Pyx_RefNanny) {
   if (__Pyx_patch_abc() < 0) __PYX_ERR(0, 1, __pyx_L1_error)
   #endif
 
-  /* "cmut_nonlinear_sim/core/libh2_functions.pyx":6
- * from . helmholtzbem3d cimport *
+  /* "cmut_nonlinear_sim/core/libh2_functions.pyx":7
  * 
- * def init_libh2():             # <<<<<<<<<<<<<<
- *     init_h2lib(NULL, NULL)
+ * 
+ * def init_h2lib():             # <<<<<<<<<<<<<<
+ *     libh2.init_h2lib(NULL, NULL)
  * 
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_18cmut_nonlinear_sim_4core_15libh2_functions_1init_libh2, NULL, __pyx_n_s_cmut_nonlinear_sim_core_libh2_fu_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 6, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_18cmut_nonlinear_sim_4core_15libh2_functions_1init_h2lib, NULL, __pyx_n_s_cmut_nonlinear_sim_core_libh2_fu_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 7, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_init_libh2, __pyx_t_1) < 0) __PYX_ERR(0, 6, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_init_h2lib, __pyx_t_1) < 0) __PYX_ERR(0, 7, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "cmut_nonlinear_sim/core/libh2_functions.pyx":9
- *     init_h2lib(NULL, NULL)
+  /* "cmut_nonlinear_sim/core/libh2_functions.pyx":11
  * 
- * def uninit_libh2():             # <<<<<<<<<<<<<<
- *     uninit_h2lib()
+ * 
+ * def uninit_h2lib():             # <<<<<<<<<<<<<<
+ *     libh2.uninit_h2lib()
  * 
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_18cmut_nonlinear_sim_4core_15libh2_functions_3uninit_libh2, NULL, __pyx_n_s_cmut_nonlinear_sim_core_libh2_fu_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 9, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_18cmut_nonlinear_sim_4core_15libh2_functions_3uninit_h2lib, NULL, __pyx_n_s_cmut_nonlinear_sim_core_libh2_fu_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 11, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_uninit_libh2, __pyx_t_1) < 0) __PYX_ERR(0, 9, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_uninit_h2lib, __pyx_t_1) < 0) __PYX_ERR(0, 11, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
   /* "cmut_nonlinear_sim/core/libh2_functions.pyx":1
- * ## libh2.classes.pyx ##             # <<<<<<<<<<<<<<
+ * ## libh2_functions.pyx ##             # <<<<<<<<<<<<<<
  * 
  * from . libh2_classes cimport *
  */
@@ -17717,34 +18733,6 @@ static int __Pyx__ArgTypeTest(PyObject *obj, PyTypeObject *type, const char *nam
     return 0;
 }
 
-/* PyObjectGetAttrStr */
-#if CYTHON_USE_TYPE_SLOTS
-static CYTHON_INLINE PyObject* __Pyx_PyObject_GetAttrStr(PyObject* obj, PyObject* attr_name) {
-    PyTypeObject* tp = Py_TYPE(obj);
-    if (likely(tp->tp_getattro))
-        return tp->tp_getattro(obj, attr_name);
-#if PY_MAJOR_VERSION < 3
-    if (likely(tp->tp_getattr))
-        return tp->tp_getattr(obj, PyString_AS_STRING(attr_name));
-#endif
-    return PyObject_GetAttr(obj, attr_name);
-}
-#endif
-
-/* GetBuiltinName */
-static PyObject *__Pyx_GetBuiltinName(PyObject *name) {
-    PyObject* result = __Pyx_PyObject_GetAttrStr(__pyx_b, name);
-    if (unlikely(!result)) {
-        PyErr_Format(PyExc_NameError,
-#if PY_MAJOR_VERSION >= 3
-            "name '%U' is not defined", name);
-#else
-            "name '%.200s' is not defined", PyString_AS_STRING(name));
-#endif
-    }
-    return result;
-}
-
 /* PyObjectCall */
 #if CYTHON_COMPILING_IN_CPYTHON
 static CYTHON_INLINE PyObject* __Pyx_PyObject_Call(PyObject *func, PyObject *arg, PyObject *kw) {
@@ -17764,6 +18752,222 @@ static CYTHON_INLINE PyObject* __Pyx_PyObject_Call(PyObject *func, PyObject *arg
     return result;
 }
 #endif
+
+/* PyObjectGetAttrStr */
+#if CYTHON_USE_TYPE_SLOTS
+static CYTHON_INLINE PyObject* __Pyx_PyObject_GetAttrStr(PyObject* obj, PyObject* attr_name) {
+    PyTypeObject* tp = Py_TYPE(obj);
+    if (likely(tp->tp_getattro))
+        return tp->tp_getattro(obj, attr_name);
+#if PY_MAJOR_VERSION < 3
+    if (likely(tp->tp_getattr))
+        return tp->tp_getattr(obj, PyString_AS_STRING(attr_name));
+#endif
+    return PyObject_GetAttr(obj, attr_name);
+}
+#endif
+
+/* UnpackUnboundCMethod */
+static int __Pyx_TryUnpackUnboundCMethod(__Pyx_CachedCFunction* target) {
+    PyObject *method;
+    method = __Pyx_PyObject_GetAttrStr(target->type, *target->method_name);
+    if (unlikely(!method))
+        return -1;
+    target->method = method;
+#if CYTHON_COMPILING_IN_CPYTHON
+    #if PY_MAJOR_VERSION >= 3
+    if (likely(__Pyx_TypeCheck(method, &PyMethodDescr_Type)))
+    #endif
+    {
+        PyMethodDescrObject *descr = (PyMethodDescrObject*) method;
+        target->func = descr->d_method->ml_meth;
+        target->flag = descr->d_method->ml_flags & ~(METH_CLASS | METH_STATIC | METH_COEXIST | METH_STACKLESS);
+    }
+#endif
+    return 0;
+}
+
+/* CallUnboundCMethod0 */
+static PyObject* __Pyx__CallUnboundCMethod0(__Pyx_CachedCFunction* cfunc, PyObject* self) {
+    PyObject *args, *result = NULL;
+    if (unlikely(!cfunc->method) && unlikely(__Pyx_TryUnpackUnboundCMethod(cfunc) < 0)) return NULL;
+#if CYTHON_ASSUME_SAFE_MACROS
+    args = PyTuple_New(1);
+    if (unlikely(!args)) goto bad;
+    Py_INCREF(self);
+    PyTuple_SET_ITEM(args, 0, self);
+#else
+    args = PyTuple_Pack(1, self);
+    if (unlikely(!args)) goto bad;
+#endif
+    result = __Pyx_PyObject_Call(cfunc->method, args, NULL);
+    Py_DECREF(args);
+bad:
+    return result;
+}
+
+/* BytesEquals */
+static CYTHON_INLINE int __Pyx_PyBytes_Equals(PyObject* s1, PyObject* s2, int equals) {
+#if CYTHON_COMPILING_IN_PYPY
+    return PyObject_RichCompareBool(s1, s2, equals);
+#else
+    if (s1 == s2) {
+        return (equals == Py_EQ);
+    } else if (PyBytes_CheckExact(s1) & PyBytes_CheckExact(s2)) {
+        const char *ps1, *ps2;
+        Py_ssize_t length = PyBytes_GET_SIZE(s1);
+        if (length != PyBytes_GET_SIZE(s2))
+            return (equals == Py_NE);
+        ps1 = PyBytes_AS_STRING(s1);
+        ps2 = PyBytes_AS_STRING(s2);
+        if (ps1[0] != ps2[0]) {
+            return (equals == Py_NE);
+        } else if (length == 1) {
+            return (equals == Py_EQ);
+        } else {
+            int result;
+#if CYTHON_USE_UNICODE_INTERNALS
+            Py_hash_t hash1, hash2;
+            hash1 = ((PyBytesObject*)s1)->ob_shash;
+            hash2 = ((PyBytesObject*)s2)->ob_shash;
+            if (hash1 != hash2 && hash1 != -1 && hash2 != -1) {
+                return (equals == Py_NE);
+            }
+#endif
+            result = memcmp(ps1, ps2, (size_t)length);
+            return (equals == Py_EQ) ? (result == 0) : (result != 0);
+        }
+    } else if ((s1 == Py_None) & PyBytes_CheckExact(s2)) {
+        return (equals == Py_NE);
+    } else if ((s2 == Py_None) & PyBytes_CheckExact(s1)) {
+        return (equals == Py_NE);
+    } else {
+        int result;
+        PyObject* py_result = PyObject_RichCompare(s1, s2, equals);
+        if (!py_result)
+            return -1;
+        result = __Pyx_PyObject_IsTrue(py_result);
+        Py_DECREF(py_result);
+        return result;
+    }
+#endif
+}
+
+/* UnicodeEquals */
+static CYTHON_INLINE int __Pyx_PyUnicode_Equals(PyObject* s1, PyObject* s2, int equals) {
+#if CYTHON_COMPILING_IN_PYPY
+    return PyObject_RichCompareBool(s1, s2, equals);
+#else
+#if PY_MAJOR_VERSION < 3
+    PyObject* owned_ref = NULL;
+#endif
+    int s1_is_unicode, s2_is_unicode;
+    if (s1 == s2) {
+        goto return_eq;
+    }
+    s1_is_unicode = PyUnicode_CheckExact(s1);
+    s2_is_unicode = PyUnicode_CheckExact(s2);
+#if PY_MAJOR_VERSION < 3
+    if ((s1_is_unicode & (!s2_is_unicode)) && PyString_CheckExact(s2)) {
+        owned_ref = PyUnicode_FromObject(s2);
+        if (unlikely(!owned_ref))
+            return -1;
+        s2 = owned_ref;
+        s2_is_unicode = 1;
+    } else if ((s2_is_unicode & (!s1_is_unicode)) && PyString_CheckExact(s1)) {
+        owned_ref = PyUnicode_FromObject(s1);
+        if (unlikely(!owned_ref))
+            return -1;
+        s1 = owned_ref;
+        s1_is_unicode = 1;
+    } else if (((!s2_is_unicode) & (!s1_is_unicode))) {
+        return __Pyx_PyBytes_Equals(s1, s2, equals);
+    }
+#endif
+    if (s1_is_unicode & s2_is_unicode) {
+        Py_ssize_t length;
+        int kind;
+        void *data1, *data2;
+        if (unlikely(__Pyx_PyUnicode_READY(s1) < 0) || unlikely(__Pyx_PyUnicode_READY(s2) < 0))
+            return -1;
+        length = __Pyx_PyUnicode_GET_LENGTH(s1);
+        if (length != __Pyx_PyUnicode_GET_LENGTH(s2)) {
+            goto return_ne;
+        }
+#if CYTHON_USE_UNICODE_INTERNALS
+        {
+            Py_hash_t hash1, hash2;
+        #if CYTHON_PEP393_ENABLED
+            hash1 = ((PyASCIIObject*)s1)->hash;
+            hash2 = ((PyASCIIObject*)s2)->hash;
+        #else
+            hash1 = ((PyUnicodeObject*)s1)->hash;
+            hash2 = ((PyUnicodeObject*)s2)->hash;
+        #endif
+            if (hash1 != hash2 && hash1 != -1 && hash2 != -1) {
+                goto return_ne;
+            }
+        }
+#endif
+        kind = __Pyx_PyUnicode_KIND(s1);
+        if (kind != __Pyx_PyUnicode_KIND(s2)) {
+            goto return_ne;
+        }
+        data1 = __Pyx_PyUnicode_DATA(s1);
+        data2 = __Pyx_PyUnicode_DATA(s2);
+        if (__Pyx_PyUnicode_READ(kind, data1, 0) != __Pyx_PyUnicode_READ(kind, data2, 0)) {
+            goto return_ne;
+        } else if (length == 1) {
+            goto return_eq;
+        } else {
+            int result = memcmp(data1, data2, (size_t)(length * kind));
+            #if PY_MAJOR_VERSION < 3
+            Py_XDECREF(owned_ref);
+            #endif
+            return (equals == Py_EQ) ? (result == 0) : (result != 0);
+        }
+    } else if ((s1 == Py_None) & s2_is_unicode) {
+        goto return_ne;
+    } else if ((s2 == Py_None) & s1_is_unicode) {
+        goto return_ne;
+    } else {
+        int result;
+        PyObject* py_result = PyObject_RichCompare(s1, s2, equals);
+        #if PY_MAJOR_VERSION < 3
+        Py_XDECREF(owned_ref);
+        #endif
+        if (!py_result)
+            return -1;
+        result = __Pyx_PyObject_IsTrue(py_result);
+        Py_DECREF(py_result);
+        return result;
+    }
+return_eq:
+    #if PY_MAJOR_VERSION < 3
+    Py_XDECREF(owned_ref);
+    #endif
+    return (equals == Py_EQ);
+return_ne:
+    #if PY_MAJOR_VERSION < 3
+    Py_XDECREF(owned_ref);
+    #endif
+    return (equals == Py_NE);
+#endif
+}
+
+/* GetBuiltinName */
+static PyObject *__Pyx_GetBuiltinName(PyObject *name) {
+    PyObject* result = __Pyx_PyObject_GetAttrStr(__pyx_b, name);
+    if (unlikely(!result)) {
+        PyErr_Format(PyExc_NameError,
+#if PY_MAJOR_VERSION >= 3
+            "name '%U' is not defined", name);
+#else
+            "name '%.200s' is not defined", PyString_AS_STRING(name));
+#endif
+    }
+    return result;
+}
 
 /* PyErrFetchRestore */
 #if CYTHON_FAST_THREAD_STATE
@@ -18178,155 +19382,6 @@ static CYTHON_INLINE PyObject* __Pyx_PyObject_CallOneArg(PyObject *func, PyObjec
     return result;
 }
 #endif
-
-/* BytesEquals */
-static CYTHON_INLINE int __Pyx_PyBytes_Equals(PyObject* s1, PyObject* s2, int equals) {
-#if CYTHON_COMPILING_IN_PYPY
-    return PyObject_RichCompareBool(s1, s2, equals);
-#else
-    if (s1 == s2) {
-        return (equals == Py_EQ);
-    } else if (PyBytes_CheckExact(s1) & PyBytes_CheckExact(s2)) {
-        const char *ps1, *ps2;
-        Py_ssize_t length = PyBytes_GET_SIZE(s1);
-        if (length != PyBytes_GET_SIZE(s2))
-            return (equals == Py_NE);
-        ps1 = PyBytes_AS_STRING(s1);
-        ps2 = PyBytes_AS_STRING(s2);
-        if (ps1[0] != ps2[0]) {
-            return (equals == Py_NE);
-        } else if (length == 1) {
-            return (equals == Py_EQ);
-        } else {
-            int result;
-#if CYTHON_USE_UNICODE_INTERNALS
-            Py_hash_t hash1, hash2;
-            hash1 = ((PyBytesObject*)s1)->ob_shash;
-            hash2 = ((PyBytesObject*)s2)->ob_shash;
-            if (hash1 != hash2 && hash1 != -1 && hash2 != -1) {
-                return (equals == Py_NE);
-            }
-#endif
-            result = memcmp(ps1, ps2, (size_t)length);
-            return (equals == Py_EQ) ? (result == 0) : (result != 0);
-        }
-    } else if ((s1 == Py_None) & PyBytes_CheckExact(s2)) {
-        return (equals == Py_NE);
-    } else if ((s2 == Py_None) & PyBytes_CheckExact(s1)) {
-        return (equals == Py_NE);
-    } else {
-        int result;
-        PyObject* py_result = PyObject_RichCompare(s1, s2, equals);
-        if (!py_result)
-            return -1;
-        result = __Pyx_PyObject_IsTrue(py_result);
-        Py_DECREF(py_result);
-        return result;
-    }
-#endif
-}
-
-/* UnicodeEquals */
-static CYTHON_INLINE int __Pyx_PyUnicode_Equals(PyObject* s1, PyObject* s2, int equals) {
-#if CYTHON_COMPILING_IN_PYPY
-    return PyObject_RichCompareBool(s1, s2, equals);
-#else
-#if PY_MAJOR_VERSION < 3
-    PyObject* owned_ref = NULL;
-#endif
-    int s1_is_unicode, s2_is_unicode;
-    if (s1 == s2) {
-        goto return_eq;
-    }
-    s1_is_unicode = PyUnicode_CheckExact(s1);
-    s2_is_unicode = PyUnicode_CheckExact(s2);
-#if PY_MAJOR_VERSION < 3
-    if ((s1_is_unicode & (!s2_is_unicode)) && PyString_CheckExact(s2)) {
-        owned_ref = PyUnicode_FromObject(s2);
-        if (unlikely(!owned_ref))
-            return -1;
-        s2 = owned_ref;
-        s2_is_unicode = 1;
-    } else if ((s2_is_unicode & (!s1_is_unicode)) && PyString_CheckExact(s1)) {
-        owned_ref = PyUnicode_FromObject(s1);
-        if (unlikely(!owned_ref))
-            return -1;
-        s1 = owned_ref;
-        s1_is_unicode = 1;
-    } else if (((!s2_is_unicode) & (!s1_is_unicode))) {
-        return __Pyx_PyBytes_Equals(s1, s2, equals);
-    }
-#endif
-    if (s1_is_unicode & s2_is_unicode) {
-        Py_ssize_t length;
-        int kind;
-        void *data1, *data2;
-        if (unlikely(__Pyx_PyUnicode_READY(s1) < 0) || unlikely(__Pyx_PyUnicode_READY(s2) < 0))
-            return -1;
-        length = __Pyx_PyUnicode_GET_LENGTH(s1);
-        if (length != __Pyx_PyUnicode_GET_LENGTH(s2)) {
-            goto return_ne;
-        }
-#if CYTHON_USE_UNICODE_INTERNALS
-        {
-            Py_hash_t hash1, hash2;
-        #if CYTHON_PEP393_ENABLED
-            hash1 = ((PyASCIIObject*)s1)->hash;
-            hash2 = ((PyASCIIObject*)s2)->hash;
-        #else
-            hash1 = ((PyUnicodeObject*)s1)->hash;
-            hash2 = ((PyUnicodeObject*)s2)->hash;
-        #endif
-            if (hash1 != hash2 && hash1 != -1 && hash2 != -1) {
-                goto return_ne;
-            }
-        }
-#endif
-        kind = __Pyx_PyUnicode_KIND(s1);
-        if (kind != __Pyx_PyUnicode_KIND(s2)) {
-            goto return_ne;
-        }
-        data1 = __Pyx_PyUnicode_DATA(s1);
-        data2 = __Pyx_PyUnicode_DATA(s2);
-        if (__Pyx_PyUnicode_READ(kind, data1, 0) != __Pyx_PyUnicode_READ(kind, data2, 0)) {
-            goto return_ne;
-        } else if (length == 1) {
-            goto return_eq;
-        } else {
-            int result = memcmp(data1, data2, (size_t)(length * kind));
-            #if PY_MAJOR_VERSION < 3
-            Py_XDECREF(owned_ref);
-            #endif
-            return (equals == Py_EQ) ? (result == 0) : (result != 0);
-        }
-    } else if ((s1 == Py_None) & s2_is_unicode) {
-        goto return_ne;
-    } else if ((s2 == Py_None) & s1_is_unicode) {
-        goto return_ne;
-    } else {
-        int result;
-        PyObject* py_result = PyObject_RichCompare(s1, s2, equals);
-        #if PY_MAJOR_VERSION < 3
-        Py_XDECREF(owned_ref);
-        #endif
-        if (!py_result)
-            return -1;
-        result = __Pyx_PyObject_IsTrue(py_result);
-        Py_DECREF(py_result);
-        return result;
-    }
-return_eq:
-    #if PY_MAJOR_VERSION < 3
-    Py_XDECREF(owned_ref);
-    #endif
-    return (equals == Py_EQ);
-return_ne:
-    #if PY_MAJOR_VERSION < 3
-    Py_XDECREF(owned_ref);
-    #endif
-    return (equals == Py_NE);
-#endif
-}
 
 /* None */
 static CYTHON_INLINE Py_ssize_t __Pyx_div_Py_ssize_t(Py_ssize_t a, Py_ssize_t b) {

@@ -1,15 +1,17 @@
-## libh2.classes.pyx ##
+## libh2_classes.pyx ##
 
-from . basic cimport *
-from . avector cimport *
-from . amatrix cimport *
-from . cluster cimport *
-from . block cimport *
-from . surface3d cimport *
-from . macrosurface3d cimport *
-from . bem3d cimport *
-from . rkmatrix cimport *
-from . hmatrix cimport *
+# from . basic cimport *
+# from . avector cimport *
+# from . amatrix cimport *
+# from . cluster cimport *
+# from . block cimport *
+# from . surface3d cimport *
+# from . macrosurface3d cimport *
+# from . bem3d cimport *
+# from . rkmatrix cimport *
+# from . hmatrix cimport *
+# from . helmholtzbem3d cimport *
+from . cimport libh2
 
 
 cdef class Vector:
@@ -19,12 +21,12 @@ cdef class Vector:
         self.owner = False
 
     def __init__(self, uint dim):
-        cdef pavector ptr = new_avector(dim)
+        cdef pavector ptr = libh2.new_avector(dim)
         self._setup(ptr, True)
 
     def __dealloc(self):
         if self.ptr is not NULL and self.owner is True:
-            del_avector(self.ptr)
+            libh2.del_avector(self.ptr)
 
     cdef _setup(self, pavector ptr, bint owner):
         self.ptr = ptr
@@ -49,12 +51,12 @@ cdef class Matrix():
         self.owner = False
 
     def __init__(self, uint rows, uint cols):
-        cdef pamatrix ptr = new_amatrix(rows, cols)
+        cdef pamatrix ptr = libh2.new_amatrix(rows, cols)
         self._setup(ptr, True)
 
     def __dealloc(self):
         if self.ptr is not NULL and self.owner is True:
-            del_amatrix(self.ptr)
+            libh2.del_amatrix(self.ptr)
 
     cdef _setup(self, pamatrix ptr, bint owner):
         self.ptr = ptr
@@ -83,12 +85,12 @@ cdef class Macrosurface():
         self.owner = False
 
     def __init__(self, uint vertices, uint edges, uint triangles):
-        cdef pmacrosurface3d ptr = new_macrosurface3d(vertices, edges, triangles)
+        cdef pmacrosurface3d ptr = libh2.new_macrosurface3d(vertices, edges, triangles)
         self._setup(ptr, True)
 
     def __dealloc(self):
         if self.ptr is not NULL and self.owner is True:
-            del_macrosurface3d(self.ptr)
+            libh2.del_macrosurface3d(self.ptr)
 
     cdef _setup(self, pmacrosurface3d ptr, bint owner):
         self.ptr = ptr
@@ -144,12 +146,12 @@ cdef class Surface:
         self.owner = False
 
     def __init__(self, uint vertices, uint edges, uint triangles):
-        cdef psurface3d ptr = new_surface3d(vertices, edges, triangles)
+        cdef psurface3d ptr = libh2.new_surface3d(vertices, edges, triangles)
         self._setup(ptr, True)
 
     def __dealloc(self):
         if self.ptr is not NULL and self.owner is True:
-            del_surface3d(self.ptr)
+            libh2.del_surface3d(self.ptr)
 
     cdef _setup(self, psurface3d ptr, bint owner):
         self.ptr = ptr
@@ -185,13 +187,14 @@ cdef class Bem:
         self.ptr = NULL
         self.owner = False
 
-    def __init__(self, Surface surf, basisfunctionbem3d row_basis, basisfunctionbem3d col_basis):
-        cdef pbem3d ptr = new_bem3d(<pcsurface3d> surf.ptr, row_basis, col_basis)
+    def __init__(self, Surface surf, basistype row_basis, basistype col_basis):
+        cdef pbem3d ptr = libh2.new_bem3d(<pcsurface3d> surf.ptr, <basisfunctionbem3d> row_basis, 
+            <basisfunctionbem3d> col_basis)
         self._setup(ptr, True)
 
     def __dealloc(self):
         if self.ptr is not NULL and self.owner is True:
-            del_bem3d(self.ptr)
+            libh2.del_bem3d(self.ptr)
 
     cdef _setup(self, pbem3d ptr, bint owner):
         self.ptr = ptr
@@ -219,19 +222,19 @@ cdef class Cluster:
         self.owner = False
 
     def __init__(self, uint size, uint [::1] idx, uint sons, uint dim):
-        cdef pcluster ptr = new_cluster(size, &idx[0], sons, dim)
+        cdef pcluster ptr = libh2.new_cluster(size, &idx[0], sons, dim)
         self._setup(ptr, True)
 
     def __dealloc(self):
         if self.ptr is not NULL and self.owner is True:
-            del_cluster(self.ptr)
+            libh2.del_cluster(self.ptr)
     
     cdef _setup(self, pcluster ptr, bint owner):
         self.ptr = ptr
         self.owner = owner
-        self.idx = <uint [:ptr.size]> ptr.idx
-        self.bmin = <real [:ptr.size]> ptr.bmin
-        self.bmax = <real [:ptr.size]> ptr.bmax
+        self.idx = <uint [:ptr.size]> (<uint *> ptr.idx)
+        self.bmin = <real [:ptr.size]> (<real *> ptr.bmin)
+        self.bmax = <real [:ptr.size]> (<real *> ptr.bmax)
 
     @property
     def size(self):
@@ -267,12 +270,12 @@ cdef class Block:
         self.owner = False
 
     def __init__(self, Cluster rc, Cluster cc, bint a, uint rsons, uint csons):
-        cdef pblock ptr = new_block(rc.ptr, cc.ptr, a, rsons, csons)
+        cdef pblock ptr = libh2.new_block(rc.ptr, cc.ptr, a, rsons, csons)
         self._setup(ptr, True)
 
     def __dealloc(self):
         if self.ptr is not NULL and self.owner is True:
-            del_block(self.ptr)
+            libh2.del_block(self.ptr)
 
     cdef _setup(self, pblock ptr, bint owner):
         self.ptr = ptr
@@ -308,12 +311,12 @@ cdef class RKMatrix:
         self.owner = False
 
     def __init__(self, uint rows, uint cols, uint k):
-        cdef prkmatrix ptr = new_rkmatrix(rows, cols, k)
+        cdef prkmatrix ptr = libh2.new_rkmatrix(rows, cols, k)
         self._setup(ptr, True)
 
     def __dealloc(self):
         if self.ptr is not NULL and self.owner is True:
-            del_rkmatrix(self.ptr)
+            libh2.del_rkmatrix(self.ptr)
 
     cdef _setup(self, prkmatrix ptr, bint owner):
         self.ptr = ptr
@@ -337,12 +340,12 @@ cdef class HMatrix:
         self.owner = False
 
     def __init__(self, Cluster rc, Cluster cc):
-        cdef phmatrix ptr = new_hmatrix(rc.ptr, cc.ptr)
+        cdef phmatrix ptr = libh2.new_hmatrix(rc.ptr, cc.ptr)
         self._setup(ptr, owner=True)
 
     def __dealloc(self):
         if self.ptr is not NULL and self.owner is True:
-            del_hmatrix(self.ptr)
+            libh2.del_hmatrix(self.ptr)
 
     cdef _setup(self, phmatrix ptr, bint owner):
         self.ptr = ptr

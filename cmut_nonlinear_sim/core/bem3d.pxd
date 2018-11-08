@@ -27,6 +27,7 @@ cdef extern from 'bem3d.h' nogil:
     pbem3d new_bem3d(pcsurface3d gr, basisfunctionbem3d row_basis, basisfunctionbem3d col_basis)
     void del_bem3d(pbem3d bem)
 
+    pcluster build_bem3d_cluster(pcbem3d bem, uint clf, basisfunctionbem3d basis)
     void setup_hmatrix_aprx_aca_bem3d(pbem3d bem, pccluster rc, pccluster cc, pcblock tree, real accur)
     void setup_hmatrix_aprx_paca_bem3d(pbem3d bem, pccluster rc, pccluster cc, pcblock tree, real accur)
     void setup_hmatrix_aprx_hca_bem3d(pbem3d bem, pccluster rc, pccluster cc, pcblock tree, uint m, real accur)
