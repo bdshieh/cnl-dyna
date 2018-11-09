@@ -52,5 +52,16 @@ cpdef build_nonstrict_block(Cluster rc, Cluster cc, real eta, str admissibility)
     cdef pblock block = libh2.build_nonstrict_block(rc.ptr, cc.ptr, &eta, admis)
     return Block.wrap(block, True)
 
+
+cpdef setup_hmatrix_aprx_aca_bem3d(Bem bem, Cluster rc, Cluster cc, Block tree, real accur):
+    libh2.setup_hmatrix_aprx_aca_bem3d(<pbem3d> bem.ptr, <pccluster> rc.ptr, <pccluster> cc.ptr, <pcblock> tree, accur)
+
 cpdef setup_hmatrix_aprx_paca_bem3d(Bem bem, Cluster rc, Cluster cc, Block tree, real accur):
     libh2.setup_hmatrix_aprx_paca_bem3d(<pbem3d> bem.ptr, <pccluster> rc.ptr, <pccluster> cc.ptr, <pcblock> tree, accur)
+
+cpdef setup_hmatrix_aprx_hca_bem3d(Bem bem, Cluster rc, Cluster cc, Block tree, uint m, real accur):
+    libh2.setup_hmatrix_aprx_hca_bem3d(<pbem3d> bem.ptr, <pccluster> rc.ptr, <pccluster> cc.ptr, <pcblock> tree, m, accur)
+
+cpdef setup_hmatrix_aprx_inter_row_bem3d(Bem bem, Cluster rc, Cluster cc, Block tree, uint m):
+    libh2.setup_hmatrix_aprx_inter_row_bem3d(<pbem3d> bem.ptr, pccluster> rc.ptr, <pccluster> cc.ptr, <pcblock> tree, m)
+
