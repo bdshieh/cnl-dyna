@@ -47,13 +47,16 @@ cpdef build_bem3d_cluster(Bem3d bem, uint clf, basisfunctionbem3d basis):
     return Cluster.wrap(cluster, True)
 
 cpdef setup_hmatrix_aprx_aca_bem3d(Bem3d bem, Cluster rc, Cluster cc, Block tree, real accur):
-    _bem3d.setup_hmatrix_aprx_aca_bem3d(<pbem3d> bem.ptr, <pccluster> rc.ptr, <pccluster> cc.ptr, <pcblock> tree, accur)
+    _bem3d.setup_hmatrix_aprx_aca_bem3d(<pbem3d> bem.ptr, <pccluster> rc.ptr, <pccluster> cc.ptr, <pcblock> tree.ptr, accur)
 
 cpdef setup_hmatrix_aprx_paca_bem3d(Bem3d bem, Cluster rc, Cluster cc, Block tree, real accur):
-    _bem3d.setup_hmatrix_aprx_paca_bem3d(<pbem3d> bem.ptr, <pccluster> rc.ptr, <pccluster> cc.ptr, <pcblock> tree, accur)
+    _bem3d.setup_hmatrix_aprx_paca_bem3d(<pbem3d> bem.ptr, <pccluster> rc.ptr, <pccluster> cc.ptr, <pcblock> tree.ptr, accur)
 
 cpdef setup_hmatrix_aprx_hca_bem3d(Bem3d bem, Cluster rc, Cluster cc, Block tree, uint m, real accur):
-    _bem3d.setup_hmatrix_aprx_hca_bem3d(<pbem3d> bem.ptr, <pccluster> rc.ptr, <pccluster> cc.ptr, <pcblock> tree, m, accur)
+    _bem3d.setup_hmatrix_aprx_hca_bem3d(<pbem3d> bem.ptr, <pccluster> rc.ptr, <pccluster> cc.ptr, <pcblock> tree.ptr, m, accur)
 
 cpdef setup_hmatrix_aprx_inter_row_bem3d(Bem3d bem, Cluster rc, Cluster cc, Block tree, uint m):
-    _bem3d.setup_hmatrix_aprx_inter_row_bem3d(<pbem3d> bem.ptr, <pccluster> rc.ptr, <pccluster> cc.ptr, <pcblock> tree, m)
+    _bem3d.setup_hmatrix_aprx_inter_row_bem3d(<pbem3d> bem.ptr, <pccluster> rc.ptr, <pccluster> cc.ptr, <pcblock> tree.ptr, m)
+
+cpdef assemble_bem3d_hmatrix(Bem3d bem, Block b, HMatrix G):
+    _bem3d.assemble_bem3d_hmatrix(bem.ptr, b.ptr, G.ptr)

@@ -29,4 +29,5 @@ cpdef setup_hmatrix_aprx_aca_bem3d(Bem3d bem, Cluster rc, Cluster cc, Block tree
 cpdef setup_hmatrix_aprx_paca_bem3d(Bem3d bem, Cluster rc, Cluster cc, Block tree, real accur)
 cpdef setup_hmatrix_aprx_hca_bem3d(Bem3d bem, Cluster rc, Cluster cc, Block tree, uint m, real accur)
 cpdef setup_hmatrix_aprx_inter_row_bem3d(Bem3d bem, Cluster rc, Cluster cc, Block tree, uint m)
+cpdef assemble_bem3d_hmatrix(Bem3d bem, Block b, HMatrix G)
 

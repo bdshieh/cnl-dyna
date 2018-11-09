@@ -20,3 +20,9 @@ cdef class HMatrix:
     cdef wrap(phmatrix ptr, bint owner=*)
 
 cpdef HMatrix build_from_block_hmatrix(Block b, uint k)
+cpdef clear_hmatrix(HMatrix hm)
+cpdef copy_hmatrix(HMatrix src, HMatrix trg)
+cpdef HMatrix clone_hmatrix(HMatrix src)
+cpdef size_t getsize_hmatrix(HMatrix hm)
+cpdef addeval_hmatrix_avector(field alpha, HMatrix hm, AVector x, AVector y)
+cpdef addevalsymm_hmatrix_avector(field alpha, HMatrix hm, AVector x, AVector y)

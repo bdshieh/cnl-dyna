@@ -33,3 +33,16 @@ cdef class AVector:
         cdef AVector obj = AVector.__new__(AVector)
         obj._setup(ptr, owner)
         return obj
+
+cpdef random_avector(AVector v):
+    _avector.random_avector(v.ptr)
+
+cpdef clear_avector(AVector v):
+    _avector.clear_avector(v.ptr)
+
+cpdef AVector new_zero_avector(uint dim):
+    cdef pavector v = _avector.new_zero_avector(dim)
+    return AVector.wrap(v, True)
+
+cpdef copy_avector(AVector v, AVector w):
+    _avector.copy_avector(<pcavector> v.ptr, w.ptr)

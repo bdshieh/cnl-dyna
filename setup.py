@@ -72,6 +72,21 @@ ext_modules = [
         sources=['cmut_nonlinear_sim/h2lib/helmholtzbem3d_cy.pyx'],
         **ext_opts
     ),
+    Extension(
+        name='cmut_nonlinear_sim.h2lib.truncation_cy',
+        sources=['cmut_nonlinear_sim/h2lib/truncation_cy.pyx'],
+        **ext_opts
+    ),
+    Extension(
+        name='cmut_nonlinear_sim.h2lib.krylovsolvers_cy',
+        sources=['cmut_nonlinear_sim/h2lib/krylovsolvers_cy.pyx'],
+        **ext_opts
+    ),
+    Extension(
+        name='cmut_nonlinear_sim.h2lib.harith_cy',
+        sources=['cmut_nonlinear_sim/h2lib/harith_cy.pyx'],
+        **ext_opts
+    ),
 ]
 
 

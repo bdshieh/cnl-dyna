@@ -26,12 +26,15 @@ cdef extern from 'hmatrix.h' nogil:
         uint desc
         
     phmatrix new_hmatrix(pccluster rc, pccluster cc)
-    phmatrix new_super_hmatrix(pccluster rc, pccluster cc, uint rsons, uint csons)
+    # phmatrix new_super_hmatrix(pccluster rc, pccluster cc, uint rsons, uint csons)
     void del_hmatrix(phmatrix hm)
 
-    void clear_hmatrix(hmatrix hm)
+    void clear_hmatrix(phmatrix hm)
     void copy_hmatrix(pchmatrix src, phmatrix trg)
-    phmatrix clone_hmatrix(hmatrix hm)
-    size_t getsize_hmatrix(hmatrix hm)
-    void build_from_block_hmatrix(pcblock b, uint k)
-    void norm2_hmatrix(pchmatrix H)
+    phmatrix clone_hmatrix(pchmatrix src)
+    size_t getsize_hmatrix(pchmatrix hm)
+    phmatrix build_from_block_hmatrix(pcblock b, uint k)
+    # void norm2_hmatrix(pchmatrix H)
+    void addeval_hmatrix_avector(field alpha, pchmatrix hm, pcavector x, pavector y)
+    void addevalsymm_hmatrix_avector(field alpha, pchmatrix hm, pcavector x, pavector y)
+    

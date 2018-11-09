@@ -15,3 +15,8 @@ cdef class AVector:
     cdef _setup(self, pavector ptr, bint owner)
     @staticmethod
     cdef wrap(pavector ptr, bint owner=*)
+
+cpdef random_avector(AVector v)
+cpdef clear_avector(AVector v)
+cpdef AVector new_zero_avector(uint dim)
+cpdef copy_avector(AVector v, AVector w)

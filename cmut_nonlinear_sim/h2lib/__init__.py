@@ -10,3 +10,6 @@ from . bem3d_cy import *
 from . rkmatrix_cy import *
 from . hmatrix_cy import *
 from . helmholtzbem3d_cy import *
+from . truncation_cy import *
+from . krylovsolvers_cy import *
+from . harith_cy import *

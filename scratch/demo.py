@@ -76,7 +76,7 @@ if __name__ == '__main__':
 	refn = 16
 	q_reg = 2
 	q_sing = q_reg + 2
-	basis = basisfunctionbem3d.CONSTANT
+	basis = basisfunctionbem3d.LINEAR
 	alpha = 0.0
 
 	init_h2lib()
@@ -121,10 +121,10 @@ if __name__ == '__main__':
 
 	# start_stopwatch(sw)
 	# # /* assemble near- and farfield entries of v. */
-	# assemble_bem3d_hmatrix(bem_slp, broot, Z)
+	assemble_bem3d_hmatrix(bem_slp, broot, Z)
 	# t = stop_stopwatch(sw)
 	# # /* get the total memory footprint for v. */
-	# size = getsize_hmatrix(Z) / 1024.0 / 1024.0
+	size = getsize_hmatrix(Z) / 1024 / 1024
 
 	# print("H-matrix:\n")
 	# print("  Assembly %.2f s\n", t)
@@ -134,30 +134,30 @@ if __name__ == '__main__':
 	# # * Set up RHS
 	# # ****************************************************/
 
-	# x = new_avector(gr.vertices)
-	# random_avector(x)
+	x = AVector(surf.vertices)
+	random_avector(x)
 
-	# b = new_avector(gr.vertices)
-	# clear_avector(b)
-	# addevalsymm_hmatrix_avector(alpha, Z, x, b)
+	b = AVector(surf.vertices)
+	clear_avector(b)
+	addevalsymm_hmatrix_avector(alpha, Z, x, b)
 
 
 	# # /****************************************************
 	# # * Set up solver and decomposition parameters
 	# # ****************************************************/
 
-	# tm = new_releucl_truncmode()
-	# eps = 1e-12
-	# maxiter = 1000
+	tm = new_releucl_truncmode()
+	eps = 1e-12
+	maxiter = 1000
 
 	# # /****************************************************
 	# # * Solve with H-matrix
 	# # ****************************************************/
 
-	# x_cg = new_zero_avector(gr.vertices)
+	x_cg = new_zero_avector(surf.vertices)
 
 	# start_stopwatch(sw)
-	# solve_cg_hmatrix_avector(Z, b, x_cg, eps, maxiter)
+	solve_cg_hmatrix_avector(Z, b, x_cg, eps, maxiter)
 	# t = stop_stopwatch(sw)
 
 	# # /* Calculate RMSE referenced to H-matrix solution */
@@ -172,23 +172,23 @@ if __name__ == '__main__':
 	# # * LU factorize H-matrix
 	# # ****************************************************/
 
-	# Z_lu = build_from_block_hmatrix(broot, m * m * m)
-	# x_lu = new_avector(gr.vertices)
+	Z_lu = build_from_block_hmatrix(broot, m * m * m)
+	x_lu = AVector(surf.vertices)
 
-	# copy_hmatrix(Z, Z_lu)
-    # copy_avector(b, x_lu)
+	copy_hmatrix(Z, Z_lu)
+	copy_avector(b, x_lu)
 
     # start_stopwatch(sw)
-	# lrdecomp_hmatrix(Z_lu, tm, eps)
+	lrdecomp_hmatrix(Z_lu, tm, eps)
 	# t = stop_stopwatch(sw)
-	# size = getsize_hmatrix(Z_lu) / 1024.0 / 1024.0
+	size = getsize_hmatrix(Z_lu) / 1024.0 / 1024.0
 
 	# print("LU:\n")
 	# print("  Factorization: %.2f s\n", t)
 	# print("  Storage: %.3f mb\n", size)
 
 	# start_stopwatch(sw)
-	# lrsolve_hmatrix_avector(false, Z_lu, x_lu)
+	lrsolve_hmatrix_avector(False, Z_lu, x_lu)
 	# t = stop_stopwatch(sw)
 
 	# # /* Calculate RMSE referenced to H-matrix solution */
@@ -203,23 +203,23 @@ if __name__ == '__main__':
 	# # * Cholesky factorize H-matrix
 	# # ****************************************************/
 
-	# Z_chol = build_from_block_hmatrix(broot, m * m * m)
-	# x_chol = new_avector(gr.vertices)
+	Z_chol = build_from_block_hmatrix(broot, m * m * m)
+	x_chol = AVector(surf.vertices)
 
-	# copy_hmatrix(Z, Z_chol)
-	# copy_avector(b, x_chol)
+	copy_hmatrix(Z, Z_chol)
+	copy_avector(b, x_chol)
 
 	# start_stopwatch(sw)
-	# choldecomp_hmatrix(Z_chol, tm, eps)
+	choldecomp_hmatrix(Z_chol, tm, eps)
 	# t = stop_stopwatch(sw)
-	# size = getsize_hmatrix(Z_chol) / 1024.0 / 1024.0
+	size = getsize_hmatrix(Z_chol) / 1024.0 / 1024.0
 
 	# print("Cholesky:\n")
 	# print("  Factorization: %.2f s\n", t)
 	# print("  Storage: %.3f mb\n", size)
 
 	# start_stopwatch(sw)
-	# cholsolve_hmatrix_avector(Z_chol, x_chol)
+	cholsolve_hmatrix_avector(Z_chol, x_chol)
 	# t = stop_stopwatch(sw)
 
 	# # /* Calculate RMSE referenced to H-matrix solution */
