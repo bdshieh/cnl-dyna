@@ -1,13 +1,12 @@
 
-from cmut_nonlinear_sim.core.libh2_classes import *
-from cmut_nonlinear_sim.core.libh2_functions import *
+from cmut_nonlinear_sim.h2lib import *
 
 import numpy as np
 
 
-def new_square_macrosurface(ax, bx):
+def new_square_macrosurface3d(ax, bx):
 
-    ms = Macrosurface(4, 5, 2)
+    ms = Macrosurface3d(4, 5, 2)
 
     #  vertices 
     #  bottom left 
@@ -77,7 +76,7 @@ if __name__ == '__main__':
 	refn = 16
 	q_reg = 2
 	q_sing = q_reg + 2
-	basis = basistype.CONSTANT
+	basis = basisfunctionbem3d.CONSTANT
 	alpha = 0.0
 
 	init_h2lib()
@@ -87,7 +86,7 @@ if __name__ == '__main__':
 	# ****************************************************/
 	
 
-	ms = new_square_macrosurface(ax, bx)
+	ms = new_square_macrosurface3d(ax, bx)
 	surf = build_from_macrosurface3d_surface3d(ms, refn)
 	# print("Mesh:\n")
 	# print("  %u vertices\n", surf.vertices)
@@ -108,17 +107,17 @@ if __name__ == '__main__':
 	# /* create block tree. */
 	broot = build_nonstrict_block(root, root, eta, '2')
 
-	# # /* Set up interpolation approximation scheme for H-matrix V. */
-	# # //setup_hmatrix_aprx_inter_row_bem3d(bem_slp, root, root, broot, m)
+	# /* Set up interpolation approximation scheme for H-matrix V. */
+	# //setup_hmatrix_aprx_inter_row_bem3d(bem_slp, root, root, broot, m)
 	setup_hmatrix_aprx_paca_bem3d(bem_slp, root, root, broot, accur)
-	# # //setup_hmatrix_aprx_hca_bem3d(bem_slp, root, root, broot, m, accur)
+	# //setup_hmatrix_aprx_hca_bem3d(bem_slp, root, root, broot, m, accur)
 
 	# # /****************************************************
 	# # * Assemble H-matrix
 	# # ****************************************************/
 
 	# # /* create h-matrix structure from block tree. */
-	# Z = build_from_block_hmatrix(broot, m * m * m)
+	Z = build_from_block_hmatrix(broot, m * m * m)
 
 	# start_stopwatch(sw)
 	# # /* assemble near- and farfield entries of v. */
