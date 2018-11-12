@@ -40,8 +40,31 @@ cdef class Surface3d():
     def triangles(self):
         return self.ptr.triangles
 
+    @property
+    def g(self):
+        return self.ptr.g[0]
+
+    @property
+    def hmin(self):
+        return self.ptr.hmin
+    
+    @property
+    def hmax(self):
+        return self.ptr.hmax
+        
     @staticmethod
     cdef wrap(psurface3d ptr, bint owner=False):
         cdef Surface3d obj = Surface3d.__new__(Surface3d)
         obj._setup(ptr, owner)
         return obj
+
+cpdef prepare_surface3d(Surface3d gr):
+    _surface3d.prepare_surface3d(gr.ptr)
+
+cpdef Surface3d merge_surface3d(Surface3d gr1, Surface3d gr2):
+    cdef psurface3d surf = _surface3d.merge_surface3d(<pcsurface3d> gr1.ptr, <pcsurface3d> gr2.ptr)
+    return Surface3d.wrap(surf, True)
+
+cpdef Surface3d refine_red_surface3d(Surface3d gr):
+    cdef psurface3d surf = _surface3d.refine_red_surface3d(gr.ptr)
+    return Surface3d.wrap(surf, True)

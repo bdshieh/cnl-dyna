@@ -19,3 +19,7 @@ cdef extern from 'basic.h' nogil:
 
     void init_h2lib(int *argc, char ***argv)
     void uninit_h2lib()
+    real REAL_ABS(real x)
+    real REAL_NORM2(real x, real y)
+    real REAL_NORM3(real x, real y, real z)
+    
