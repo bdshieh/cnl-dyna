@@ -3,7 +3,7 @@
 
 from . cimport avector as _avector
 from . basic_cy cimport *
-
+# cimport numpy as np
 
 ctypedef _avector.pavector pavector
 ctypedef _avector.pcavector pcavector

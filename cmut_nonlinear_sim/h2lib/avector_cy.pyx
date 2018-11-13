@@ -3,6 +3,7 @@
 
 from . cimport avector as _avector
 from . basic_cy cimport *
+import numpy as np
 
 
 cdef class AVector:
@@ -14,6 +15,16 @@ cdef class AVector:
     def __init__(self, uint dim):
         cdef pavector ptr = _avector.new_avector(dim)
         self._setup(ptr, True)
+    
+    @classmethod
+    def from_array(cls, v):
+
+        v = v.squeeze()
+        assert v.ndim == 1
+
+        obj = cls(v.size)
+        obj.v[:] = v.astype(np.complex128)
+        return obj
 
     def __dealloc(self):
         if self.ptr is not NULL and self.owner is True:

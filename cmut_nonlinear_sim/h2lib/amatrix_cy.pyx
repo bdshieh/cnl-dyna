@@ -4,6 +4,7 @@
 from . cimport amatrix as _amatrix
 from . basic_cy cimport *
 from . avector_cy cimport *
+import numpy as np
 
 
 cdef class AMatrix():
@@ -15,6 +16,16 @@ cdef class AMatrix():
     def __init__(self, uint rows, uint cols):
         cdef pamatrix ptr = _amatrix.new_amatrix(rows, cols)
         self._setup(ptr, True)
+
+    @classmethod
+    def from_array(cls, a):
+
+        a = a.squeeze()
+        assert a.ndim == 2
+
+        obj = cls(a.shape[0], a.shape[1])
+        obj.a[:] = a.astype(np.complex128)
+        return obj
 
     def __dealloc(self):
         if self.ptr is not NULL and self.owner is True:

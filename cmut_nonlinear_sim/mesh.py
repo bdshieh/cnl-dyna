@@ -103,6 +103,10 @@ class Mesh:
     def hmax(self):
         return self._surface.hmax
 
+    @property
+    def surface3d(self):
+        return self._surface
+
     def _update_properties(self):
         prepare_surface3d(self._surface)
 
@@ -277,7 +281,6 @@ def matrix_array(nx, ny, pitchx, pitchy, shape='square', refn=2, **kwargs):
         mesh += f(*args, center=c, refn=refn)
     
     return mesh
-
 
 
 def linear_array():

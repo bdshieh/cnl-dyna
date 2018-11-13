@@ -68,3 +68,9 @@ cpdef addeval_hmatrix_avector(field alpha, HMatrix hm, AVector x, AVector y):
 
 cpdef addevalsymm_hmatrix_avector(field alpha, HMatrix hm, AVector x, AVector y):
     _hmatrix.addevalsymm_hmatrix_avector(alpha, <pchmatrix> hm.ptr, <pcavector> x.ptr, y.ptr)
+
+cpdef uint getrows_hmatrix(HMatrix hm):
+    return _hmatrix.getrows_hmatrix(<pchmatrix> hm.ptr)
+    
+cpdef uint getcols_hmatrix(HMatrix hm):
+    return _hmatrix.getcols_hmatrix(<pchmatrix> hm.ptr)

@@ -33,6 +33,8 @@ cdef extern from 'hmatrix.h' nogil:
     void copy_hmatrix(pchmatrix src, phmatrix trg)
     phmatrix clone_hmatrix(pchmatrix src)
     size_t getsize_hmatrix(pchmatrix hm)
+    uint getrows_hmatrix(pchmatrix hm)
+    uint getcols_hmatrix(pchmatrix hm)
     phmatrix build_from_block_hmatrix(pcblock b, uint k)
     # void norm2_hmatrix(pchmatrix H)
     void addeval_hmatrix_avector(field alpha, pchmatrix hm, pcavector x, pavector y)
