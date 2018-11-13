@@ -23,3 +23,4 @@ cdef class Surface3d:
 cpdef prepare_surface3d(Surface3d gr)
 cpdef Surface3d merge_surface3d(Surface3d gr1, Surface3d gr2)
 cpdef Surface3d refine_red_surface3d(Surface3d gr)
+cpdef translate_surface3d(Surface3d gr, real[:] t)

@@ -68,3 +68,6 @@ cpdef Surface3d merge_surface3d(Surface3d gr1, Surface3d gr2):
 cpdef Surface3d refine_red_surface3d(Surface3d gr):
     cdef psurface3d surf = _surface3d.refine_red_surface3d(gr.ptr)
     return Surface3d.wrap(surf, True)
+
+cpdef translate_surface3d(Surface3d gr, real[:] t):
+    _surface3d.translate_surface3d(gr.ptr, &t[0])

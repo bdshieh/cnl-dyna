@@ -13,29 +13,17 @@ if __name__ == '__main__':
     else:
         refn = 2
 
-    s = square(2, 2, refn)
-    c = circle(2, refn)
+    s = square(2, 2, refn=refn)
+    s.draw()
 
-    plt.figure()
+    c = circle(2, refn=refn)
+    c.draw()
 
-    vertices = np.asarray(s.vertices)
-    edges = np.asarray(s.edges)
-    plt.plot(vertices[:,0], vertices[:,1], '.')
-    for e in edges:
-        x1, y1, z1 = vertices[e[0], :]
-        x2, y2, z2 = vertices[e[1], :]
-        plt.plot([x1, x2], [y1, y2], 'b-')
-    plt.axis('equal')
+    ma = matrix_array(5, 5, 60e-6, 60e-6, refn=3, lengthx=40e-6, lengthy=40e-6)
+    ma.draw()
 
-    plt.figure()
-    vertices = np.asarray(c.vertices)
-    edges = np.asarray(c.edges)
-    plt.plot(vertices[:,0], vertices[:,1], '.')
-    for e in edges:
-        
-        x1, y1, z1 = vertices[e[0], :]
-        x2, y2, z2 = vertices[e[1], :]
-        plt.plot([x1, x2], [y1, y2], 'b-')
-    plt.axis('equal')
-    plt.show()
+    ma = matrix_array(5, 5, 60e-6, 60e-6, refn=3, shape='circle', radius=20e-6)
+    ma.draw()
+
+
 

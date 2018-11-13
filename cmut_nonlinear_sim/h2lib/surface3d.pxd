@@ -28,3 +28,4 @@ cdef extern from 'surface3d.h' nogil:
     void prepare_surface3d(psurface3d gr)
     psurface3d merge_surface3d(pcsurface3d gr1, pcsurface3d gr2)
     psurface3d refine_red_surface3d(psurface3d gr)
+    void translate_surface3d(psurface3d gr, real * t)
