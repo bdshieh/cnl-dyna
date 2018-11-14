@@ -73,12 +73,12 @@ if __name__ == '__main__':
 	accur = 1e-12 # /* accuracy of rk as a fraction of the norm */
 	ax = 40e-6
 	bx = 40e-6
-	refn = 24
+	refn = 32
 	q_reg = 2
 	q_sing = q_reg + 2
 	# basis = basisfunctionbem3d.LINEAR
 	basis = basisfunctionbem3d.CONSTANT
-	alpha = 0.0
+	alpha = 1.0
 
 	init_h2lib()
 
@@ -142,7 +142,7 @@ if __name__ == '__main__':
 	# b = AVector(surf.vertices)
 	b = AVector(surf.triangles)
 	clear_avector(b)
-	# addevalsymm_hmatrix_avector(alpha, Z, x, b)
+	addevalsymm_hmatrix_avector(alpha, Z, x, b)
 
 
 	# # # /****************************************************

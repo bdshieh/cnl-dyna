@@ -16,3 +16,7 @@ cdef class AMatrix:
     cdef _setup(self, pamatrix ptr, bint owner)
     @staticmethod
     cdef wrap(pamatrix ptr, bint owner=*)
+
+cpdef AMatrix clone_amatrix(AMatrix src)
+cpdef addeval_amatrix_avector(field alpha, AMatrix a, AVector src, AVector trg)
+cpdef size_t getsize_amatrix(AMatrix a)

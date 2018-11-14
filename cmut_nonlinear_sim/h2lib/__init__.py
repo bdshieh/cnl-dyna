@@ -13,6 +13,7 @@ from . helmholtzbem3d_cy import *
 from . truncation_cy import *
 from . krylovsolvers_cy import *
 from . harith_cy import *
+from . factorizations_cy import *
 
 init_h2lib()
 print('h2lib initialized')

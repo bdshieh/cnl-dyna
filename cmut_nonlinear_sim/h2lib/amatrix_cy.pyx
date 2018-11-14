@@ -49,3 +49,15 @@ cdef class AMatrix():
         cdef AMatrix obj = AMatrix.__new__(AMatrix)
         obj._setup(ptr, owner)
         return obj
+
+cpdef AMatrix clone_amatrix(AMatrix src):
+
+    cdef pamatrix cpy = _amatrix.clone_amatrix(<pcamatrix> src.ptr)
+    return AMatrix.wrap(cpy, True)
+
+cpdef addeval_amatrix_avector(field alpha, AMatrix a, AVector src, AVector trg):
+    _amatrix.addeval_amatrix_avector(alpha, <pcamatrix> a.ptr, <pcavector> src.ptr, trg.ptr)
+
+cpdef size_t getsize_amatrix(AMatrix a):
+    return _amatrix.getsize_amatrix(<pcamatrix> a.ptr)
+

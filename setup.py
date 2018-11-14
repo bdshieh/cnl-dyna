@@ -5,15 +5,18 @@ from setuptools import setup, find_packages
 from setuptools.extension import Extension
 from Cython.Build import cythonize
 
-import numpy as np
+# import numpy as np
 # import os
 
 
 ext_opts = {
-    'libraries':['h2', 'openblas'],
+    'include_dirs':['include'],
+    # 'libraries':['h2_blas', 'blas', 'lapack', 'gfortran'],
+    'libraries':['h2'],
     'library_dirs':['lib'],
     'language':'c',
-    'extra_compile_args':['-fPIC', '-DUSE_COMPLEX','-Wno-strict-prototypes']
+    'extra_compile_args':['-fPIC', '-DUSE_COMPLEX','-Wno-strict-prototypes'],
+    # 'extra_objects':['./lib/libh2_blas.a', './lib/libopenblas.a']
 }
 
 ext_modules = [
@@ -87,6 +90,11 @@ ext_modules = [
         sources=['cmut_nonlinear_sim/h2lib/harith_cy.pyx'],
         **ext_opts
     ),
+    Extension(
+        name='cmut_nonlinear_sim.h2lib.factorizations_cy',
+        sources=['cmut_nonlinear_sim/h2lib/factorizations_cy.pyx'],
+        **ext_opts
+    ),
 ]
 
 
@@ -95,7 +103,6 @@ setup(
     version='0.1',
     ext_modules=cythonize(ext_modules),
     packages=find_packages(),
-    include_dirs=['include'],
     install_requires=[
     ],
     setup_requires=[

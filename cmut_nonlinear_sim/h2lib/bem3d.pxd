@@ -34,3 +34,4 @@ cdef extern from 'bem3d.h' nogil:
     void setup_hmatrix_aprx_hca_bem3d(pbem3d bem, pccluster rc, pccluster cc, pcblock tree, uint m, real accur)
     void setup_hmatrix_aprx_inter_row_bem3d(pbem3d bem, pccluster rc, pccluster cc, pcblock tree, uint m)
     void assemble_bem3d_hmatrix(pbem3d bem, pblock b, phmatrix G)
+    void assemble_bem3d_amatrix(pbem3d bem, pamatrix G)

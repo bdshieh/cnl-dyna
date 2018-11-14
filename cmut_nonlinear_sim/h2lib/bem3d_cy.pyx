@@ -60,3 +60,6 @@ cpdef setup_hmatrix_aprx_inter_row_bem3d(Bem3d bem, Cluster rc, Cluster cc, Bloc
 
 cpdef assemble_bem3d_hmatrix(Bem3d bem, Block b, HMatrix G):
     _bem3d.assemble_bem3d_hmatrix(bem.ptr, b.ptr, G.ptr)
+
+cpdef assemble_bem3d_amatrix(Bem3d bem, AMatrix G):
+    _bem3d.assemble_bem3d_amatrix(bem.ptr, G.ptr)
