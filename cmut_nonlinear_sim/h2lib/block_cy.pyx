@@ -8,6 +8,7 @@ from . cluster_cy cimport *
 
 cdef class Block:
 
+    ''' Initialization methods '''
     def __cinit__(self):
         self.ptr = NULL
         self.owner = False
@@ -24,6 +25,7 @@ cdef class Block:
         self.ptr = ptr
         self.owner = owner
 
+    ''' Scalar properties '''
     @property
     def a(self):
         return self.ptr.a
@@ -40,6 +42,20 @@ cdef class Block:
     def desc(self):
         return self.ptr.desc
 
+    ''' Pointer properties '''
+    @property
+    def rc(self):
+        return Cluster.wrap(self.ptr.rc, False)
+
+    @property
+    def cc(self):
+        return Cluster.wrap(self.ptr.cc, False)
+
+    @property
+    def son(self):
+        return [Block.wrap(self.ptr.son[i], False) for i in range(self.rsons + self.csons)]
+    
+    ''' Methods '''
     @staticmethod
     cdef wrap(pblock ptr, bint owner=False):
         cdef Block obj = Block.__new__(Block)

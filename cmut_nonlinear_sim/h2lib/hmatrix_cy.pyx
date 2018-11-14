@@ -11,6 +11,7 @@ from . rkmatrix_cy cimport *
 
 cdef class HMatrix:
 
+    ''' Initialization methods '''
     def __cinit__(self):
         self.ptr = NULL
         self.owner = False
@@ -27,6 +28,7 @@ cdef class HMatrix:
         self.ptr = ptr
         self.owner = owner
 
+    ''' Scalar properties '''
     @property
     def rsons(self):
         return self.ptr.rsons
@@ -38,7 +40,31 @@ cdef class HMatrix:
     @property
     def desc(self):
         return self.ptr.desc
+    
+    ''' Pointer properties '''
+    @property
+    def rc(self):
+        return Cluster.wrap(self.ptr.rc, False)
 
+    @property
+    def cc(self):
+        return Cluster.wrap(self.ptr.cc, False)
+
+    @property
+    def r(self):
+        if self.ptr.r is not NULL:
+            return RKMatrix.wrap(self.ptr.r, False)
+
+    @property
+    def f(self):
+        if self.ptr.r is not NULL:
+            return AMatrix.wrap(self.ptr.f, False)
+
+    @property
+    def son(self):
+        return [HMatrix.wrap(self.ptr.son[i], False) for i in range(self.rsons + self.csons)]
+
+    ''' Methods '''
     @staticmethod
     cdef wrap(phmatrix ptr, bint owner=False):
         cdef HMatrix obj = HMatrix.__new__(HMatrix)

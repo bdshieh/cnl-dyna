@@ -8,6 +8,7 @@ from . amatrix_cy cimport *
 
 cdef class RKMatrix:
 
+    ''' Initialization methods '''
     def __cinit__(self):
         self.ptr = NULL
         self.owner = False
@@ -24,10 +25,21 @@ cdef class RKMatrix:
         self.ptr = ptr
         self.owner = owner
 
+    ''' Scalar properties '''
     @property
     def k(self):
         return self.ptr.k
 
+    ''' Pointer properties '''
+    @property
+    def A(self):
+        return AMatrix.wrap(&self.ptr.A, False)
+
+    @property
+    def B(self):
+        return AMatrix.wrap(&self.ptr.B, False)
+
+    ''' Methods '''
     @staticmethod
     cdef wrap(prkmatrix ptr, bint owner=False):
         cdef RKMatrix obj = RKMatrix.__new__(RKMatrix)

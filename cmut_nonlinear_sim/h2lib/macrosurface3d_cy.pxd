@@ -21,3 +21,4 @@ cdef class Macrosurface3d:
     cdef wrap(pmacrosurface3d ptr, bint owner=*)
 
 cpdef build_from_macrosurface3d_surface3d(Macrosurface3d ms, uint refn)
+cpdef Macrosurface3d new_sphere_macrosurface3d()

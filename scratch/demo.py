@@ -71,12 +71,13 @@ if __name__ == '__main__':
 	eta = 1.4 # /* Parameter 'eta' within the admissibilty condition. */
 	k = 2 * np.pi * 1e6 / 1540.0 # /* wavenumber */
 	accur = 1e-12 # /* accuracy of rk as a fraction of the norm */
-	ax = 100e-6
-	bx = 100e-6
-	refn = 16
+	ax = 40e-6
+	bx = 40e-6
+	refn = 24
 	q_reg = 2
 	q_sing = q_reg + 2
-	basis = basisfunctionbem3d.LINEAR
+	# basis = basisfunctionbem3d.LINEAR
+	basis = basisfunctionbem3d.CONSTANT
 	alpha = 0.0
 
 	init_h2lib()
@@ -87,6 +88,7 @@ if __name__ == '__main__':
 	
 
 	ms = new_square_macrosurface3d(ax, bx)
+	# ms = new_sphere_macrosurface3d()
 	surf = build_from_macrosurface3d_surface3d(ms, refn)
 	# print("Mesh:\n")
 	# print("  %u vertices\n", surf.vertices)
@@ -98,7 +100,6 @@ if __name__ == '__main__':
 	# ****************************************************/
 
 	bem_slp = new_slp_helmholtz_bem3d(k, surf, q_reg, q_sing, basis, basis)
-
 	bem_dlp = new_dlp_helmholtz_bem3d(k, surf, q_reg, q_sing, basis, basis, alpha)
 
 	# /* create cluster tree. */
@@ -108,9 +109,9 @@ if __name__ == '__main__':
 	broot = build_nonstrict_block(root, root, eta, '2')
 
 	# /* Set up interpolation approximation scheme for H-matrix V. */
-	# //setup_hmatrix_aprx_inter_row_bem3d(bem_slp, root, root, broot, m)
+	# setup_hmatrix_aprx_inter_row_bem3d(bem_slp, root, root, broot, m)
 	setup_hmatrix_aprx_paca_bem3d(bem_slp, root, root, broot, accur)
-	# //setup_hmatrix_aprx_hca_bem3d(bem_slp, root, root, broot, m, accur)
+	# setup_hmatrix_aprx_hca_bem3d(bem_slp, root, root, broot, m, accur)
 
 	# # /****************************************************
 	# # * Assemble H-matrix
@@ -134,92 +135,94 @@ if __name__ == '__main__':
 	# # * Set up RHS
 	# # ****************************************************/
 
-	x = AVector(surf.vertices)
+	# x = AVector(surf.vertices)
+	x = AVector(surf.triangles)
 	random_avector(x)
 
-	b = AVector(surf.vertices)
+	# b = AVector(surf.vertices)
+	b = AVector(surf.triangles)
 	clear_avector(b)
-	addevalsymm_hmatrix_avector(alpha, Z, x, b)
+	# addevalsymm_hmatrix_avector(alpha, Z, x, b)
 
 
-	# # /****************************************************
-	# # * Set up solver and decomposition parameters
-	# # ****************************************************/
+	# # # /****************************************************
+	# # # * Set up solver and decomposition parameters
+	# # # ****************************************************/
 
-	tm = new_releucl_truncmode()
-	eps = 1e-12
-	maxiter = 1000
+	# tm = new_releucl_truncmode()
+	# eps = 1e-12
+	# maxiter = 1000
 
-	# # /****************************************************
-	# # * Solve with H-matrix
-	# # ****************************************************/
+	# # # /****************************************************
+	# # # * Solve with H-matrix
+	# # # ****************************************************/
 
-	x_cg = new_zero_avector(surf.vertices)
+	# x_cg = new_zero_avector(surf.vertices)
 
-	# start_stopwatch(sw)
-	solve_cg_hmatrix_avector(Z, b, x_cg, eps, maxiter)
-	# t = stop_stopwatch(sw)
+	# # start_stopwatch(sw)
+	# solve_cg_hmatrix_avector(Z, b, x_cg, eps, maxiter)
+	# # t = stop_stopwatch(sw)
 
-	# # /* Calculate RMSE referenced to H-matrix solution */
-	# add_avector(-alpha, x, x_cg)
-	# rmse = norm2_avector(x_cg) / norm2_avector(x)
+	# # # /* Calculate RMSE referenced to H-matrix solution */
+	# # add_avector(-alpha, x, x_cg)
+	# # rmse = norm2_avector(x_cg) / norm2_avector(x)
 
-	# print("  Solve: %.2f s\n", t)
-	# print("  Error: %.2f \n", rmse)
-	# fflush(stdout)
+	# # print("  Solve: %.2f s\n", t)
+	# # print("  Error: %.2f \n", rmse)
+	# # fflush(stdout)
 
-	# # /****************************************************
-	# # * LU factorize H-matrix
-	# # ****************************************************/
+	# # # /****************************************************
+	# # # * LU factorize H-matrix
+	# # # ****************************************************/
 
-	Z_lu = build_from_block_hmatrix(broot, m * m * m)
-	x_lu = AVector(surf.vertices)
+	# Z_lu = build_from_block_hmatrix(broot, m * m * m)
+	# x_lu = AVector(surf.vertices)
 
-	copy_hmatrix(Z, Z_lu)
-	copy_avector(b, x_lu)
+	# copy_hmatrix(Z, Z_lu)
+	# copy_avector(b, x_lu)
 
-    # start_stopwatch(sw)
-	lrdecomp_hmatrix(Z_lu, tm, eps)
-	# t = stop_stopwatch(sw)
-	size = getsize_hmatrix(Z_lu) / 1024.0 / 1024.0
+    # # start_stopwatch(sw)
+	# lrdecomp_hmatrix(Z_lu, tm, eps)
+	# # t = stop_stopwatch(sw)
+	# size = getsize_hmatrix(Z_lu) / 1024.0 / 1024.0
 
-	# print("LU:\n")
-	# print("  Factorization: %.2f s\n", t)
-	# print("  Storage: %.3f mb\n", size)
+	# # print("LU:\n")
+	# # print("  Factorization: %.2f s\n", t)
+	# # print("  Storage: %.3f mb\n", size)
 
-	# start_stopwatch(sw)
-	lrsolve_hmatrix_avector(False, Z_lu, x_lu)
-	# t = stop_stopwatch(sw)
+	# # start_stopwatch(sw)
+	# lrsolve_hmatrix_avector(False, Z_lu, x_lu)
+	# # t = stop_stopwatch(sw)
 
-	# # /* Calculate RMSE referenced to H-matrix solution */
-	# add_avector(-alpha, x, x_lu)
-	# rmse = norm2_avector(x_lu) / norm2_avector(x)
+	# # # /* Calculate RMSE referenced to H-matrix solution */
+	# # add_avector(-alpha, x, x_lu)
+	# # rmse = norm2_avector(x_lu) / norm2_avector(x)
 
-	# print("  Solve: %.2f s\n", t)
-	# print("  Error: %.2f \n", rmse)
-	# fflush(stdout)
+	# # print("  Solve: %.2f s\n", t)
+	# # print("  Error: %.2f \n", rmse)
+	# # fflush(stdout)
 
-	# # /****************************************************
-	# # * Cholesky factorize H-matrix
-	# # ****************************************************/
+	# # # /****************************************************
+	# # # * Cholesky factorize H-matrix
+	# # # ****************************************************/
 
-	Z_chol = build_from_block_hmatrix(broot, m * m * m)
-	x_chol = AVector(surf.vertices)
+	# Z_chol = build_from_block_hmatrix(broot, m * m * m)
+	# x_chol = AVector(surf.vertices)
 
-	copy_hmatrix(Z, Z_chol)
-	copy_avector(b, x_chol)
+	# copy_hmatrix(Z, Z_chol)
+	# copy_avector(b, x_chol)
 
-	# start_stopwatch(sw)
-	choldecomp_hmatrix(Z_chol, tm, eps)
-	# t = stop_stopwatch(sw)
-	size = getsize_hmatrix(Z_chol) / 1024.0 / 1024.0
+	# # start_stopwatch(sw)
+	# choldecomp_hmatrix(Z_chol, tm, eps)
+	# # t = stop_stopwatch(sw)
+	# size = getsize_hmatrix(Z_chol) / 1024.0 / 1024.0
 
-	# print("Cholesky:\n")
-	# print("  Factorization: %.2f s\n", t)
-	# print("  Storage: %.3f mb\n", size)
+	# # print("Cholesky:\n")
+	# # print("  Factorization: %.2f s\n", t)
+	# # print("  Storage: %.3f mb\n", size)
 
-	# start_stopwatch(sw)
-	cholsolve_hmatrix_avector(Z_chol, x_chol)
+	# # start_stopwatch(sw)
+	# cholsolve_hmatrix_avector(Z_chol, x_chol)
 	# t = stop_stopwatch(sw)
 
 	# # /* Calculate RMSE referenced to H-matrix solution */

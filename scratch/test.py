@@ -14,19 +14,26 @@ if __name__ == '__main__':
     # else:
         # refn = 2
 
-    s = square(2, 2, refn=16)
+    s = square(40e-6, 40e-6, refn=16)
     # s.draw()
 
-    c = circle(2, refn=16)
+    c = circle(20e-6, refn=16)
     # c.draw()
 
-    # ma = matrix_array(10, 10, 60e-6, 60e-6, refn=3, shape='square', lengthx=40e-6, lengthy=40e-6)
+    # ma = matrix_array(3, 3, 60e-6, 60e-6, refn=3, shape='square', lengthx=40e-6, lengthy=40e-6)
     # ma.draw()
 
-    ma = matrix_array(5, 5, 60e-6, 60e-6, refn=3, shape='circle', radius=20e-6)
+    ma = matrix_array(4, 4, 60e-6, 60e-6, refn=3, shape='circle', radius=20e-6)
     # ma.draw()
 
-    # ma = c
+    # ma = s
     k = 1e6
     Z = HierarchicalMatrix(ma, k, clf=64, rk=32, eps=1e-9)
-    y = Z._matvec(np.ones(len(ma.vertices)))
+    # y = Z._matvec(np.ones(len(ma.vertices)))
+    
+    x = AVector(len(ma.vertices))
+    y = AVector(len(ma.vertices))
+    random_avector(x)
+    clear_avector(y)
+    
+    # addeval_hmatrix_avector(1.0, Z._hmatrix, x, y)

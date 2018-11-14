@@ -9,7 +9,7 @@ from . rkmatrix cimport *
 
 cdef extern from 'hmatrix.h' nogil:
 
-    struct _hmatrix
+    # struct _hmatrix
 
     ctypedef _hmatrix hmatrix
     ctypedef hmatrix * phmatrix
@@ -23,6 +23,7 @@ cdef extern from 'hmatrix.h' nogil:
         phmatrix * son
         uint rsons
         uint csons
+        uint refs
         uint desc
         
     phmatrix new_hmatrix(pccluster rc, pccluster cc)

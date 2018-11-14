@@ -157,3 +157,8 @@ cpdef build_from_macrosurface3d_surface3d(Macrosurface3d ms, uint refn):
 
     cdef psurface3d surf = _macrosurface3d.build_from_macrosurface3d_surface3d(<pcmacrosurface3d> ms.ptr, refn)
     return Surface3d.wrap(surf, True)
+
+cpdef Macrosurface3d new_sphere_macrosurface3d():
+
+    cdef pmacrosurface3d ms = _macrosurface3d.new_sphere_macrosurface3d()
+    return Macrosurface3d.wrap(ms, True)

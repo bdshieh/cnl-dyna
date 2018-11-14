@@ -23,3 +23,4 @@ cdef extern from 'macrosurface3d.h' nogil:
     pmacrosurface3d new_macrosurface3d(uint vertices, uint edges, uint triangles)
     void del_macrosurface3d(pmacrosurface3d mg)
     psurface3d build_from_macrosurface3d_surface3d(pcmacrosurface3d mg, uint split) 
+    pmacrosurface3d new_sphere_macrosurface3d()

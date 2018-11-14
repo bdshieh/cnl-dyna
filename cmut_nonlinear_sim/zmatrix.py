@@ -75,7 +75,9 @@ class HierarchicalMatrix:
     def _matvec(self, v):
         
         Z = self._hmatrix
-        x = AVector.from_array(v)
+        # x = AVector.from_array(v)
+        x = AVector(v.size)
+        random_avector(x)
         y = AVector(x.dim)
         clear_avector(y)
         

@@ -3,10 +3,11 @@
 
 from . cimport cluster as _cluster
 from . basic_cy cimport *
-
+import numpy as np
 
 cdef class Cluster:
 
+    ''' Initialization methods '''
     def __cinit__(self):
         self.ptr = NULL
         self.owner = False
@@ -22,10 +23,11 @@ cdef class Cluster:
     cdef _setup(self, pcluster ptr, bint owner):
         self.ptr = ptr
         self.owner = owner
-        self.idx = <uint [:ptr.size]> (<uint *> ptr.idx)
-        self.bmin = <real [:ptr.size]> (<real *> ptr.bmin)
-        self.bmax = <real [:ptr.size]> (<real *> ptr.bmax)
+        self._idx = <uint [:ptr.size]> (<uint *> ptr.idx)
+        self._bmin = <real [:ptr.size]> (<real *> ptr.bmin)
+        self._bmax = <real [:ptr.size]> (<real *> ptr.bmax)
 
+    ''' Scalar attributes '''
     @property
     def size(self):
         return self.ptr.size
@@ -45,7 +47,26 @@ cdef class Cluster:
     @property
     def type(self):
         return self.ptr.type
+    
+    ''' Array attributes '''
+    @property
+    def idx(self):
+        return np.asarray(self._idx)
 
+    @property
+    def bmin(self):
+        return np.asarray(self._bmin)
+    
+    @property
+    def bmax(self):
+        return np.asarray(self._bmax)
+    
+    ''' Pointer attributes '''
+    @property
+    def son(self):
+        return [Cluster.wrap(self.ptr.son[i], False) for i in range(self.sons)]
+
+    ''' Methods '''
     @staticmethod
     cdef wrap(pcluster ptr, bint owner=False):
         cdef Cluster obj = Cluster.__new__(Cluster)
