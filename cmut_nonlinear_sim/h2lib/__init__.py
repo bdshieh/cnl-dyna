@@ -17,3 +17,6 @@ from . factorizations_cy import *
 
 init_h2lib()
 print('h2lib initialized')
+
+import atexit
+atexit.register(uninit_h2lib)

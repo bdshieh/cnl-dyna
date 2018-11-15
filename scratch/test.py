@@ -21,36 +21,47 @@ if __name__ == '__main__':
     # c = circle(20e-6, refn=16)
     # c.draw()
 
-    ma = matrix_array(5, 5, 60e-6, 60e-6, refn=5, shape='square', lengthx=40e-6, lengthy=40e-6)
+    v, e, t, s = fast_matrix_array(5, 5, 60e-6, 60e-6, refn=5, shape='square', lengthx=40e-6, lengthy=40e-6)
+    # ma = matrix_array(5, 5, 60e-6, 60e-6, refn=5, shape='square', lengthx=40e-6, lengthy=40e-6)
     # ma.draw()
 
     # ma = matrix_array(4, 4, 60e-6, 60e-6, refn=3, shape='circle', radius=20e-6)
     # ma.draw()
 
     # ma = s
-    k = 2 * np.pi * 1e6 / 1500.
+    # k = 2 * np.pi * 10e6 / 1500.
 
-    Z = HierarchicalMatrix(ma, k, aprx='paca', admis='max', eta=0.9, eps=1e-12, m=4, clf=64, 
-        eps_aca=1e-19, rk=0, q_reg=2, q_sing=4)
-    Z_dense = DenseMatrix(ma, k)
+    # Z_hm = HierarchicalMatrix(ma, k, aprx='paca', admis='max', eta=1.0, eps=1e-12, m=4, clf=16, 
+    #     eps_aca=1e-2, rk=0, q_reg=2, q_sing=4, strict=False)
+    # Z_full = FullMatrix(ma, k)
 
-    print('Z_dense:', Z_dense.size, 'MB')
-    print('Z_hmatrix:', Z.size, 'MB')
+    # print('Z_full:', Z_full.size, 'MB')
+    # print('Z_hm:', Z_hm.size, 'MB')
     
-    x = np.ones(len(ma.vertices))
-    b_dense = Z_dense.dot(x)
-    b = Z.dot(x)
+    # # matrix-vector product
+    # x = np.ones(len(ma.vertices))
+    # b_full = Z_full.dot(x)
+    # b_hm = Z_hm.dot(x)
 
+    # # plt.plot(np.abs(b))
+    # # plt.plot(np.abs(b_dense))
+    # # plt.show()
+
+    # # solve using full
     # b = np.ones(len(ma.vertices))
+    # LU = lu(Z_full)
+    # x_full = lusolve(LU, b)
 
-    # Z_chol = chol(Z, eps=1e-6)
-    # x_chol = cholsolve(Z_chol, b)
+    # # solve hm by LU
+    # LU = lu(Z_hm, eps=1e-12)
+    # x_hm = lusolve(LU, b)
 
-    # Z_lu = lu(Z_dense)
-    # x_lu = lusolve(Z_lu, b)
+    # # by forward method
+
+
+    # plt.plot(np.abs(x_full))
+    # plt.plot(np.abs(x_hm))
+    # plt.show()
 
     # rmse = np.sqrt(np.mean(np.abs(x_lu - x) ** 2))
     
-    plt.plot(np.abs(b))
-    plt.plot(np.abs(b_dense))
-    plt.show()

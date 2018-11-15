@@ -62,6 +62,7 @@ cdef class Block:
         obj._setup(ptr, owner)
         return obj
 
+
 cpdef build_nonstrict_block(Cluster rc, Cluster cc, real eta, str admis):
     
     cdef admissible _admis
@@ -78,4 +79,23 @@ cpdef build_nonstrict_block(Cluster rc, Cluster cc, real eta, str admis):
         raise TypeError
 
     cdef pblock block = _block.build_nonstrict_block(rc.ptr, cc.ptr, &eta, _admis)
+    return Block.wrap(block, True)
+
+
+cpdef build_strict_block(Cluster rc, Cluster cc, real eta, str admis):
+    
+    cdef admissible _admis
+
+    if admis.lower() in ['2']:
+        _admis = admissible_2_cluster
+    elif admis.lower() in ['max']:
+        _admis = admissible_max_cluster
+    elif admis.lower() in ['sphere']:
+        _admis = admissible_sphere_cluster
+    elif admis.lower() in ['2min', '2_min']:
+        _admis = admissible_2_min_cluster
+    else:
+        raise TypeError
+
+    cdef pblock block = _block.build_strict_block(rc.ptr, cc.ptr, &eta, _admis)
     return Block.wrap(block, True)

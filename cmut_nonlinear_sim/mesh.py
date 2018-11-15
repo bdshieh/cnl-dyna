@@ -283,6 +283,45 @@ def matrix_array(nx, ny, pitchx, pitchy, shape='square', refn=2, **kwargs):
     return mesh
 
 
+def fast_matrix_array(nx, ny, pitchx, pitchy, refn=2, **kwargs):
+
+    xl, yl = kwargs['lengthx'], kwargs['lengthy']
+
+    lengthx, lengthy = pitchx * (nx - 1), pitchy * (ny - 1)
+    xv = np.linspace(-lengthx / 2, lengthx / 2, nx)
+    yv = np.linspace(-lengthy / 2, lengthy / 2, ny)
+    zv = 0
+    centers = np.stack(np.meshgrid(xv, yv, zv), axis=-1).reshape((-1, 3))
+    
+    verts, edges, tris, tri_edges = [], [], [], []
+    vidx = 0
+
+    for c in centers:
+
+        v, e, t, s = square_geometry(xl, yl)
+
+        v += c
+        e += vidx
+        t += vidx
+        s += vidx
+
+        vidx += len(v)
+
+        verts.append(v)
+        edges.append(e)
+        tris.append(t)
+        tri_edges.append(s)
+
+    verts = np.concatenate(verts, axis=0)
+    edges = np.concatenate(edges, axis=0)
+    tris = np.concatenate(tris, axis=0)
+    tri_edges = np.concatenate(tri_edges, axis=0)
+
+    # mesh = Mesh.from_geometry(verts, edges, tris, tri_edges, refn=refn)
+
+    return verts, edges, tris ,tri_edges
+
+
 def linear_array():
     pass
 

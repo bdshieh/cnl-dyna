@@ -10,7 +10,8 @@ class HierarchicalMatrix:
     _hmatrix = None
 
     def __init__(self, mesh, k, basis='linear', m=4, q_reg=2, q_sing=4,
-         aprx='paca', admis='2', eta=1.4, eps=1e-12, eps_aca=1e-2, clf=None, rk=None):
+         aprx='paca', admis='2', eta=1.4, eps=1e-12, eps_aca=1e-2, strict=True, 
+         clf=None, rk=None):
 
         if rk is None:
             rk = m * m * m
@@ -27,7 +28,11 @@ class HierarchicalMatrix:
         
         bem = new_slp_helmholtz_bem3d(k, mesh.surface3d, q_reg, q_sing, _basis, _basis)
         root = build_bem3d_cluster(bem, clf, _basis)
-        broot = build_nonstrict_block(root, root, eta, admis)
+
+        if strict:
+            broot = build_strict_block(root, root, eta, admis)
+        else:
+            broot = build_nonstrict_block(root, root, eta, admis)
 
         if aprx.lower() in ['aca']:
             setup_hmatrix_aprx_inter_row_bem3d(bem, root, root, broot, m)
@@ -56,7 +61,14 @@ class HierarchicalMatrix:
         self._broot = broot
 
     def __del__(self):
-        del self._bem, self._root, self._broot, self._hmatrix
+        if self._bem is not None:
+            del self._bem
+        if self._root is not None:
+            del self._root
+        if self._broot is not None:
+            del self._broot
+        if self._hmatrix is not None:
+            del self._hmatrix
 
     @classmethod
     def from_hmatrix(cls, hm):
@@ -153,7 +165,7 @@ class HierarchicalMatrix:
         return np.asarray(x.v)
 
 
-class DenseMatrix:
+class FullMatrix:
 
     _amatrix = None
 
@@ -242,7 +254,7 @@ class DenseMatrix:
 
         choldecomp_amatrix(Z_chol)
 
-        return DenseMatrix.from_amatrix(Z_chol)
+        return FullMatrix.from_amatrix(Z_chol)
 
     def cholsolve(self, b):
         
@@ -260,7 +272,7 @@ class DenseMatrix:
 
         lrdecomp_amatrix(Z_lu)
 
-        return DenseMatrix.from_amatrix(Z_lu)
+        return FullMatrix.from_amatrix(Z_lu)
     
     def lusolve(self, b):
 
