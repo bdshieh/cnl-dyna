@@ -11,12 +11,12 @@ from Cython.Build import cythonize
 
 ext_opts = {
     'include_dirs':['include'],
-    # 'libraries':['h2_blas', 'blas', 'lapack', 'gfortran'],
-    'libraries':['h2'],
+    # 'libraries':['h2', 'blas', 'lapack', 'gfortran'],
+    'libraries':['h2', 'openblas', 'gfortran'],
     'library_dirs':['lib'],
     'language':'c',
-    'extra_compile_args':['-fPIC', '-DUSE_COMPLEX','-Wno-strict-prototypes'],
-    # 'extra_objects':['./lib/libh2_blas.a', './lib/libopenblas.a']
+    'extra_compile_args':['-fPIC', '-DUSE_BLAS', '-DUSE_COMPLEX','-Wno-strict-prototypes'],
+    # 'extra_objects':['./lib/libopenblas.a']
 }
 
 ext_modules = [

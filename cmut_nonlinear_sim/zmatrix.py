@@ -104,11 +104,11 @@ class HierarchicalMatrix:
         
         Z = self._hmatrix
         x = AVector.from_array(v)
-        y = AVector(x.dim)
+        y = AVector(v.size)
         clear_avector(y)
         
-        # addeval_hmatrix_avector(1.0, Z, x, y)
-        addevalsymm_hmatrix_avector(1.0, Z, x, y)
+        addeval_hmatrix_avector(1.0, Z, x, y)
+        # addevalsymm_hmatrix_avector(1.0, Z, x, y)
 
         return np.asarray(y.v)
 
