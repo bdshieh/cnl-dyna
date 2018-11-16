@@ -295,6 +295,7 @@ def fast_matrix_array(nx, ny, pitchx, pitchy, refn=2, **kwargs):
     
     verts, edges, tris, tri_edges = [], [], [], []
     vidx = 0
+    eidx = 0
 
     for c in centers:
 
@@ -303,9 +304,10 @@ def fast_matrix_array(nx, ny, pitchx, pitchy, refn=2, **kwargs):
         v += c
         e += vidx
         t += vidx
-        s += vidx
+        s += eidx
 
         vidx += len(v)
+        eidx += len(e)
 
         verts.append(v)
         edges.append(e)
@@ -317,9 +319,9 @@ def fast_matrix_array(nx, ny, pitchx, pitchy, refn=2, **kwargs):
     tris = np.concatenate(tris, axis=0)
     tri_edges = np.concatenate(tri_edges, axis=0)
 
-    # mesh = Mesh.from_geometry(verts, edges, tris, tri_edges, refn=refn)
+    mesh = Mesh.from_geometry(verts, edges, tris, tri_edges, refn=refn)
 
-    return verts, edges, tris ,tri_edges
+    return mesh
 
 
 def linear_array():
