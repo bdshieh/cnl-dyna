@@ -3,6 +3,84 @@
 from . h2lib import *
 from timeit import default_timer as timer
 
+from matplotlib import pyplot as plt
+from matplotlib import patches
+
+
+class ZMatrix:
+
+    _matrix = None
+
+    def __init__(self, format, mesh, k, *args, **kwargs):
+        
+        if format.lower() in ['f', 'full', 'fullmatrix']:
+            self._matrix = FullMatrix(mesh, k, *args, **kwargs)       
+        elif format.lower() in ['h', 'hmat', 'hmatrix']:
+            self._matrix = HierarchicalMatrix(mesh, k, *args, **kwargs)
+        else:
+            raise TypeError
+
+    def __repr__(self):
+
+        repr = []
+        repr.append('ZMatrix (Impedance Matrix)\n')
+        repr.append(f'  Format: {self.format}\n')
+        repr.append(f'  Shape: {self.shape}\n')
+        repr.append(f'  Size: {self.size:.2f} MB\n')
+        return ''.join(repr)
+    
+    def __str__(self):
+        return self.__repr__
+    
+    @property
+    def format(self):
+        return self._matrix.__class__.__name__
+
+    @property
+    def shape(self):
+        return self._matrix.shape
+    
+    @property
+    def size(self):
+        return self._matrix.size
+
+    @property
+    def assemble_time(self):
+        return self._matrix._assemble_time
+
+    def dot(self, other):
+        return self._matrix.dot(other)
+    
+    def cholesky(self, eps=1e-12):
+        return self._matrix.cholesky(eps)
+    
+    def lu(self, eps=1e-12):
+        return self._matrix.lu(eps)
+    
+    def lusolve(self, b):
+        return self._matrix.lusolve(b)
+
+    def cholsolve(self, b):
+        return self._matrix.cholsolve(b)
+
+    def draw(self, *args, **kwargs):
+        self._matrix.draw(*args, **kwargs)
+
+
+def lu(Z, eps=1e-12):
+    return Z.lu(eps)
+
+
+def chol(Z, eps=1e-12):
+    return Z.chol(eps)
+
+
+def lusolve(Z, b):
+    return Z.lusolve(b)
+
+
+def cholsolve(Z, b):
+    return Z.cholsolve(b)
 
 
 class HierarchicalMatrix:
@@ -83,7 +161,7 @@ class HierarchicalMatrix:
         obj._shape = shape
         obj._assemble_time = None
         obj._bem = None
-        obj._root = None
+        obj._root = hm.rc
         obj._broot = None
 
         return obj
@@ -164,6 +242,71 @@ class HierarchicalMatrix:
 
         return np.asarray(x.v)
 
+    def _draw_hmatrix(self, hm, bbox, maxidx, ax):
+
+        if len(hm.son) == 0:
+            
+            if hm.r:
+                rk = str(hm.r.k)
+                fill = False
+            elif hm.f:
+                rk = None
+                fill = True
+            else:
+                raise Exception
+
+            x0, y0, x1, y1 = bbox
+            width, height = x1 - x0, y1 - y0
+            sq = patches.Rectangle((x0, y0), width, height, edgecolor='black', fill=fill, facecolor='black')
+            ax.add_patch(sq)
+            if rk: 
+                fontsize = int(round((112 - 6) * width + 6))
+                if width > 0.03: ax.text(x0 + 0.05 * width, y0 + 0.95 * height, rk, fontsize=fontsize)
+        
+        else:
+
+            rmax, cmax = maxidx
+            x0, y0, x1, y1 = bbox
+
+            rsidx = (0, 1, 0, 1)
+            csidx = (0, 0, 1, 1)
+            
+            width0 = len(hm.son[0].cc.idx) / cmax
+            height0 = len(hm.son[0].rc.idx) / rmax
+
+            for i, s in enumerate(hm.son):
+                
+                width = len(s.cc.idx) / cmax
+                height = len(s.rc.idx) / rmax
+
+                xnew = x0 if csidx[i] == 0 else x0 + width0
+                ynew = y0 if rsidx[i] == 0 else y0 + height0
+
+                if csidx[i] == 0: 
+                    xnew = x0
+                else: 
+                    xnew = x0 + width0
+                if rsidx[i] == 0:
+                    ynew = y0
+                else:
+                    ynew = y0 + height0
+
+                bbox = xnew, ynew, xnew + width, ynew + height
+                self._draw_hmatrix(s, bbox, maxidx, ax)
+    
+    def draw(self):
+        
+        hm = self._hmatrix
+        maxidx = len(hm.rc.idx), len(hm.cc.idx)
+
+        fig, ax = plt.subplots(figsize=(9,9))
+        ax.set_xlim(0, 1)
+        ax.set_ylim(0, 1)
+        ax.invert_yaxis()
+        ax.set_aspect('equal')
+        self._draw_hmatrix(hm, (0, 0, 1, 1), maxidx, ax)
+        fig.show()
+
 
 class FullMatrix:
 
@@ -196,7 +339,8 @@ class FullMatrix:
         self._bem = bem
 
     def __del__(self):
-        del self._bem, self._amatrix
+        if self._bem is not None: del self._bem
+        if self._amatrix is not None: del self._amatrix
 
     @classmethod
     def from_amatrix(cls, a):
@@ -283,49 +427,10 @@ class FullMatrix:
 
         return np.asarray(x.v)
 
-
-def lu(Z, eps=1e-12):
-    return Z.lu(eps)
-
-
-def chol(Z, eps=1e-12):
-    return Z.chol(eps)
-
-
-def lusolve(Z, b):
-    return Z.lusolve(b)
-
-
-def cholsolve(Z, b):
-    return Z.cholsolve(b)
-
-
-
-
-
-class ZMatrix:
-
-    def __init__(self):
+    def draw(self):
         pass
-    
 
-    @property
-    def shape(self):
-        pass
-    
-    @property
-    def size(self):
-        pass
-    
-    def dot(self, other):
-        pass
-    
-    def cholesky(self):
-        pass
-    
-    def lu(self):
-        pass
-    
+
 
 
 

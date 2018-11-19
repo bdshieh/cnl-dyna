@@ -31,7 +31,7 @@ if __name__ == '__main__':
     # ma = s
     k = 2 * np.pi * 10e6 / 1500.
 
-    Z_hm = HierarchicalMatrix(ma, k, aprx='paca', admis='max', eta=1.0, eps=1e-12, m=4, clf=16, 
+    Z_hm = ZMatrix(format='H', mesh=ma, k=k, aprx='paca', admis='max', eta=1.0, eps=1e-12, m=4, clf=16, 
         eps_aca=1e-2, rk=0, q_reg=2, q_sing=4, strict=False)
     # Z_full = FullMatrix(ma, k)
 
@@ -42,6 +42,8 @@ if __name__ == '__main__':
     x = np.ones(len(ma.vertices))
     # b_full = Z_full.dot(x)
     b_hm = Z_hm.dot(x)
+
+    Z_hm.draw()
 
     # # plt.plot(np.abs(b))
     # # plt.plot(np.abs(b_dense))

@@ -57,7 +57,7 @@ cdef class HMatrix:
 
     @property
     def f(self):
-        if self.ptr.r is not NULL:
+        if self.ptr.f is not NULL:
             return AMatrix.wrap(self.ptr.f, False)
 
     @property
