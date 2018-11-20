@@ -89,7 +89,7 @@ class HierarchicalMatrix:
 
     def __init__(self, mesh, k, basis='linear', m=4, q_reg=2, q_sing=4,
          aprx='paca', admis='2', eta=1.4, eps=1e-12, eps_aca=1e-2, strict=True, 
-         clf=None, rk=None):
+         clf=None, rk=None, **kwargs):
 
         if rk is None:
             rk = m * m * m
@@ -312,7 +312,7 @@ class FullMatrix:
 
     _amatrix = None
 
-    def __init__(self, mesh, k, basis='linear', m=4, q_reg=2, q_sing=4):
+    def __init__(self, mesh, k, basis='linear', m=4, q_reg=2, q_sing=4, **kwargs):
 
         if basis.lower() in ['constant']:
             _basis = basisfunctionbem3d.CONSTANT
