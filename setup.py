@@ -12,10 +12,10 @@ from Cython.Build import cythonize
 ext_opts = {
     'include_dirs':['include'],
     # 'libraries':['h2', 'blas', 'lapack', 'gfortran'],
-    'libraries':['h2', 'openblas', 'gfortran'],
+    'libraries':['h2', 'gfortran', 'openblas', 'omp'],
     'library_dirs':['lib'],
     'language':'c',
-    'extra_compile_args':['-fPIC', '-DUSE_BLAS', '-DUSE_COMPLEX','-Wno-strict-prototypes'],
+    'extra_compile_args':['-fPIC', '-DUSE_BLAS', '-DUSE_COMPLEX', '-DUSE_OPENMP', '-DUSE_SIMD', '-Wno-strict-prototypes'],
     # 'extra_objects':['./lib/libopenblas.a']
 }
 
@@ -107,6 +107,12 @@ setup(
     ],
     setup_requires=[
         'setuptools>=18.0', 
-        'cython>=0.25']
+        'cython>=0.25',
+        'numpy',
+        'scipy',
+        'matplotlib',
+        # 'openmp',
+        # 'libgfortran',
+        'tqdm']
 )
 
