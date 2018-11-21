@@ -125,9 +125,9 @@ def process(job):
     triangles = len(mesh.triangles)
 
     row_data = []
-    row_data.append([None, f, k, vertices, edges, triangles, 'HierarchicalMatrix', hm['size'], 
+    row_data.append([f, k, vertices, edges, triangles, 'HierarchicalMatrix', hm['size'], 
         hm['time_assemble'], hm['time_lu'], hm['time_solve'], err])
-    row_data.append([None, f, k, vertices, edges, triangles, 'FullMatrix', full['size'], 
+    row_data.append([f, k, vertices, edges, triangles, 'FullMatrix', full['size'], 
         full['time_assemble'], full['time_lu'], full['time_solve'], None])
 
     with write_lock:
@@ -179,7 +179,7 @@ def create_results_table(con):
 def update_results_table(con, row_data):
 
     with con:
-        query = 'INSERT INTO results VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+        query = 'INSERT INTO results VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
         con.executemany(query, row_data)
 
 
