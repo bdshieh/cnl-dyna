@@ -7,23 +7,59 @@ from matplotlib import pyplot as plt
 from matplotlib import patches
 
 
+class MBKMatrix(self):
+
+    _matrix = None
+
+    def __init__(self, a):
+        self._matrix = SparseFormat(a)
+
+    def __repr__(self):
+
+        repr = []
+        repr.append('MBKMatrix (Mass, Damping, Stiffness Matrix)\n')
+        repr.append(f'  Format: {self.format}\n')
+        repr.append(f'  Shape: {self.shape}\n')
+        repr.append(f'  Size: {self.size:.2f} MB\n')
+        return ''.join(repr)
+
+    def __str__(self):
+        return self.__repr__
+
+    @property
+    def format(self):
+        return self._matrix.__class__.__name__
+
+    @property
+    def shape(self):
+        return self._matrix.shape
+
+    @property
+    def size(self):
+        return self._matrix.size
+
+    @property
+    def assemble_time(self):
+        return self._matrix._assemble_time
+
+        
 class ZMatrix:
 
     _matrix = None
 
     def __init__(self, format, mesh, k, *args, **kwargs):
         
-        if format.lower() in ['f', 'full', 'fullmatrix']:
-            self._matrix = FullMatrix(mesh, k, *args, **kwargs)       
-        elif format.lower() in ['h', 'hmat', 'hmatrix']:
-            self._matrix = HierarchicalMatrix(mesh, k, *args, **kwargs)
+        if format.lower() in ['f', 'full', 'fullmatrix', 'fullformat']:
+            self._matrix = FullFormat(mesh, k, *args, **kwargs)       
+        elif format.lower() in ['h', 'hmat', 'hmatrix', 'hformat']:
+            self._matrix = HFormat(mesh, k, *args, **kwargs)
         else:
             raise TypeError
 
     def __repr__(self):
 
         repr = []
-        repr.append('ZMatrix (Impedance Matrix)\n')
+        repr.append('ZMatrix (Acoustic Impedance Matrix)\n')
         repr.append(f'  Format: {self.format}\n')
         repr.append(f'  Shape: {self.shape}\n')
         repr.append(f'  Size: {self.size:.2f} MB\n')
@@ -70,20 +106,17 @@ class ZMatrix:
 def lu(Z, eps=1e-12):
     return Z.lu(eps)
 
-
 def chol(Z, eps=1e-12):
     return Z.chol(eps)
 
-
 def lusolve(Z, b):
     return Z.lusolve(b)
-
 
 def cholsolve(Z, b):
     return Z.cholsolve(b)
 
 
-class HierarchicalMatrix:
+class HFormat:
 
     _hmatrix = None
 
@@ -139,14 +172,10 @@ class HierarchicalMatrix:
         self._broot = broot
 
     def __del__(self):
-        if self._bem is not None:
-            del self._bem
-        if self._root is not None:
-            del self._root
-        if self._broot is not None:
-            del self._broot
-        if self._hmatrix is not None:
-            del self._hmatrix
+        if self._bem is not None: del self._bem
+        if self._root is not None: del self._root
+        if self._broot is not None: del self._broot
+        if self._hmatrix is not None: del self._hmatrix
 
     @classmethod
     def from_hmatrix(cls, hm):
@@ -185,8 +214,8 @@ class HierarchicalMatrix:
         y = AVector(v.size)
         clear_avector(y)
         
-        addeval_hmatrix_avector(1.0, Z, x, y)
-        # addevalsymm_hmatrix_avector(1.0, Z, x, y)
+        # addeval_hmatrix_avector(1.0, Z, x, y)
+        addevalsymm_hmatrix_avector(1.0, Z, x, y)
 
         return np.asarray(y.v)
 
@@ -205,20 +234,15 @@ class HierarchicalMatrix:
         Z = self._hmatrix
         Z_chol = clone_hmatrix(Z)
         tm = new_releucl_truncmode()
-
         choldecomp_hmatrix(Z_chol, tm, eps)
-
         del tm
-
-        return HierarchicalMatrix.from_hmatrix(Z_chol)
+        return HFormat.from_hmatrix(Z_chol)
 
     def cholsolve(self, b):
         
         Z_chol = self._hmatrix
         x = AVector.from_array(b)
-
         cholsolve_hmatrix_avector(Z_chol, x)
-
         return np.asarray(x.v)
 
     def lu(self, eps=1e-12):
@@ -226,20 +250,15 @@ class HierarchicalMatrix:
         Z = self._hmatrix
         Z_lu = clone_hmatrix(Z)
         tm = new_releucl_truncmode()
-
         lrdecomp_hmatrix(Z_lu, tm, eps)
-
         del tm
-
-        return HierarchicalMatrix.from_hmatrix(Z_lu)
+        return HFormat.from_hmatrix(Z_lu)
     
     def lusolve(self, b):
 
         Z_lu = self._hmatrix
         x = AVector.from_array(b)
-
         lrsolve_hmatrix_avector(False, Z_lu, x)
-
         return np.asarray(x.v)
 
     def _draw_hmatrix(self, hm, bbox, maxidx, ax):
@@ -308,7 +327,7 @@ class HierarchicalMatrix:
         fig.show()
 
 
-class FullMatrix:
+class FullFormat:
 
     _amatrix = None
 
@@ -395,36 +414,28 @@ class FullMatrix:
         
         Z = self._amatrix
         Z_chol = clone_amatrix(Z)
-
         choldecomp_amatrix(Z_chol)
-
-        return FullMatrix.from_amatrix(Z_chol)
+        return FullFormat.from_amatrix(Z_chol)
 
     def cholsolve(self, b):
         
         Z_chol = self._amatrix
         x = AVector.from_array(b)
-
         cholsolve_amatrix_avector(Z_chol, x)
-
         return np.asarray(x.v)
 
     def lu(self, eps=1e-12):
         
         Z = self._amatrix
         Z_lu = clone_amatrix(Z)
-
         lrdecomp_amatrix(Z_lu)
-
-        return FullMatrix.from_amatrix(Z_lu)
+        return FullFormat.from_amatrix(Z_lu)
     
     def lusolve(self, b):
 
         Z_lu = self._amatrix
         x = AVector.from_array(b)
-
         lrsolve_amatrix_avector(False, Z_lu, x)
-
         return np.asarray(x.v)
 
     def draw(self):
@@ -435,14 +446,7 @@ class SparseFormat:
 
     _sparsematrix = None
 
-    def __init__(self):
-        pass
-
-    def __del__(self):
-        if self._sparsematrix is not None: del self._sparsematrix
-
-    @classmethod
-    def from_array(cls, a):
+    def __init__(self, a):
 
         start = timer()
         A = SparseMatrix.from_array(a)
@@ -451,12 +455,13 @@ class SparseFormat:
         size = getsize_sparsematrix(A) / 1024. / 1024.
         shape = A.rows, A.cols
 
-        obj = cls()
         self._sparsematrix = A
         self._size = size
         self._shape = shape
         self._assemble_time = stop
-        return obj
+
+    def __del__(self):
+        if self._sparsematrix is not None: del self._sparsematrix
 
     @property
     def size(self):
@@ -470,10 +475,9 @@ class SparseFormat:
     def assemble_time(self):
         return self._assemble_time
     
-    def as_hformat(self):
-        copy_sparsematrix_hmatrix()
-
-
+    @property
+    def nnz(self):
+        return self._sparsematrix.nz
 
 
 
