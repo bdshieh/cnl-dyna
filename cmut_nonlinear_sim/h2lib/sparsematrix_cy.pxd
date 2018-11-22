@@ -4,6 +4,7 @@
 from . cimport sparsematrix as _sparsematrix
 from . basic_cy cimport *
 
+
 ctypedef _sparsematrix.psparsematrix psparsematrix
 ctypedef _sparsematrix.pcsparsematrix pcsparsematrix
 
@@ -17,9 +18,9 @@ cdef class SparseMatrix:
     @staticmethod
     cdef wrap(psparsematrix ptr, bint owner=*)
 
-
 cpdef SparseMatrix new_raw_sparsematrix(uint rows, uint cols, uint nz)
 cpdef SparseMatrix new_identity_sparsematrix(uint rows, uint cols)
+cpdef del_sparsematrix(SparseMatrix a)
 cpdef field addentry_sparsematrix(SparseMatrix a, uint row, uint col, field x)
 cpdef setentry_sparsematrix(SparseMatrix a, uint row, uint col, field x)
 cpdef size_t getsize_sparsematrix(SparseMatrix a)

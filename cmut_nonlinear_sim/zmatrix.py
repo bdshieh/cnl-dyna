@@ -431,6 +431,49 @@ class FullMatrix:
         pass
 
 
+class SparseFormat:
+
+    _sparsematrix = None
+
+    def __init__(self):
+        pass
+
+    def __del__(self):
+        if self._sparsematrix is not None: del self._sparsematrix
+
+    @classmethod
+    def from_array(cls, a):
+
+        start = timer()
+        A = SparseMatrix.from_array(a)
+        stop = timer() - start
+
+        size = getsize_sparsematrix(A) / 1024. / 1024.
+        shape = A.rows, A.cols
+
+        obj = cls()
+        self._sparsematrix = A
+        self._size = size
+        self._shape = shape
+        self._assemble_time = stop
+        return obj
+
+    @property
+    def size(self):
+        return self._size
+    
+    @property
+    def shape(self):
+        return self._shape
+
+    @property
+    def assemble_time(self):
+        return self._assemble_time
+    
+    def as_hformat(self):
+        copy_sparsematrix_hmatrix()
+
+
 
 
 

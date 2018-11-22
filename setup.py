@@ -95,6 +95,11 @@ ext_modules = [
         sources=['cmut_nonlinear_sim/h2lib/factorizations_cy.pyx'],
         **ext_opts
     ),
+    Extension(
+        name='cmut_nonlinear_sim.h2lib.sparsematrix_cy',
+        sources=['cmut_nonlinear_sim/h2lib/sparsematrix_cy.pyx'],
+        **ext_opts
+    ),
 ]
 
 
