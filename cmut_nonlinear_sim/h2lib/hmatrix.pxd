@@ -5,6 +5,7 @@ from . amatrix cimport *
 from . cluster cimport *
 from . block cimport *
 from . rkmatrix cimport *
+from . sparsematrix cimport *
 
 
 cdef extern from 'hmatrix.h' nogil:
@@ -40,4 +41,6 @@ cdef extern from 'hmatrix.h' nogil:
     # void norm2_hmatrix(pchmatrix H)
     void addeval_hmatrix_avector(field alpha, pchmatrix hm, pcavector x, pavector y)
     void addevalsymm_hmatrix_avector(field alpha, pchmatrix hm, pcavector x, pavector y)
+    phmatrix clonestructure_hmatrix(pchmatrix src)
+    void copy_sparsematrix_hmatrix(psparsematrix sp, phmatrix hm)
     

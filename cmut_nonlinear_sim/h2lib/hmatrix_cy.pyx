@@ -7,6 +7,7 @@ from . amatrix_cy cimport *
 from . cluster_cy cimport *
 from . block_cy cimport *
 from . rkmatrix_cy cimport *
+from . sparsematrix_cy cimport *
 
 
 cdef class HMatrix:
@@ -100,3 +101,10 @@ cpdef uint getrows_hmatrix(HMatrix hm):
     
 cpdef uint getcols_hmatrix(HMatrix hm):
     return _hmatrix.getcols_hmatrix(<pchmatrix> hm.ptr)
+
+cpdef copy_sparsematrix_hmatrix(SparseMatrix sp, HMatrix hm):
+    _hmatrix.copy_sparsematrix_hmatrix(sp.ptr, hm.ptr)
+
+cpdef HMatrix clonestructure_hmatrix(HMatrix src):
+    cpdef phmatrix hm = _hmatrix.clonestructure_hmatrix(<pchmatrix> src.ptr)
+    return HMatrix.wrap(hm, True)

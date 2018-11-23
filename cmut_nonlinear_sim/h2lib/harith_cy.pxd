@@ -14,4 +14,4 @@ cpdef lreval_hmatrix_avector(bint atrans, HMatrix a, AVector x)
 cpdef choldecomp_hmatrix(HMatrix a, Truncmode tm, real eps)
 cpdef cholsolve_hmatrix_avector(HMatrix a, AVector x)
 cpdef choleval_hmatrix_avector(HMatrix a, AVector x)
-
+cpdef add_hmatrix(field alpha, HMatrix a, Truncmode tm, real eps, HMatrix  b)

@@ -7,6 +7,7 @@ from . amatrix_cy cimport *
 from . cluster_cy cimport *
 from . block_cy cimport *
 from . rkmatrix_cy cimport *
+from . sparsematrix_cy cimport *
 
 
 ctypedef _hmatrix.phmatrix phmatrix
@@ -28,3 +29,5 @@ cpdef addeval_hmatrix_avector(field alpha, HMatrix hm, AVector x, AVector y)
 cpdef addevalsymm_hmatrix_avector(field alpha, HMatrix hm, AVector x, AVector y)
 cpdef uint getrows_hmatrix(HMatrix hm)
 cpdef uint getcols_hmatrix(HMatrix hm)
+cpdef HMatrix clonestructure_hmatrix(HMatrix src)
+cpdef copy_sparsematrix_hmatrix(SparseMatrix sp, HMatrix hm)

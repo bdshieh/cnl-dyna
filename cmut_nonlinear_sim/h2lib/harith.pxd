@@ -15,3 +15,6 @@ cdef extern from 'harith.h' nogil:
     void choldecomp_hmatrix(phmatrix a, pctruncmode tm, real eps)
     void cholsolve_hmatrix_avector(pchmatrix a, pavector x)
     void choleval_hmatrix_avector(pchmatrix a, pavector x)
+    void addmul_hmatrix(field alpha, bint xtrans, pchmatrix x, bint ytrans, pchmatrix y, pctruncmode tm, real eps, phmatrix z)
+    void add_hmatrix(field alpha, pchmatrix a, pctruncmode tm, real eps, phmatrix  b)
+

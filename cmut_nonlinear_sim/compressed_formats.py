@@ -42,7 +42,25 @@ class MBKMatrix(self):
     def assemble_time(self):
         return self._matrix._assemble_time
 
+    def as_hformat(self, href):
         
+        sm = self._matrix
+        assert isinstance(sm, SparseFormat)
+
+        self._matrix = sm.to_hformat(href)
+        del sm
+
+    def add(self, other, eps=1e-12):
+
+        sm = self._matrix
+        om = other._matrix
+        assert isinstance(sm, HFormat)
+        assert isinstance(om, HFormat)
+
+        tm = new_releucl_truncmode()
+        add_hmatrix(1.0, om, tm, eps, sm)
+
+
 class ZMatrix:
 
     _matrix = None
@@ -479,5 +497,8 @@ class SparseFormat:
     def nnz(self):
         return self._sparsematrix.nz
 
+    def to_hformat(self, href):
 
-
+        hm = clonestructure_hmatrix(href)
+        copy_sparsematrix_hmatrix(self._sparsematrix, hm)
+        return hm
