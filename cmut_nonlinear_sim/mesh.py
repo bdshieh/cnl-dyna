@@ -1,9 +1,9 @@
-## mesh.py ##
-
-
-from . h2lib import *
+''' Triangular surface mesh generation.
+'''
 import numpy as np
 from matplotlib import pyplot as plt
+
+from . h2lib import *
 
 
 class Mesh:
@@ -86,6 +86,10 @@ class Mesh:
     @property
     def triangles(self):
         return np.asarray(self._surface.t)
+
+    @property
+    def triangle_edges(self):
+        return np.asarray(self._surface.s)
 
     @property
     def normals(self):
@@ -328,7 +332,85 @@ def linear_array():
     pass
 
 
-def from_spec():
-    pass
+def from_abstract(array, refn=2, **kwargs):
+    '''
+    Generate mesh from abstract representation of an array.
+    '''
+    verts, edges, tris, tri_edges = [], [], [], []
+    vidx = 0
+    eidx = 0
+    
+    for elem in array.elements:
+        for mem in elem.membranes:
+
+            v, e, t, s = square_geometry(mem.length_x, mem.length_y)
+
+            v += np.array(mem.position)
+            e += vidx
+            t += vidx
+            s += eidx
+
+            vidx += len(v)
+            eidx += len(e)
+
+            verts.append(v)
+            edges.append(e)
+            tris.append(t)
+            tri_edges.append(s)
+
+    verts = np.concatenate(verts, axis=0)
+    edges = np.concatenate(edges, axis=0)
+    tris = np.concatenate(tris, axis=0)
+    tri_edges = np.concatenate(tri_edges, axis=0)
+
+    mesh = Mesh.from_geometry(verts, edges, tris, tri_edges, refn=refn)
+    
+    nverts = len(mesh.vertices)
+    patch_ids = np.ones(nverts, dtype=np.int32) * -1
+    membrane_ids = np.ones(nverts, dtype=np.int32) * -1
+    element_ids = np.ones(nverts, dtype=np.int32) * -1
+
+    x, y, z = mesh.vertices.T
+    patch_counter = 0
+
+    for elem in array.elements:
+        for mem in elem.membranes:
+            
+            pos_x, pos_y, pos_z = mem.position
+            length_x, length_y = mem.length_x, mem.length_y
+            npatch_x, npatch_y = mem.npatch_x, mem.npatch_y
+
+            corner_x = pos_x - length_x / 2
+            corner_y = pos_y - length_y / 2 
+
+            for i in range(npatch_x):
+                for j in range(npatch_y):
+                    
+                    # eps for buffer to account for round-off error
+                    xmin = corner_x + length_x / npatch_x * i - np.finfo(np.float64).eps
+                    xmax = corner_x + length_x / npatch_x * (i + 1) + np.finfo(np.float64).eps
+                    ymin = corner_y + length_y / npatch_y * j - np.finfo(np.float64).eps
+                    ymax = corner_y + length_y / npatch_y * (j + 1) + np.finfo(np.float64).eps
+
+                    mask_x = np.logical_and(x >= xmin, x <= xmax)
+                    mask_y = np.logical_and(y >= ymin, y <= ymax)
+                    mask = np.logical_and(mask_x, mask_y)
+                
+                    patch_ids[mask] = patch_counter
+                    membrane_ids[mask] = mem.id
+                    element_ids[mask] = elem.id
+
+                    patch_counter += 1
+
+    # check that no nodes were missed
+    assert np.all(patch_ids >= 0)
+    assert np.all(membrane_ids >= 0)
+    assert np.all(element_ids >= 0)
+
+    mesh.patch_ids = patch_ids
+    mesh.membrane_ids = membrane_ids
+    mesh.element_ids = element_ids
+
+    return mesh
 
 

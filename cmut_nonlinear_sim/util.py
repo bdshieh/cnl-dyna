@@ -153,54 +153,6 @@ def distance(*args):
 
 ## SIGNAL PROCESSING AND RF DATA FUNCTIONS ##
 
-def concatenate_with_padding(rf_data, t0s, fs, axis=-1):
-
-    if len(rf_data) <= 1:
-        return np.atleast_2d(rf_data), t0s[0]
-
-    rf_data = np.atleast_2d(*rf_data)
-
-    mint0 = float(min(t0s))
-    frontpads = [int(np.ceil((t - mint0) * fs)) for t in t0s]
-    maxlen = max([fpad + rf.shape[1] for fpad, rf in zip(frontpads, rf_data)])
-    backpads = [maxlen - (fpad + rf.shape[1]) for fpad, rf in zip(frontpads, rf_data)]
-
-    new_data = []
-
-    for rf, fpad, bpad in zip(rf_data, frontpads, backpads):
-
-        new_rf = np.pad(rf, ((0,0), (fpad, bpad)), mode='constant')
-        new_data.append(new_rf)
-
-    if axis == 2:
-        return np.stack(new_data, axis=axis), mint0
-    else:
-        return np.concatenate(new_data, axis=axis), mint0
-
-
-def sum_with_padding(rf_data, t0s, fs):
-
-    if len(rf_data) <= 1:
-        return np.atleast_2d(rf_data[0]), t0s[0]
-
-    rf_data = np.atleast_2d(*rf_data)
-
-    mint0 = min(t0s)
-    frontpads = [int(np.ceil((t - mint0) * fs)) for t in t0s]
-    maxlen = max([fpad + rf.shape[1] for fpad, rf in zip(frontpads, rf_data)])
-    backpads = [maxlen - (fpad + rf.shape[1]) for fpad, rf in zip(frontpads, rf_data)]
-
-    new_data = []
-
-    for rf, fpad, bpad in zip(rf_data, frontpads, backpads):
-
-        new_rf = np.pad(rf, ((0, 0), (fpad, bpad)), mode='constant')
-        new_data.append(new_rf)
-
-    # return np.sum(new_data, axis=0), mint0
-    return sum(new_data), mint0
-
-
 def gausspulse(fc, fbw, fs):
 
     cutoff = scipy.signal.gausspulse('cutoff', fc=fc, bw=fbw, tpr=-100, bwr=-3)
@@ -391,7 +343,7 @@ def create_jobs(*args, mode='zip', is_complete=None):
 
 ## DATABASE FUNCTIONS ##
 
-def open_sqlite_file(f):
+def open_db(f):
 
     def decorator(firstarg, *args, **kwargs):
 
@@ -404,14 +356,14 @@ def open_sqlite_file(f):
     return decorator
 
 
-@open_sqlite_file
+@open_db
 def table_exists(con, name):
 
     query = '''SELECT count(*) FROM sqlite_master WHERE type='table' and name=?'''
     return con.execute(query, (name,)).fetchone()[0] != 0
 
 
-@open_sqlite_file
+@open_db
 def create_metadata_table(con, **kwargs):
 
     table = [[str(v) for v in list(kwargs.values())]]
@@ -419,7 +371,7 @@ def create_metadata_table(con, **kwargs):
     pd.DataFrame(table, columns=columns, dtype=str).to_sql('metadata', con, if_exists='replace', index=False)
 
 
-@open_sqlite_file
+@open_db
 def create_progress_table(con, njobs):
 
     with con:
@@ -429,7 +381,7 @@ def create_progress_table(con, njobs):
         con.executemany('INSERT INTO progress (is_complete) VALUES (?)', repeat((False,), njobs))
 
 
-@open_sqlite_file
+@open_db
 def get_progress(con):
 
     table = pd.read_sql('SELECT is_complete FROM progress ORDER BY job_id', con)
@@ -440,25 +392,8 @@ def get_progress(con):
     return is_complete, ijob
 
 
-@open_sqlite_file
+@open_db
 def update_progress(con, job_id):
 
     with con:
         con.execute('UPDATE progress SET is_complete=1 WHERE job_id=?', [job_id,])
-
-
-if __name__ == '__main__':
-
-    from matplotlib import pyplot as plt
-    from mpl_toolkits.mplot3d import Axes3D
-
-    pos = meshview(1, np.arange(90), np.arange(90), mode='sec')
-
-    fig = plt.figure()
-    ax = fig.add_subplot(111, projection='3d')
-    ax.plot(*pos.T, '.')
-    ax.set_xlim(0, 1)
-    ax.set_ylim(0, 1)
-    ax.set_zlim(0, 1)
-    ax.set_aspect('equal')
-    fig.show()

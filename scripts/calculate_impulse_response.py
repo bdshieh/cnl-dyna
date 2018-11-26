@@ -8,14 +8,11 @@ from contextlib import closing
 from tqdm import tqdm
 import traceback
 import sys
+import argparse
 
 from cmut_nonlinear_sim import bem, util
+from cmut_nonlinear_sim.impulse_response import create_database, update_database
 
-# register adapters for sqlite to convert numpy types
-sql.register_adapter(np.float64, float)
-sql.register_adapter(np.float32, float)
-sql.register_adapter(np.int64, int)
-sql.register_adapter(np.int32, int)
 
 defaults = dict()
 defaults['threads'] = multiprocessing.cpu_count()
@@ -60,12 +57,15 @@ def process(job):
 
     LU = G.lu()
 
+    b = None
+    x = LU.lusolve(b)
+
+    data = {}
+    data['displacement'] = x
 
     with write_lock:
-        with closing(sql.connect(file)) as con:
-
-            update_results_table(con, row_data)
-            util.update_progress(con, job_id)
+        update_database(file, **data)
+        util.update_progress(file, job_id)
 
 
 def run_process(*args, **kwargs):
@@ -78,118 +78,6 @@ def run_process(*args, **kwargs):
 
 ## DATABASE FUNCTIONS ##
 
-def create_database(file, njobs):
-
-    with closing(sql.connect(file)) as con:
-        # create database tables (progress, results)
-        util.create_progress_table(con, njobs)
-        create_results_table(con)
-
-
-def create_results_table(con):
-
-    with con:
-        # create table
-        query = '''
-                CREATE TABLE results (
-                id INTEGER PRIMARY KEY,
-                frequency float,
-                wavenumber float,
-                vertices int,
-                edges int,
-                triangles int,
-                format str,
-                size float,
-                time_assemble float,
-                time_lu float,
-                time_solve float,
-                nrmse float
-                )
-                '''
-        con.execute(query)
-
-
-def update_results_table(con, row_data):
-
-    with con:
-        query = 'INSERT INTO results VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
-        con.executemany(query, row_data)
-
-
-def create_frequencies_table(con, fs, ks):
-
-    with con:
-
-        # create table
-        con.execute('CREATE TABLE frequencies (frequency float, wavenumber float, is_complete boolean)')
-
-        # create indexes
-        con.execute('CREATE UNIQUE INDEX frequency_index ON frequencies (frequency)')
-        con.execute('CREATE UNIQUE INDEX wavenumber_index ON frequencies (wavenumber)')
-
-        # insert values into table
-        con.executemany('INSERT INTO frequencies VALUES (?, ?, ?)', zip(fs, ks, repeat(False)))
-
-
-def create_nodes_table(con, nodes, membrane_ids, element_ids, channel_ids):
-
-    x, y, z = nodes.T
-
-    with con:
-
-        # create table
-        con.execute('CREATE TABLE nodes (x float, y float, z float, membrane_id, element_id, channel_id)')
-
-        # create indexes
-        con.execute('CREATE UNIQUE INDEX node_index ON nodes (x, y, z)')
-        con.execute('CREATE INDEX membrane_id_index ON nodes (membrane_id)')
-        con.execute('CREATE INDEX element_id_index ON nodes (element_id)')
-        con.execute('CREATE INDEX channel_id_index ON nodes (channel_id)')
-
-        # insert values into table
-        query = 'INSERT INTO nodes VALUES (?, ?, ?, ?, ?, ?)'
-        con.executemany(query, zip(x, y, z, membrane_ids, element_ids, channel_ids))
-
-
-def create_displacements_table(con):
-
-    with con:
-
-        # create table
-        query = '''
-                CREATE TABLE displacements (
-                id INTEGER PRIMARY KEY,
-                frequency float,
-                wavenumber float,
-                x float,
-                y float,
-                z float,
-                displacement_real float,
-                displacement_imag float,
-                FOREIGN KEY (frequency) REFERENCES frequencies (frequency),
-                FOREIGN KEY (wavenumber) REFERENCES frequencies (wavenumber),
-                FOREIGN KEY (x, y, z) REFERENCES nodes (x, y, z)
-                )
-                '''
-        con.execute(query)
-
-        # create indexes
-        con.execute('CREATE INDEX query_index ON displacements (frequency, x, y, z)')
-
-
-def update_displacements_table(con, f, k, nodes, displacements):
-
-    x, y, z = nodes.T
-
-    with con:
-        query = '''
-                INSERT INTO displacements (frequency, wavenumber, x, y, z, displacement_real, displacement_imag) 
-                VALUES (?, ?, ?, ?, ?, ?, ?)
-                '''
-        con.executemany(query, zip(repeat(f), repeat(k), x, y, z, np.real(displacements.ravel()),
-                                   np.imag(displacements.ravel())))
-
-
 
 ## ENTRY POINT ##
 
@@ -201,7 +89,6 @@ def main():
     parser.add_argument('-f', '--freqs', nargs=3, type=float)
     parser.add_argument('-t', '--threads', nargs='?', type=int)
     parser.add_argument('-o', '--overwrite', action='store_true')
-    parser.add_argument('-n', '--nmem', nargs='?', type=int)
     args = vars(parser.parse_args())
 
 
@@ -209,13 +96,11 @@ def main():
     overwrite = args['overwrite']
     threads = args['threads'] if args['threads'] else multiprocessing.cpu_count()
     f_start, f_stop, f_step = args['freqs'] if args['freqs'] else (500e3, 10e6, 500e3)
-    c = benchmark_args['sound_speed']
+    c = 1500.
+    array = None
 
-    nmem = args['nmem'] if args['nmem'] else 5
-    mesh_args['nx'] = nmem
-    mesh_args['ny'] = nmem
-    
     freqs = np.arange(f_start, f_stop + f_step, f_step)
+    wavenums = 2 * np.pi * freqs / c
 
     # calculate job-related values
     is_complete = None
@@ -226,7 +111,8 @@ def main():
     if os.path.isfile(file):
         if overwrite:  # if file exists, prompt for overwrite
             os.remove(file)  # remove existing file
-            create_database(file, njobs)  # create database
+            create_database(file, freqs=freqs, wavenums=wavenums)  # create database
+            util.create_progress_table(file, njobs)
 
         else: # continue from current progress
             is_complete, ijob = util.get_progress(file)
@@ -239,16 +125,17 @@ def main():
             os.makedirs(file_dir)
 
         # create database
-        create_database(file, njobs)
+        create_database(file, freqs=freqs, wavenums=wavenums)  # create database
+        util.create_progress_table(file, njobs)
 
     try:
         # start multiprocessing pool and run process
         write_lock = multiprocessing.Lock()
         pool = multiprocessing.Pool(threads, initializer=init_process, initargs=(write_lock,))
-        jobs = util.create_jobs(file, (freqs, 1), mode='zip', is_complete=is_complete)
+        jobs = util.create_jobs(file, (freqs, 1), (wavenums, 1), array, mode='zip', is_complete=is_complete)
         result = pool.imap_unordered(run_process, jobs)
 
-        for r in tqdm(result, desc='Benchmark', total=njobs, initial=ijob):
+        for r in tqdm(result, desc='Calculating', total=njobs, initial=ijob):
             pass
 
     except Exception as e:
