@@ -10,12 +10,27 @@ import traceback
 import sys
 import argparse
 
-from cmut_nonlinear_sim import bem, util
+from cmut_nonlinear_sim import abstract, bem, util
+from cmut_nonlinear_sim.mesh import Mesh, calc_mesh_refn_square
 from cmut_nonlinear_sim.impulse_response import create_database, update_database
 
 
 defaults = dict()
 defaults['threads'] = multiprocessing.cpu_count()
+
+hmopts = {}
+hmopts['aprx'] = 'paca'
+hmopts['basis'] = 'linear'
+hmopts['admis'] = 'max'
+hmopts['eta'] = 1.1
+hmopts['eps'] = 1e-12
+hmopts['m'] = 4
+hmopts['clf'] = 16
+hmopts['eps_aca'] = 1e-2
+hmopts['rk'] = 0
+hmopts['q_reg'] = 2
+hmopts['q_sing'] = 4
+hmopts['strict'] = False
 
 # for frequency each f, create mesh from spec
 
@@ -40,32 +55,57 @@ def init_process(_write_lock):
 
 def process(job):
 
-    job_id, (file, f, k, array) = job
+    job_id, (file, f, k, simopts, array) = job
 
-    # remove enclosing lists
-    f = f[0]
+    # get options and parameters
+    f = f[0] # remove enclosing list
+    k = k[0]
+    c = simopts.sound_speed
+    firstmem = array.elements[0].membranes[0]
 
-    c = 1500.
-    k = 2 * np.pi * f / c
+    # determine mesh refn needed based on first membrane
+    wavelen = 2 * np.pi * f / c
+    length_x = firstmem.length_x
+    length_y = firstmem.length_y
+    refn = calc_mesh_refn_square(length_x, length_y, wavelen)
+    
+    # create mesh
+    mesh = Mesh.from_abstract(array, refn)
 
+    # create MBK matrix in SparseFormat based on first membrane
+    n = len(mesh.vertices)
+    nmem = abstract.get_membrane_count(array)
+    rho = firstmem.rho
+    h = firstmem.h
+    att = firstmem.att
+    kfile = firstmem.k_matrix_comsol_file
+    MBK = bem.MBK_matrix(f, len(mesh.vertices), nmem, rho, h, att, kfile, compress=True)
 
-    MBK = MBK_matrix(f, n, nmem, rho, h, att, kfile, compress=True)
-    Z = Z_matrix(format, mesh, k, **hm_opts)
+    # create Z matrix in HFormat
+    Z = bem.Z_matrix('HFormat', mesh, k, **hmopts)
 
+    # construct G in HFormat from MBK and Z
     MBK.to_hformat().add(Z)
     G = MBK
 
+    # LU decomp
     LU = G.lu()
 
-    b = None
-    x = LU.lusolve(b)
+    # 
+    npatch = abstract.get_patch_count(array)
+    for i in range(npatch):
 
-    data = {}
-    data['displacement'] = x
+        b = np.zeros(len(mesh.vertices))
+        mask = np.any(mesh.patch_ids == i, axis=1)
+        b[mask] = 1
+        x = LU.lusolve(b)
+        
+        data = {}
+        data['displacement'] = x
 
-    with write_lock:
-        update_database(file, **data)
-        util.update_progress(file, job_id)
+        with write_lock:
+            update_database(file, **data)
+            util.update_progress(file, job_id)
 
 
 def run_process(*args, **kwargs):
@@ -74,9 +114,6 @@ def run_process(*args, **kwargs):
         return process(*args, **kwargs)
     except:
         raise Exception("".join(traceback.format_exception(*sys.exc_info())))
-
-
-## DATABASE FUNCTIONS ##
 
 
 ## ENTRY POINT ##

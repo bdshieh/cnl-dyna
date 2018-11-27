@@ -63,8 +63,10 @@ def create_displacements_table(con, **kwargs):
                 id INTEGER PRIMARY KEY,
                 frequency float,
                 wavenumber float,
-                source_patch_id integer,
-                dest_patch_id integer,
+                x float,
+                y float,
+                z float,
+                patch_id integer,
                 membrane_id integer,
                 element_id integer,
                 displacement_real float,
@@ -75,9 +77,8 @@ def create_displacements_table(con, **kwargs):
         con.execute(query)
 
         # create indexes
-        con.execute('CREATE INDEX frequency_index ON displacements (frequency)')
-        con.execute('CREATE INDEX source_patch_id_index ON displacements (source_patch_id)')
-        con.execute('CREATE INDEX dest_patch_id ON displacements (dest_patch_id)')
+        con.execute('CREATE INDEX vertex_index ON displacements (x, y, z)')
+        con.execute('CREATE INDEX patch_id_index ON displacements (patch_id)')
         con.execute('CREATE INDEX membrane_id_index ON displacements (membrane_id)')
         con.execute('CREATE INDEX element_id_index ON displacements (element_id)')
 
@@ -86,7 +87,7 @@ def create_displacements_table(con, **kwargs):
 def append_displacements_table(con, row_data):
 
     with con:
-        query = 'INSERT INTO displacements VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?)'
+        query = 'INSERT INTO displacements VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
         con.executemany(query, row_data)
 
 

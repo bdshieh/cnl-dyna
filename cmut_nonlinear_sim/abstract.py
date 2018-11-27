@@ -1,6 +1,6 @@
 '''Abstract representation and manipulation of CMUT and PMUT arrays
 '''
-__all__ = ['SquareCmutMembrane', 'CircularCmutMembrane', 'Element', 'Array', 'SimulationOptions', 
+__all__ = ['SquareCmutMembrane', 'CircularCmutMembrane', 'Patch', 'Element', 'Array', 'SimulationOptions', 
            'move_membrane', 'translate_membrane', 'rotate_membrane', 'move_element', 'translate_element',
            'rotate_element', 'element_position_from_membranes', 'focus_element', 'dump', 'dumps',
            'bias_element', 'activate_element', 'deactivate_element', 'move_array', 'load', 'loads',
@@ -178,6 +178,7 @@ _SquareCmutMembrane['att_mech'] = 0
 _SquareCmutMembrane['npatch_x'] = 3
 _SquareCmutMembrane['npatch_y'] = 3
 _SquareCmutMembrane['k_matrix_comsol_file'] = None
+_SquareCmutMembrane['patches'] = FACTORY(list)
 
 _CircularCmutMembrane = OrderedDict()
 _CircularCmutMembrane['id'] = None
@@ -195,6 +196,13 @@ _CircularCmutMembrane['att_mech'] = 0
 _CircularCmutMembrane['npatch_r'] = 2
 _CircularCmutMembrane['npatch_theta'] = 4
 _CircularCmutMembrane['k_matrix_comsol_file'] = None
+_CircularCmutMembrane['patches'] = FACTORY(list)
+
+_Patch = OrderedDict()
+_Patch['id'] = None
+_Patch['position'] = None
+_Patch['length_x'] = None
+_Patch['length_y'] = None
 
 _Element = OrderedDict()
 _Element['id'] = None
@@ -218,6 +226,7 @@ _SimulationOptions['sound_speed'] = 1500.
 
 SquareCmutMembrane = abstracttype('SquareCmutMembrane', _SquareCmutMembrane)
 CircularCmutMembrane = abstracttype('CircularCmutMembrane', _CircularCmutMembrane)
+Patch = abstracttype('Patch', _Patch)
 Element = abstracttype('Element', _Element)
 Array = abstracttype('Array', _Array)
 SimulationOptions = abstracttype('SimulationOptions', _SimulationOptions)
@@ -228,7 +237,7 @@ classes = tuple(name for name, value in inspect.getmembers(sys.modules[__name__]
 ## DECORATORS ##
 
 def vectorize(f):
-    ''''''
+    '''Allows function to be called with either a single abstract object or list/tuple of them'''
     def decorator(m, *args, **kwargs):
 
         if isinstance(m, (list, tuple)):
@@ -456,6 +465,19 @@ def get_element_count(a, kind=None):
     elif kind.lower() in ['txrx', 'both']:
         return len([e for e in a.elements if e['kind'].lower() in ['both', 'txrx']])
 
+
+@vectorize
+def get_membrane_count(a):
+    '''
+    '''
+    return sum([len(e.membranes) for e in a.elements])
+
+@vectorize
+def get_patch_count(a):
+    '''
+    '''
+    return sum([len(m.patches) for e in a.elements for m in e.membranes])
+    
 
 if __name__ == '__main__':
 

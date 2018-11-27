@@ -41,22 +41,32 @@ def init(**kwargs):
     elempitch_x, elempitch_y = kwargs['elempitch']
 
     # membrane properties
-    mem_properties = dict()
-    mem_properties['length_x'] = length_x
-    mem_properties['length_y'] = length_y
-    mem_properties['electrode_x'] = electrode_x
-    mem_properties['electrode_y'] = electrode_y
-    mem_properties['y_modulus'] = kwargs['y_modulus']
-    mem_properties['p_ratio'] = kwargs['p_ratio']
-    mem_properties['isolation'] = kwargs['isolation']
-    mem_properties['permittivity'] = kwargs['permittivity']
-    mem_properties['gap'] = kwargs['gap']
-    mem_properties['npatch_x'] = npatch_x
-    mem_properties['npatch_y'] = npatch_y
-    mem_properties['thickness'] = kwargs['thickness']
-    mem_properties['density'] = kwargs['density']
-    mem_properties['att_mech'] = kwargs['att_mech']
-    mem_properties['k_matrix_comsol_file'] = kwargs['k_matrix_comsol_file']
+    memprops = {}
+    memprops['length_x'] = length_x
+    memprops['length_y'] = length_y
+    memprops['electrode_x'] = electrode_x
+    memprops['electrode_y'] = electrode_y
+    memprops['y_modulus'] = kwargs['y_modulus']
+    memprops['p_ratio'] = kwargs['p_ratio']
+    memprops['isolation'] = kwargs['isolation']
+    memprops['permittivity'] = kwargs['permittivity']
+    memprops['gap'] = kwargs['gap']
+    memprops['npatch_x'] = npatch_x
+    memprops['npatch_y'] = npatch_y
+    memprops['thickness'] = kwargs['thickness']
+    memprops['density'] = kwargs['density']
+    memprops['att_mech'] = kwargs['att_mech']
+    memprops['k_matrix_comsol_file'] = kwargs['k_matrix_comsol_file']
+
+    # calculate patch positions
+    patchpitch_x = length_x / npatch_x
+    patchpitch_y = length_y / npatch_y
+    xx, yy, zz = np.meshgrid(np.linspace(0, (npatch_x - 1) * patchpitch_x, npatch_x),
+                            np.linspace(0, (npatch_y - 1) * patchpitch_y, npatch_y),
+                            0)
+    patch_pos = np.c_[xx.ravel(), yy.ravel(), zz.ravel()] - [(npatch_x - 1) * patchpitch_x / 2,
+                                                        (npatch_y - 1) * patchpitch_y / 2,
+                                                        0]
 
     # calculate membrane positions
     xx, yy, zz = np.meshgrid(np.linspace(0, (nmem_x - 1) * mempitch_x, nmem_x),
@@ -74,32 +84,58 @@ def init(**kwargs):
                                                            (nelem_y - 1) * elempitch_y / 2,
                                                            0]
 
-    # construct elements
+    # construct element list
     elements = []
-    for i, epos in enumerate(elem_pos):
+    elem_counter = 0
+    mem_counter = 0
+    patch_counter = 0
 
+    for epos in elem_pos:
+
+        # construct membrane list
         membranes = []
         
-        for j, mpos in enumerate(mem_pos):
+        for mpos in mem_pos:
+
+            # construct patch list
+            patches = []
+
+            for ppos in patch_pos:
+
+                # construct patch
+                p = Patch()
+                p.id = patch_counter
+                p.position = (epos + mpos + ppos).tolist()
+                p.length_x = patchpitch_x
+                p.length_y = patchpitch_y
+
+                patches.append(p)
+                patch_counter += 1
 
             # construct membrane
-            m = SquareCmutMembrane(**mem_properties)
-            m.id = i * len(mem_pos) + j
+            m = SquareCmutMembrane(**memprops)
+            m.id = mem_counter
             m.position = (epos + mpos).tolist()
+            m.patches = patches
+
             membranes.append(m)
+            mem_counter += 1
 
         # construct element
-        elem = Element(id=i,
-                       position=epos.tolist(),
-                       kind='both',
-                       membranes=membranes)
-        element_position_from_membranes(elem)
+        elem = Element()
+        elem.id = elem_counter
+        elem.position = epos.tolist()
+        elem.kind = 'both'
+        elem.membranes = membranes
+        # element_position_from_membranes(elem)
         elements.append(elem)
+        elem_counter += 1
 
     # construct array
-    array = Array(id=0,
-                  elements=elements,
-                  position=[0, 0, 0])
+    array = Array()
+    array.id = 0
+    array.elements = elements
+    array.position = [0, 0, 0]
 
     return array
 
@@ -127,6 +163,5 @@ if __name__ == '__main__':
     if filename is not None:
         dump(spec, filename)
 
-    ##
-    from cmut_nonlinear_sim.mesh import from_abstract
-    mesh = from_abstract(spec)
+    from cmut_nonlinear_sim.mesh import Mesh
+    mesh = Mesh.from_abstract(spec, refn=3)

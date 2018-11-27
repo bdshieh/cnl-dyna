@@ -44,6 +44,10 @@ class Mesh:
 
         return cls.from_macrosurface3d(ms, center=center, refn=refn)
 
+    @classmethod
+    def from_abstract(cls, array, refn=2, **kwargs):
+        return _from_abstract(cls, array, refn, **kwargs)
+
     def __add__(self, other):
 
         surf1 = self._surface
@@ -332,10 +336,11 @@ def linear_array():
     pass
 
 
-def from_abstract(array, refn=2, **kwargs):
+def _from_abstract(cls, array, refn=2, **kwargs):
     '''
     Generate mesh from abstract representation of an array.
     '''
+    # generate geometry in terms of vertices, edges, and triangles
     verts, edges, tris, tri_edges = [], [], [], []
     vidx = 0
     eidx = 0
@@ -363,49 +368,46 @@ def from_abstract(array, refn=2, **kwargs):
     tris = np.concatenate(tris, axis=0)
     tri_edges = np.concatenate(tri_edges, axis=0)
 
-    mesh = Mesh.from_geometry(verts, edges, tris, tri_edges, refn=refn)
+    # construct mesh from geometry
+    mesh = cls.from_geometry(verts, edges, tris, tri_edges, refn=refn)
     
+    # assign mesh vertices to patches, membranes, and elements
     nverts = len(mesh.vertices)
-    patch_ids = np.ones(nverts, dtype=np.int32) * -1
-    membrane_ids = np.ones(nverts, dtype=np.int32) * -1
-    element_ids = np.ones(nverts, dtype=np.int32) * -1
-
+    patch_counter = np.zeros(nverts, dtype=np.int32) # keeps track of current patch idx for each vertex
+    patch_ids = np.ones((nverts, 4), dtype=np.int32) * np.nan
+    membrane_ids = np.ones(nverts, dtype=np.int32) * np.nan
+    element_ids = np.ones(nverts, dtype=np.int32) * np.nan
+    eps = np.finfo(np.float64).eps
     x, y, z = mesh.vertices.T
-    patch_counter = 0
 
     for elem in array.elements:
         for mem in elem.membranes:
+            for pat in mem.patches:
+
+                pat_x, pat_y, pat_z = pat.position
+                length_x, length_y = pat.length_x, pat.length_y
+
+                # determine vertices which belong to each patch, using
+                # eps for buffer to account for round-off error
+                xmin = pat_x - length_x / 2  - 2 * eps
+                xmax = pat_x + length_x / 2 + 2 * eps
+                ymin = pat_y - length_y / 2 - 2 * eps
+                ymax = pat_y + length_y / 2 + 2 * eps
+
+                mask_x = np.logical_and(x >= xmin, x <= xmax)
+                mask_y = np.logical_and(y >= ymin, y <= ymax)
+                mask = np.logical_and(mask_x, mask_y)
             
-            pos_x, pos_y, pos_z = mem.position
-            length_x, length_y = mem.length_x, mem.length_y
-            npatch_x, npatch_y = mem.npatch_x, mem.npatch_y
+                patch_ids[mask, patch_counter[mask]] = pat.id
+                patch_counter[mask] += 1 # increment patch idx
+                membrane_ids[mask] = mem.id
+                element_ids[mask] = elem.id
 
-            corner_x = pos_x - length_x / 2
-            corner_y = pos_y - length_y / 2 
 
-            for i in range(npatch_x):
-                for j in range(npatch_y):
-                    
-                    # eps for buffer to account for round-off error
-                    xmin = corner_x + length_x / npatch_x * i - np.finfo(np.float64).eps
-                    xmax = corner_x + length_x / npatch_x * (i + 1) + np.finfo(np.float64).eps
-                    ymin = corner_y + length_y / npatch_y * j - np.finfo(np.float64).eps
-                    ymax = corner_y + length_y / npatch_y * (j + 1) + np.finfo(np.float64).eps
-
-                    mask_x = np.logical_and(x >= xmin, x <= xmax)
-                    mask_y = np.logical_and(y >= ymin, y <= ymax)
-                    mask = np.logical_and(mask_x, mask_y)
-                
-                    patch_ids[mask] = patch_counter
-                    membrane_ids[mask] = mem.id
-                    element_ids[mask] = elem.id
-
-                    patch_counter += 1
-
-    # check that no nodes were missed
-    assert np.all(patch_ids >= 0)
-    assert np.all(membrane_ids >= 0)
-    assert np.all(element_ids >= 0)
+    # check that no vertices were missed
+    assert ~np.any(np.isnan(patch_ids[:,0])) # check that each vertex is assigned to at least one patch
+    assert ~np.any(np.isnan(membrane_ids))
+    assert ~np.any(np.isnan(element_ids))
 
     mesh.patch_ids = patch_ids
     mesh.membrane_ids = membrane_ids
@@ -414,3 +416,18 @@ def from_abstract(array, refn=2, **kwargs):
     return mesh
 
 
+def calc_mesh_refn_square(lx, ly, wavelen, step_per_wavelen=10, maxrefn=20):
+
+    refn = 2
+
+    while True:
+        if refn > maxrefn:
+            raise Exception('Mesh refinement limit reached')
+
+        hmax = square(lx, ly, refn=refn).hmax
+        if wavelen / hmax > step_per_wavelen:
+            break
+        else:
+            refn += 1
+
+    return refn
