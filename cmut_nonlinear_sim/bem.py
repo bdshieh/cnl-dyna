@@ -35,9 +35,16 @@ def B_matrix(n, att):
     return sps.csr_matrix(sps.eye(n) * att)
 
 
-def K_matrix_comsol(nmem, file):
+def K_matrix_comsol(nmem, file, refn):
+    ''''''
+    # K = linalg.inv(loadmat(file)['x'].T)
+    with np.load(file) as root:
+        Ks = root['K']
+        refns = root['refn']
+    
+    idx = np.argmin(np.abs(refns - refn))
+    K = Ks[idx]
 
-    K = linalg.inv(loadmat(file)['x'].T)
     return sps.csr_matrix(sps.block_diag([K for i in range(nmem)]))
 
 
