@@ -26,12 +26,13 @@ def create_database(con, **kwargs):
 @util.open_db
 def update_database(con, **kwargs):
 
-    row_keys = ['frequency', 'wavenumber', 'x', 'y', 'z', 'patch_id', 'membrane_id', 
+    row_keys = ['frequency', 'wavenumber', 'source_patch_id', 'dest_patch_id', 'membrane_id', 
                 'element_id', 'displacement_real', 'displacement_imag']
-    row_data = [kwargs[k] for k in row_keys]
+    row_data = tuple([kwargs[k] for k in row_keys])
 
     with con:
-        append_displacements_table(con, row_data)
+        query = 'INSERT INTO displacements VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?)'
+        con.executemany(query, zip(*row_data))
 
 
 @util.open_db
@@ -80,15 +81,6 @@ def create_displacements_table(con, **kwargs):
         con.execute('CREATE INDEX dest_patch_id ON displacements (dest_patch_id)')
         con.execute('CREATE INDEX membrane_id_index ON displacements (membrane_id)')
         con.execute('CREATE INDEX element_id_index ON displacements (element_id)')
-
-
-@util.open_db
-def append_displacements_table(con, row_data):
-
-    with con:
-        query = 'INSERT INTO displacements VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?)'
-        con.executemany(query, row_data)
-
 
 
 if __name__ == '__main__':

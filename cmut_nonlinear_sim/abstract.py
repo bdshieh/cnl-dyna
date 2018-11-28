@@ -481,5 +481,4 @@ def get_patch_count(a):
 
 if __name__ == '__main__':
 
-    a = Array(elements=[Element(membranes=[SquareCmutMembrane()])] * 4)
-    b = Array(elements=[Element(membranes=SquareCmutMembrane())] * 4)
+    pass

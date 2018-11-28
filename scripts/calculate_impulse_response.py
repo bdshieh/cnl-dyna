@@ -88,20 +88,35 @@ def process(job):
     MBK.to_hformat().add(Z)
     G = MBK
 
-    # LU decomp
-    LU = G.lu()
+    # LU decomposition
+    G_LU = G.lu()
 
-    # 
+    # solve for patch to patch responses
     npatch = abstract.get_patch_count(array)
-    for i in range(npatch):
+    source_patch_id = np.arange(npatch)
+    dest_patch_id = np.arange(npatch)
 
-        b = np.zeros(len(mesh.vertices))
-        mask = np.any(mesh.patch_ids == i, axis=1)
-        b[mask] = 1
-        x = LU.lusolve(b)
+    for sid in source_patch_id:
         
+        # solve
+        b = np.zeros(len(mesh.vertices))
+        mask = np.any(mesh.patch_ids == sid, axis=1)
+        b[mask] = 1
+        x = G_LU.lusolve(b)
+
+        x_patch = []
+        for did in dest_patch_id:
+
+            mask = np.any(mesh.patch_ids == did)
+            x_patch.append(np.mean(x[mask]))
+
         data = {}
-        data['displacement'] = x
+        data['frequency'] = repeat(f)
+        data['wavenumber'] = repeat(k)
+        data['source_patch_id'] = repeat(sid)
+        data['dest_patch_id'] = dest_patch_id
+        data['displacement_real'] = np.real(x_patch)
+        data['displacement_imag'] = np.imag(x_patch)
 
         with write_lock:
             update_database(file, **data)
