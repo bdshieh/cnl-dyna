@@ -10,7 +10,7 @@ from cmut_nonlinear_sim import comsol
 if __name__ == '__main__':
 
     # define arguments
-    verts = np.load('scratch/square.npy')
+    # verts = np.load('square.npy')
     lx = 40e-6
     ly = 40e-6
     lz = 2e-6
@@ -23,10 +23,11 @@ if __name__ == '__main__':
     # r_stop = 10
     
     comsol.connect_comsol()
-    K1 = comsol.square_membrane(verts, lx, ly, lz, rho, ymod, pratio, fine, dx)
-    K2 = comsol.square_membrane_from_mesh(lx, ly, lz, rho, ymod, pratio, fine, dx, refn=4)
+    # K1 = comsol.square_membrane(verts, lx, ly, lz, rho, ymod, pratio, fine, dx)
+    K = comsol.square_membrane_from_mesh(lx, ly, lz, rho, ymod, pratio, fine, dx, refn=4)
 
-    np.savez('kmatrix_test.npz', K1=K1, K2=K2)
+    # np.savez('kmatrix_test.npz', K1=K1, K2=K2)
+    np.savez('kmatrix_test.npz', K=K)
 
     # refn = range(r_start, r_stop)
     # Ks = []
