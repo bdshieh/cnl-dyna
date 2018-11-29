@@ -5,6 +5,7 @@ from numpy import linalg
 import os
 import matlab
 import matlab.engine
+import io
 
 _mateng = matlab.engine.start_matlab()
 path = os.path.dirname(os.path.abspath(__file__))
@@ -22,7 +23,7 @@ def connect_comsol(ip='localhost', port=2036, path=None):
         else:
             path = '//system//software//generic//comsol//5.3//mli'
     _mateng.addpath(path, nargout=0)
-    _mateng.mphstart(ip, float(port), nargout=0) # float (not int) because MATLAB is dumb
+    _mateng.mphstart(ip, float(port), nargout=0, stdout=io.StringIO()) # float (not int) because MATLAB is dumb
 
 
 def _mat_to_ndarray(mat):
@@ -41,7 +42,7 @@ def square_membrane(verts, lx, ly, lz, rho, ymod, pratio, fine=2, dx=None):
     if dx is None: 
         dx = lx / 10
     verts = _ndarray_to_mat(verts.T)
-    ret = _mateng.comsol_square_membrane(verts, lx, ly, lz, rho, ymod, pratio, fine, dx)
+    ret = _mateng.comsol_square_membrane(verts, lx, ly, lz, rho, ymod, pratio, fine, dx, stdout=io.StringIO())
     return linalg.inv(_mat_to_ndarray(ret[0]))
 
 
