@@ -15,7 +15,7 @@ ext_opts = {
     'libraries':['h2', 'gfortran', 'openblas', 'omp'],
     'library_dirs':['lib'],
     'language':'c',
-    'extra_compile_args':['-fPIC', '-DUSE_BLAS', '-DUSE_COMPLEX', '-DUSE_OPENMP', '-DUSE_SIMD', '-Wno-strict-prototypes'],
+    'extra_compile_args':['-fPIC', '-DUSE_BLAS', '-DUSE_COMPLEX', '-DUSE_OPENMP', '-Wno-strict-prototypes'],
     # 'extra_objects':['./lib/libopenblas.a']
 }
 
