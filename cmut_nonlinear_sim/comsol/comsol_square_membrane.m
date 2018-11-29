@@ -1,11 +1,6 @@
-% COMSOL CODE FOR K MATRIX CALCULATION IN MATLAB
-% CHECK SELECTION NUMBERS BY SAVING/OPENING MODEL IN COMSOL (mphsave)!
-
-%% Membrane dimensions, material properties, and BEM mesh nodal spacing
 
 % function [x] = comsol_square_membrane(file, verts, lx, ly, lz, rho, ymod, pratio, fine, varea)
 function [x] = comsol_square_membrane(verts, lx, ly, lz, rho, ymod, pratio, fine, dx)
-
     %% Start COMSOL model
     import com.comsol.model.*
     import com.comsol.model.util.*
@@ -134,19 +129,23 @@ function [x] = comsol_square_membrane(verts, lx, ly, lz, rho, ymod, pratio, fine
     x = zeros(nverts, nverts);
 
     for i = 1:nverts
-            
         disp([num2str(i) '/' num2str(nverts)])
-
         locx = verts(1, i);
         locy = verts(2, i);
+
+        if abs(locx - (lx / 2)) <= eps || abs(locx + (lx / 2)) <= eps ||  ... 
+            abs(locy - (lx / 2)) <= eps || abs(locy + (ly / 2)) <= eps
+            x(i,:) = zeros(1, nverts);
+            continue
+        end
+
         blk2.setIndex('pos', num2str(locx), 0);
         blk2.setIndex('pos', num2str(locy), 1);
         model.geom('geom1').run;
         model.geom('geom1').runAll;
 
-        mphgeom(model, 'geom1', 'facealpha', '0.1')
-        drawnow;
-
+        % mphgeom(model, 'geom1', 'facealpha', '0.1')
+        % drawnow;
         model.mesh('mesh1').run;
 
         model.sol('sol1').study('std1');
@@ -167,6 +166,5 @@ function [x] = comsol_square_membrane(verts, lx, ly, lz, rho, ymod, pratio, fine
         data = mpheval(model, 'w');
         mem_disp = mphinterp(model, 'w', 'coord', verts);
         x(i,:) = mem_disp;
-
     end
 end

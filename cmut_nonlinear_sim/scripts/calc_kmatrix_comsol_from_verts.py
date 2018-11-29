@@ -24,7 +24,7 @@ if __name__ == '__main__':
     
     comsol.connect_comsol()
     # K1 = comsol.square_membrane(verts, lx, ly, lz, rho, ymod, pratio, fine, dx)
-    K = comsol.square_membrane_from_mesh(lx, ly, lz, rho, ymod, pratio, fine, dx, refn=4)
+    K = comsol.square_membrane_from_mesh(lx, ly, lz, rho, ymod, pratio, fine, dx, refn=2)
 
     # np.savez('kmatrix_test.npz', K1=K1, K2=K2)
     np.savez('kmatrix_test.npz', K=K)
