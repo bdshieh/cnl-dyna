@@ -48,7 +48,7 @@ def square_membrane(verts, lx, ly, lz, rho, ymod, pratio, fine=2, dx=None):
 
 def square_membrane_from_mesh(lx, ly, lz, rho, ymod, pratio, fine=2, dx=None, refn=2):
     ''''''
-    from . import mesh
+    from .. import mesh
     sq = mesh.square(lx, ly, refn=refn)
     if dx is None:
         dx = sq.hmin / 2
