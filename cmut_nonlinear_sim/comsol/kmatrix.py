@@ -20,7 +20,7 @@ def connect_comsol(ip='localhost', port=2036, path=None):
         if os.name == 'nt':
             path = 'C:\Program Files\COMSOL\COMSOL53a\Multiphysics\mli'
         else:
-            path = '//system//software//generic//comsol//5.0//bin//comsol'
+            path = '//system//software//generic//comsol//5.3//mli'
     _mateng.addpath(path, nargout=0)
     _mateng.mphstart(ip, float(port), nargout=0) # float (not int) because MATLAB is dumb
 
@@ -40,10 +40,8 @@ def square_membrane(verts, lx, ly, lz, rho, ymod, pratio, fine=2, dx=None):
     ''''''
     if dx is None: 
         dx = lx / 10
-    
     verts = _ndarray_to_mat(verts.T)
     ret = _mateng.comsol_square_membrane(verts, lx, ly, lz, rho, ymod, pratio, fine, dx)
-
     return linalg.inv(_mat_to_ndarray(ret[0]))
 
 
