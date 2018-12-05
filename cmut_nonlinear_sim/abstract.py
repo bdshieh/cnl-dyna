@@ -1,11 +1,12 @@
 '''Abstract representation and manipulation of CMUT and PMUT arrays
 '''
-__all__ = ['SquareCmutMembrane', 'CircularCmutMembrane', 'Patch', 'Element', 'Array', 'SimulationOptions', 
-           'move_membrane', 'translate_membrane', 'rotate_membrane', 'move_element', 'translate_element',
-           'rotate_element', 'element_position_from_membranes', 'focus_element', 'dump', 'dumps',
-           'bias_element', 'activate_element', 'deactivate_element', 'move_array', 'load', 'loads',
-           'translate_array', 'rotate_array', 'get_element_positions_from_array', 
-           'get_membrane_positions_from_array', 'focus_array', 'get_element_count']
+# __all__ = ['SquareCmutMembrane', 'CircularCmutMembrane', 'Patch', 'Element', 'Array', 'SimulationOptions', 
+#            'move_membrane', 'translate_membrane', 'rotate_membrane', 'move_element', 'translate_element',
+#            'rotate_element', 'element_position_from_membranes', 'focus_element', 'dump', 'dumps',
+#            'bias_element', 'activate_element', 'deactivate_element', 'move_array', 'load', 'loads',
+#            'translate_array', 'rotate_array', 'get_element_positions_from_array', 
+#            'get_membrane_positions_from_array', 'focus_array', 'get_element_count', 'abstracttype',
+#            'classes']
 
 from namedlist import namedlist, FACTORY
 from collections import OrderedDict
@@ -18,60 +19,51 @@ import math
 from . import util
 
 
-def _generate_object_with_type(obj):
-    ''''''
-    _type = type(obj).__name__
-
-    if _type in classes or _type is 'dict':
-
+def _generate_dict_with_name_attr(obj):
+    '''Converts abstract object into a nested dictionary with __name__ attribute'''
+    name = type(obj).__name__
+    # for abstract objects and dicts, add __name__ attr
+    if name in names or name is 'dict':
         d = {}
-        d['_type'] = _type
+        d['__name__'] = name
         for k, v in obj._asdict().items():
-            d[k] = _generate_object_with_type(v)
+            d[k] = _generate_dict_with_name_attr(v)
         return d
-
     elif isinstance(obj, (list, tuple)):
-
         l = []
         for i in obj:
-            l.append(_generate_object_with_type(i))
+            l.append(_generate_dict_with_name_attr(i))
         return l
-
     else:
         return obj
 
 
 def _generate_object_from_json(js):
-    ''''''
+    '''Convert json object to abstract object'''
     if isinstance(js, dict):
-
-        _type = js.pop('_type')
-
+        name = js.pop('__name__')
         d = {}
         for key, val in js.items():
             d[key] = _generate_object_from_json(val)
-
-        if _type in classes:
-            return ObjectFactory.create(_type, **d)
-
-        return d
-
+        # attempt to instantiate abstract object with fallback to dict
+        try:
+            return ObjectFactory.create(name, **d)
+        except KeyError:
+            return d
     elif isinstance(js, (list, tuple)):
-
         l = []
         for i in js:
             l.append(_generate_object_from_json(i))
         return l
-
     else:
         return js
 
 
 class ObjectFactory:
-    ''''''
+    '''Instantiates abstract types defined in module namespace'''
     @staticmethod
-    def create(_type, *args, **kwargs):
-        return globals()[_type](*args, **kwargs)
+    def create(name, *args, **kwargs):
+        return globals()[name](*args, **kwargs)
 
 
 def _repr(self):
@@ -87,76 +79,63 @@ def _contains(self, key):
 
 
 def dump(obj, fp, indent=1, mode='x', *args, **kwargs):
-    '''
-    '''
-    json.dump(_generate_object_with_type(obj), open(fp, mode), indent=indent, *args, **kwargs)
+    ''''''
+    json.dump(_generate_dict_with_name_attr(obj), open(fp, mode), indent=indent, *args, **kwargs)
 
 
 def dumps(obj, indent=1, *args, **kwargs):
-    '''
-    '''
-    return json.dumps(_generate_object_with_type(obj), indent=indent, *args, **kwargs)
+    ''''''
+    return json.dumps(_generate_dict_with_name_attr(obj), indent=indent, *args, **kwargs)
 
 
 def load(fp, *args, **kwargs):
-    '''
-    '''
+    ''' '''
     return _generate_object_from_json(json.load(open(fp, 'r'), *args, **kwargs))
 
 
 def loads(s, *args, **kwargs):
-    '''
-    '''
+    ''''''
     return _generate_object_from_json(json.loads(s, *args, **kwargs))
 
 
-def abstracttype(*args, **kwargs):
+names = []
+def register_type(*args, **kwargs):
     ''''''
     cls = namedlist(*args, **kwargs)
     cls.__repr__ = _repr
     cls.__str__ = _str
     cls.__contains__ = _contains
+    names.append(cls.__name__)
     return cls
 
 
 def pretty(obj, indent=0):
-    ''''''
+    '''Pretty print abstract objects'''
     strings = []
-
-    if type(obj).__name__ in classes:
+    if type(obj).__name__ in names:
         strings += [' ' * indent, type(obj).__name__, '\n']
-
         for key, val in obj._asdict().items():
-
-            if type(val).__name__ in classes:
+            if type(val).__name__ in names:
                 strings += [' ' * (indent + 1), str(key), ': ', '\n']
                 strings += [pretty(val, indent + 1)]
-
             elif isinstance(val, (list, tuple)):
                 strings += [' ' * (indent + 1), str(key), ': ', '\n']
                 strings += [pretty(val, indent + 2)]
-
             else:
                 strings += [' ' * (indent + 1), str(key), ': ', str(val), '\n']
-
     elif isinstance(obj, (list, tuple)):
-
         if len(obj) == 0:
             strings += [' ' * indent , '[]', '\n']
-
-        elif type(obj[0]).__name__ in classes:
+        elif type(obj[0]).__name__ in names:
             for val in obj:
                 strings += [pretty(val, indent + 1)]
-
         elif isinstance(obj[0], (list, tuple)):
             for val in obj:
                 strings += [pretty(val, indent + 1)]
-
         else:
             strings += [' ' * indent, str(obj), '\n']
     else:
         pass
-
     return ''.join(strings)
 
 
@@ -179,6 +158,7 @@ _SquareCmutMembrane['npatch_x'] = 3
 _SquareCmutMembrane['npatch_y'] = 3
 _SquareCmutMembrane['k_matrix_comsol_file'] = None
 _SquareCmutMembrane['patches'] = FACTORY(list)
+SquareCmutMembrane = register_type('SquareCmutMembrane', _SquareCmutMembrane)
 
 _CircularCmutMembrane = OrderedDict()
 _CircularCmutMembrane['id'] = None
@@ -197,12 +177,14 @@ _CircularCmutMembrane['npatch_r'] = 2
 _CircularCmutMembrane['npatch_theta'] = 4
 _CircularCmutMembrane['k_matrix_comsol_file'] = None
 _CircularCmutMembrane['patches'] = FACTORY(list)
+CircularCmutMembrane = register_type('CircularCmutMembrane', _CircularCmutMembrane)
 
 _Patch = OrderedDict()
 _Patch['id'] = None
 _Patch['position'] = None
 _Patch['length_x'] = None
 _Patch['length_y'] = None
+Patch = register_type('Patch', _Patch)
 
 _Element = OrderedDict()
 _Element['id'] = None
@@ -213,25 +195,21 @@ _Element['apodization'] = 1
 _Element['delay'] = 0
 _Element['dc_bias'] = 0
 _Element['membranes'] = FACTORY(list)
+Element = register_type('Element', _Element)
 
 _Array = OrderedDict()
 _Array['id'] = None
 _Array['position'] = None
 _Array['delay'] = 0
 _Array['elements'] = FACTORY(list)
+Array = register_type('Array', _Array)
 
-_SimulationOptions = OrderedDict()
-_SimulationOptions['fluid_density'] = 1000.
-_SimulationOptions['sound_speed'] = 1500.
+# _SimulationOptions = OrderedDict()
+# _SimulationOptions['fluid_density'] = 1000.
+# _SimulationOptions['sound_speed'] = 1500.
+# SimulationOptions = register_type('SimulationOptions', _SimulationOptions)
 
-SquareCmutMembrane = abstracttype('SquareCmutMembrane', _SquareCmutMembrane)
-CircularCmutMembrane = abstracttype('CircularCmutMembrane', _CircularCmutMembrane)
-Patch = abstracttype('Patch', _Patch)
-Element = abstracttype('Element', _Element)
-Array = abstracttype('Array', _Array)
-SimulationOptions = abstracttype('SimulationOptions', _SimulationOptions)
-
-classes = tuple(name for name, value in inspect.getmembers(sys.modules[__name__], inspect.isclass))
+# classes = tuple(name for name, value in inspect.getmembers(sys.modules[__name__], inspect.isclass))
 
 
 ## DECORATORS ##

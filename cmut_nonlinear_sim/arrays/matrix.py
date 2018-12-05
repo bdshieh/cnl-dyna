@@ -163,5 +163,5 @@ if __name__ == '__main__':
     if filename is not None:
         dump(spec, filename)
 
-    from cmut_nonlinear_sim.mesh import Mesh
-    mesh = Mesh.from_abstract(spec, refn=3)
+    # from cmut_nonlinear_sim.mesh import Mesh
+    # mesh = Mesh.from_abstract(spec, refn=3)
