@@ -183,7 +183,7 @@ def main(cfg, args):
 if __name__ == '__main__':
 
     import sys
-    from cmut_nonlinear_sim import util
+    from cnld import util
 
     # define configuration for this script
     Config = {}
@@ -197,6 +197,6 @@ if __name__ == '__main__':
     Config['zmin'] = 2e-6 / 8
 
     # get script parser and parse arguments
-    parser = util.script_parser('poop', main, Config)
+    parser = util.script_parser(main, Config)
     args = parser.parse_args()
     args.func(args)

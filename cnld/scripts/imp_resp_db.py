@@ -124,7 +124,6 @@ def process(job):
 
 
 def run_process(*args, **kwargs):
-
     try:
         return process(*args, **kwargs)
     except:
@@ -133,23 +132,14 @@ def run_process(*args, **kwargs):
 
 ## ENTRY POINT ##
 
-def main():
+def main(cfg, args):
 
-    # define and parse arguments
-    parser = argparse.ArgumentParser()
-    parser.add_argument('file')
-    parser.add_argument('-f', '--freqs', nargs=3, type=float)
-    parser.add_argument('-t', '--threads', nargs='?', type=int)
-    parser.add_argument('-o', '--overwrite', action='store_true')
-    args = vars(parser.parse_args())
-
-
-    file = args['file']
-    overwrite = args['overwrite']
-    threads = args['threads'] if args['threads'] else multiprocessing.cpu_count()
-    f_start, f_stop, f_step = args['freqs'] if args['freqs'] else (500e3, 10e6, 500e3)
-    c = 1500.
-    array = None
+    file = args.file
+    write_over = args.write_over
+    threads = args.threads if args.threads else multiprocessing.cpu_count()
+    f_start, f_stop, f_step = cfg.freqs
+    c = cfg.sound_speed
+    array = abstract.load(cfg.array_config)
 
     freqs = np.arange(f_start, f_stop + f_step, f_step)
     wavenums = 2 * np.pi * freqs / c
@@ -161,7 +151,7 @@ def main():
 
     # check for existing file
     if os.path.isfile(file):
-        if overwrite:  # if file exists, prompt for overwrite
+        if write_over:  # if file exists, write over
             os.remove(file)  # remove existing file
             create_database(file, freqs=freqs, wavenums=wavenums)  # create database
             util.create_progress_table(file, njobs)
@@ -169,7 +159,6 @@ def main():
         else: # continue from current progress
             is_complete, ijob = util.get_progress(file)
             if np.all(is_complete): return
-
     else:
         # Make directories if they do not exist
         file_dir = os.path.dirname(os.path.abspath(file))
@@ -179,7 +168,6 @@ def main():
         # create database
         create_database(file, freqs=freqs, wavenums=wavenums)  # create database
         util.create_progress_table(file, njobs)
-
     try:
         # start multiprocessing pool and run process
         write_lock = multiprocessing.Lock()
@@ -189,17 +177,42 @@ def main():
 
         for r in tqdm(result, desc='Calculating', total=njobs, initial=ijob):
             pass
-
     except Exception as e:
         print(e)
 
     finally:
-
         pool.terminate()
         pool.close()
 
 
 if __name__ == '__main__':
-    main()
+
+    import sys
+    from cnld import util
+
+    # define configuration for this script
+    Config = {}
+    Config['freqs'] = 500e3, 10e6, 500e3
+    Config['sound_speed'] = 1500.
+    Config['array_config'] = ''
+    Config['kmat_file'] = ''
+
+    Config['aprx'] = 'paca'
+    Config['basis'] = 'linear'
+    Config['admis'] = 'max'
+    Config['eta'] = 1.1
+    Config['eps'] = 1e-12
+    Config['m'] = 4
+    Config['clf'] = 16
+    Config['eps_aca'] = 1e-2
+    Config['rk'] = 0
+    Config['q_reg'] = 2
+    Config['q_sing'] = 4
+    Config['strict'] = False
+
+    # get script parser and parse arguments
+    parser = util.script_parser(main, Config)
+    args = parser.parse_args()
+    args.func(args)
 
 
