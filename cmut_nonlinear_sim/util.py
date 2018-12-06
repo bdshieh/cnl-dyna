@@ -10,6 +10,8 @@ import itertools
 from contextlib import closing
 from itertools import repeat
 import sqlite3 as sql
+import argparse
+from cmut_nonlinear_sim import abstract
 
 
 ## GEOMETRY-RELATED FUNCTIONS ##
@@ -397,3 +399,46 @@ def update_progress(con, job_id):
 
     with con:
         con.execute('UPDATE progress SET is_complete=1 WHERE job_id=?', [job_id,])
+
+
+## SCRIPTING FUNCTIONS ##
+
+def script_parser(script_name, main, config_dict):
+    '''
+    General script command-line interface with 'config' and 'run' subcommands.
+    '''
+    # create config abstract type based on supplied dict
+    Config = abstract.register_type('Config', config_dict)
+
+    # config subcommand generates a blank or default configuration template
+    def config(args):
+        if args.file:
+            file = args.file
+        else:
+            file = script_name + '_config.json'
+        cfg = Config()
+        if args.type == 'blank':
+            for i in range(len(cfg)):
+                cfg[i] = None
+        abstract.dump(cfg, file)
+
+    # run subcommand will load the config file and pass to main
+    def run(args):
+        cfg = Config(**abstract.load(args.config))
+        main(cfg, args)
+
+    # create argument parser
+    parser = argparse.ArgumentParser()
+    # define config subparser
+    subparsers = parser.add_subparsers(help='sub-command help')
+    config_parser = subparsers.add_parser('config', help='config_help')
+    config_parser.add_argument('type', choices=['blank', 'default'])
+    config_parser.add_argument('file', nargs='?')
+    config_parser.set_defaults(func=config)
+    # define run subparser
+    run_parser = subparsers.add_parser('run', help='run_help')
+    run_parser.add_argument('config')
+    run_parser.add_argument('file')
+    run_parser.set_defaults(func=run)
+
+    return parser

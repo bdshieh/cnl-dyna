@@ -6,6 +6,8 @@ from matplotlib import pyplot as plt
 from . h2lib import *
 
 
+eps = np.finfo(np.float64).eps
+
 class Mesh:
     
     _surface = None
@@ -147,13 +149,27 @@ class Mesh:
 
 
 def square(xl, yl, center=(0,0,0), refn=2):
-    return Mesh.from_geometry(*square_geometry(xl, yl), center=center,
+    mesh = Mesh.from_geometry(*square_geometry(xl, yl), center=center,
         refn=refn, parametrization='square')
+    # check and flag boundary vertices
+    mask1 = np.abs(mesh.vertices[:,0] + xl / 2) <= eps
+    mask2 = np.abs(mesh.vertices[:,0] - xl / 2) <= eps
+    mask3 = np.abs(mesh.vertices[:,1] + yl / 2) <= eps
+    mask4 = np.abs(mesh.vertices[:,1] - yl / 2) <= eps
+    mesh.on_boundary = np.any(np.c_[mask1, mask2, mask3, mask4], axis=1)
+    return mesh
 
 
 def square2(xl, yl, center=(0,0,0), refn=2):
-    return Mesh.from_geometry(*square_geometry2(xl, yl), center=center,
+    mesh = Mesh.from_geometry(*square_geometry2(xl, yl), center=center,
         refn=refn, parametrization='square')
+    # check and flag boundary vertices
+    mask1 = np.abs(mesh.vertices[:,0] + xl / 2) <= eps
+    mask2 = np.abs(mesh.vertices[:,0] - xl / 2) <= eps
+    mask3 = np.abs(mesh.vertices[:,1] + yl / 2) <= eps
+    mask4 = np.abs(mesh.vertices[:,1] - yl / 2) <= eps
+    mesh.on_boundary = np.any(np.c_[mask1, mask2, mask3, mask4], axis=1)
+    return mesh
 
 
 def circle(rl, center=(0,0,0), refn=2):
@@ -377,23 +393,20 @@ def _from_abstract(cls, array, refn=2, **kwargs):
     patch_ids = np.ones((nverts, 4), dtype=np.int32) * np.nan
     membrane_ids = np.ones(nverts, dtype=np.int32) * np.nan
     element_ids = np.ones(nverts, dtype=np.int32) * np.nan
-    eps = np.finfo(np.float64).eps
+    on_bound = np.zeros(nverts, dtype=np.bool)
     x, y, z = mesh.vertices.T
 
     for elem in array.elements:
         for mem in elem.membranes:
             for pat in mem.patches:
-
-                pat_x, pat_y, pat_z = pat.position
-                length_x, length_y = pat.length_x, pat.length_y
-
                 # determine vertices which belong to each patch, using
                 # eps for buffer to account for round-off error
+                pat_x, pat_y, pat_z = pat.position
+                length_x, length_y = pat.length_x, pat.length_y
                 xmin = pat_x - length_x / 2  - 2 * eps
                 xmax = pat_x + length_x / 2 + 2 * eps
                 ymin = pat_y - length_y / 2 - 2 * eps
                 ymax = pat_y + length_y / 2 + 2 * eps
-
                 mask_x = np.logical_and(x >= xmin, x <= xmax)
                 mask_y = np.logical_and(y >= ymin, y <= ymax)
                 mask = np.logical_and(mask_x, mask_y)
@@ -403,6 +416,23 @@ def _from_abstract(cls, array, refn=2, **kwargs):
                 membrane_ids[mask] = mem.id
                 element_ids[mask] = elem.id
 
+            # determine vertices which belong to each membrane
+            mem_x, mem_y, mem_z = mem.position
+            length_x, length_y = mem.length_x, mem.length_y
+            xmin = mem_x - length_x / 2  - 2 * eps
+            xmax = mem_x + length_x / 2 + 2 * eps
+            ymin = mem_y - length_y / 2 - 2 * eps
+            ymax = mem_y + length_y / 2 + 2 * eps
+            mask_x = np.logical_and(x >= xmin, x <= xmax)
+            mask_y = np.logical_and(y >= ymin, y <= ymax)
+            mem_mask = np.logical_and(mask_x, mask_y)
+
+            # check and flag boundary vertices
+            mask1 = np.abs(x[mem_mask] - xmin) <= 2 * eps
+            mask2 = np.abs(x[mem_mask] - xmax) <= 2 * eps
+            mask3 = np.abs(y[mem_mask] - ymin) <= 2 * eps
+            mask4 = np.abs(y[mem_mask] - ymax) <= 2 * eps
+            mesh.on_bound[mem_mask] = np.any(np.c_[mask1, mask2, mask3, mask4], axis=1)
 
     # check that no vertices were missed
     assert ~np.any(np.isnan(patch_ids[:,0])) # check that each vertex is assigned to at least one patch

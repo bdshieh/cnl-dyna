@@ -78,7 +78,7 @@ def _contains(self, key):
     return key in self._fields
 
 
-def dump(obj, fp, indent=1, mode='x', *args, **kwargs):
+def dump(obj, fp, indent=1, mode='w+', *args, **kwargs):
     ''''''
     json.dump(_generate_dict_with_name_attr(obj), open(fp, mode), indent=indent, *args, **kwargs)
 

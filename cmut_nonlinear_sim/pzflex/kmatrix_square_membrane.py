@@ -5,24 +5,9 @@ import subprocess, os
 from scipy.io import loadmat
 from scipy.interpolate import interp2d
 from scipy.linalg import inv
-import argparse
-
-from cmut_nonlinear_sim import abstract
-
-# define configuration for this script
-_Config = {}
-_Config['x_len'] = 40e-6
-_Config['y_len'] = 40e-6
-_Config['thickness'] = 2e-6
-_Config['x_load'] = 5e-6
-_Config['y_load'] = 5e-6
-_Config['dx'] = 1e-6
-_Config['dy'] = 1e-6
-_Config['xymin'] = 40e-6 / 30
-_Config['zin'] = 2e-6 / 8
-Config = abstract.register_type('Config', _Config)
 
 
+# base PZFlex script
 pzscript = '''
 c ** GEOMETRY **
 symb xx1 = -$x_len / 2
@@ -103,27 +88,24 @@ data
 	out zdsp
 '''
 
-def symb(f, var, val):
-    f.write(f'symb {str(var)} = {val} \n')
-
-
-def symbs(f, **kwargs):
-    for k, v in kwargs.items():
-        symb(f, k, v)
-
-
 def gen_flxinp(**args):
+    '''Generate complete PZFlex script'''
     with open('pzmodel.flxinp', 'w+') as f:
-        symbs(f, **args)
+        # write (prepend) symbols
+        for k, v in args.items():
+            f.write(f'symb {str(k)} = {v} \n')
+        # write base script
         f.write(pzscript)
 
 
 def run_pzflex():
+    '''Run PZFlex'''
     subprocess.call(['pzflex', 'pzmodel.flxinp'])
 
 
 def postproc(verts):
-    ''''''
+    '''Postprocess PZFlex output'''
+    # load data from mat file
     m = loadmat('zdsp.mat')
     for k in m.keys():
         if k[-4:] == 'xcrd':
@@ -132,12 +114,14 @@ def postproc(verts):
             ycrdk = k
         elif k[-4:] == 'zdsp':
             zdspk = k
-    
     xv = m[xcrdk]
     yv = m[ycrdk]
     zdsp = m[zdspk]
+
+    # take average of z-disp along mesh z-axis
     zdsp = zdsp.mean(axis=-1)
 
+    # interpolate z-disp at BE mesh vertices
     fi = interp2d(xv, yv, zdsp)
     dsp = []
     for x, y, z in verts:
@@ -146,53 +130,61 @@ def postproc(verts):
     return np.array(dsp) 
         
 
-def main():
-    pass
-    # define and parse arguments
-    # parser = argparse.ArgumentParser()
-    # parser.add_argument('mesh_file')
-    # parser.add_argument('file')
-    # parser.add_argument('xl', type=float)
-    # parser.add_argument('yl', type=float)
-    # parser.add_argument('refn', nargs=2)
-    # args = vars(parser.parse_args())
+def main(cfg, args):
 
-    # mesh_file = args['mesh_file']
+    file = args.file
 
-    # with np.load(mesh_file) as npf:
-    #     refns = npf['refns']
-    #     verts = npf['verts']
+    with np.load(cfg.mesh_file) as npf:
+        refns = npf['refns']
+        verts = npf['verts']
     
-    
-    # pzargs = {}
-    # pzargs['x_len'] = 40e-6
-    # pzargs['y_len'] = 40e-6
-    # pzargs['thickness'] = 2e-6
-    # pzargs['x_load'] = 5e-6
-    # pzargs['y_load'] = 5e-6
-    # pzargs['dx'] = 1e-6
-    # pzargs['dy'] = 1e-6
-    # pzargs['xymin'] = 40e-6 / 30
-    # pzargs['zin'] = 2e-6 / 8
+    pzargs = {}
+    pzargs['x_len'] = cfg.x_len
+    pzargs['y_len'] = cfg.y_len
+    pzargs['thickness'] = cfg.thickness
+    pzargs['dx'] = cfg.dx
+    pzargs['dy'] = cfg.dy
+    pzargs['xymin'] = cfg.xymin
+    pzargs['zmin'] = cfg.zmin
 
-    # gen_flxinp(**pzargs)
-    # run_pzflex()
-    # zdsp_row = postproc()
-    # os.remove('pzmodel.flxinp')
-    # os.remove('zdsp.mat')
+    Ks = []
+    for refn, vert in zip(refns, verts):
+        zdsp = np.zeros((len(vert), len(vert)))
+        for i, (x, y, z) in enumerate(verts):
+            pzargs['x_load'] = x
+            pzargs['y_load'] = y
 
+            gen_flxinp(**pzargs)
+
+            run_pzflex()
+
+            zdsp[:,i] = postproc(vert)
+
+            os.remove('pzmodel.flxinp')
+            os.remove('zdsp.mat')
+
+        Ks.append(inv(zdsp))
+
+    np.savez(args.file, refns=refns, Ks=Ks)
 
 
 if __name__ == '__main__':
 
-    parser = argparse.ArgumentParser()
+    import sys
+    from cmut_nonlinear_sim import util
 
-    # define subparser
-    subparsers = parser.add_subparsers()
-    config_parser = subparsers.add_parser('config')
-    config_parser.add_argument('type')
-    config_parser.add_argument('file')
+    # define configuration for this script
+    Config = {}
+    Config['mesh_file'] = ''
+    Config['x_len'] = 40e-6
+    Config['y_len'] = 40e-6
+    Config['thickness'] = 2e-6
+    Config['dx'] = 1e-6
+    Config['dy'] = 1e-6
+    Config['xymin'] = 40e-6 / 30
+    Config['zmin'] = 2e-6 / 8
 
-    run_parser = subparsers.add_parser('run')
-    run_parser.add_argument('config')
-    run_parser.add_argument('file')
+    # get script parser and parse arguments
+    parser = util.script_parser('poop', main, Config)
+    args = parser.parse_args()
+    args.func(args)
