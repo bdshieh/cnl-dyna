@@ -1,6 +1,6 @@
 
 import numpy as np
-from cmut_nonlinear_sim.mesh import square
+from cnld.mesh import square
 import argparse
 
 

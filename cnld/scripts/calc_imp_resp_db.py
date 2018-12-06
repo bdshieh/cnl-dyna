@@ -10,9 +10,9 @@ import traceback
 import sys
 import argparse
 
-from cmut_nonlinear_sim import abstract, bem, util
-from cmut_nonlinear_sim.mesh import Mesh, calc_mesh_refn_square
-from cmut_nonlinear_sim.impulse_response import create_database, update_database
+from cnld import abstract, bem, util
+from cnld.mesh import Mesh, calc_mesh_refn_square
+from cnld.impulse_response import create_database, update_database
 
 
 defaults = dict()

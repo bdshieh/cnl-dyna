@@ -183,7 +183,7 @@ def main(cfg, args):
 if __name__ == '__main__':
 
     import sys
-    from cmut_nonlinear_sim import util
+    from cnld import util
 
     # define configuration for this script
     Config = {}

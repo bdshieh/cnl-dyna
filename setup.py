@@ -21,90 +21,90 @@ ext_opts = {
 
 ext_modules = [
     Extension(
-        name='cnls.h2lib.basic_cy',
-        sources=['cnls/h2lib/basic_cy.pyx'],
+        name='cnld.h2lib.basic_cy',
+        sources=['cnld/h2lib/basic_cy.pyx'],
         **ext_opts
     ),
     Extension(
-        name='cnls.h2lib.avector_cy',
-        sources=['cnls/h2lib/avector_cy.pyx'],
+        name='cnld.h2lib.avector_cy',
+        sources=['cnld/h2lib/avector_cy.pyx'],
         **ext_opts
     ),
     Extension(
-        name='cnls.h2lib.amatrix_cy',
-        sources=['cnls/h2lib/amatrix_cy.pyx'],
+        name='cnld.h2lib.amatrix_cy',
+        sources=['cnld/h2lib/amatrix_cy.pyx'],
         **ext_opts
     ),
     Extension(
-        name='cnls.h2lib.cluster_cy',
-        sources=['cnls/h2lib/cluster_cy.pyx'],
+        name='cnld.h2lib.cluster_cy',
+        sources=['cnld/h2lib/cluster_cy.pyx'],
         **ext_opts
     ),
     Extension(
-        name='cnls.h2lib.block_cy',
-        sources=['cnls/h2lib/block_cy.pyx'],
+        name='cnld.h2lib.block_cy',
+        sources=['cnld/h2lib/block_cy.pyx'],
         **ext_opts
     ),
     Extension(
-        name='cnls.h2lib.surface3d_cy',
-        sources=['cnls/h2lib/surface3d_cy.pyx'],
+        name='cnld.h2lib.surface3d_cy',
+        sources=['cnld/h2lib/surface3d_cy.pyx'],
         **ext_opts
     ),
     Extension(
-        name='cnls.h2lib.macrosurface3d_cy',
-        sources=['cnls/h2lib/macrosurface3d_cy.pyx'],
+        name='cnld.h2lib.macrosurface3d_cy',
+        sources=['cnld/h2lib/macrosurface3d_cy.pyx'],
         **ext_opts
     ),
     Extension(
-        name='cnls.h2lib.rkmatrix_cy',
-        sources=['cnls/h2lib/rkmatrix_cy.pyx'],
+        name='cnld.h2lib.rkmatrix_cy',
+        sources=['cnld/h2lib/rkmatrix_cy.pyx'],
         **ext_opts
     ),
     Extension(
-        name='cnls.h2lib.hmatrix_cy',
-        sources=['cnls/h2lib/hmatrix_cy.pyx'],
+        name='cnld.h2lib.hmatrix_cy',
+        sources=['cnld/h2lib/hmatrix_cy.pyx'],
         **ext_opts
     ),
     Extension(
-        name='cnls.h2lib.bem3d_cy',
-        sources=['cnls/h2lib/bem3d_cy.pyx'],
+        name='cnld.h2lib.bem3d_cy',
+        sources=['cnld/h2lib/bem3d_cy.pyx'],
         **ext_opts
     ),
     Extension(
-        name='cnls.h2lib.helmholtzbem3d_cy',
-        sources=['cnls/h2lib/helmholtzbem3d_cy.pyx'],
+        name='cnld.h2lib.helmholtzbem3d_cy',
+        sources=['cnld/h2lib/helmholtzbem3d_cy.pyx'],
         **ext_opts
     ),
     Extension(
-        name='cnls.h2lib.truncation_cy',
-        sources=['cnls/h2lib/truncation_cy.pyx'],
+        name='cnld.h2lib.truncation_cy',
+        sources=['cnld/h2lib/truncation_cy.pyx'],
         **ext_opts
     ),
     Extension(
-        name='cnls.h2lib.krylovsolvers_cy',
-        sources=['cnls/h2lib/krylovsolvers_cy.pyx'],
+        name='cnld.h2lib.krylovsolvers_cy',
+        sources=['cnld/h2lib/krylovsolvers_cy.pyx'],
         **ext_opts
     ),
     Extension(
-        name='cnls.h2lib.harith_cy',
-        sources=['cnls/h2lib/harith_cy.pyx'],
+        name='cnld.h2lib.harith_cy',
+        sources=['cnld/h2lib/harith_cy.pyx'],
         **ext_opts
     ),
     Extension(
-        name='cnls.h2lib.factorizations_cy',
-        sources=['cnls/h2lib/factorizations_cy.pyx'],
+        name='cnld.h2lib.factorizations_cy',
+        sources=['cnld/h2lib/factorizations_cy.pyx'],
         **ext_opts
     ),
     Extension(
-        name='cnls.h2lib.sparsematrix_cy',
-        sources=['cnls/h2lib/sparsematrix_cy.pyx'],
+        name='cnld.h2lib.sparsematrix_cy',
+        sources=['cnld/h2lib/sparsematrix_cy.pyx'],
         **ext_opts
     ),
 ]
 
 
 setup(
-    name='cnls',
+    name='cnl-dyna',
     version='0.1',
     ext_modules=cythonize(ext_modules),
     packages=find_packages(),
