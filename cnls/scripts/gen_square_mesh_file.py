@@ -11,7 +11,7 @@ def main():
     parser.add_argument('file')
     parser.add_argument('xl', type=float)
     parser.add_argument('yl', type=float)
-    parser.add_argument('refn', nargs=2)
+    parser.add_argument('refn', nargs=2, type=int)
     args = vars(parser.parse_args())
 
     file = args['file']
@@ -21,11 +21,13 @@ def main():
 
     refns = range(r_start, r_stop)
     verts = []
+    on_bounds = []
     for refn in refns:
         mesh = square(xl, yl, refn=refn)
         verts.append(mesh.vertices)
+        on_bounds.append(mesh.on_boundary)
 
-    np.savez(file, refns=refns, verts=verts)
+    np.savez(file, refns=refns, verts=verts, on_bounds=on_bounds)
 
 if __name__ == '__main__':
     main()

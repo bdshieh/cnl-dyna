@@ -103,7 +103,7 @@ def run_pzflex():
     subprocess.call(['pzflex', 'pzmodel.flxinp'])
 
 
-def postproc(verts):
+def postproc(vert, on_bound):
     '''Postprocess PZFlex output'''
     # load data from mat file
     m = loadmat('zdsp.mat')
@@ -123,9 +123,12 @@ def postproc(verts):
 
     # interpolate z-disp at BE mesh vertices
     fi = interp2d(xv, yv, zdsp)
-    dsp = []
-    for x, y, z in verts:
-        dsp.append(fi(x, y))
+    dsp = np.zeros(len(vert))
+    for i, (x, y, z) in enumerate(vert):
+        # skip boundary vertices
+        if on_bound[i]:
+            continue
+        dsp[i](fi(x, y))
     
     return np.array(dsp) 
         
@@ -137,6 +140,7 @@ def main(cfg, args):
     with np.load(cfg.mesh_file) as npf:
         refns = npf['refns']
         verts = npf['verts']
+        on_bounds = npf['on_bounds']
     
     pzargs = {}
     pzargs['x_len'] = cfg.x_len
@@ -147,23 +151,31 @@ def main(cfg, args):
     pzargs['xymin'] = cfg.xymin
     pzargs['zmin'] = cfg.zmin
 
+    # iterate over different meshes/mesh refn
     Ks = []
-    for refn, vert in zip(refns, verts):
-        zdsp = np.zeros((len(vert), len(vert)))
-        for i, (x, y, z) in enumerate(verts):
+    for refn, vert, on_bound in zip(refns, verts, on_bounds):
+        Kinv = np.zeros((len(vert), len(vert)))
+
+        # apply loading onto each vertex
+        for i, (x, y, z) in enumerate(vert):
+            # skip boundary vertices
+            if on_bound[i]:
+                continue
+
+            # set load coordinates
             pzargs['x_load'] = x
             pzargs['y_load'] = y
-
+            # generate script
             gen_flxinp(**pzargs)
-
+            # run pzflex
             run_pzflex()
+            # postprocess results
+            Kinv[:,i] = postproc(vert)
 
-            zdsp[:,i] = postproc(vert)
-
+            # delete files
             os.remove('pzmodel.flxinp')
             os.remove('zdsp.mat')
-
-        Ks.append(inv(zdsp))
+        Ks.append(inv(Kinv))
 
     np.savez(args.file, refns=refns, Ks=Ks)
 

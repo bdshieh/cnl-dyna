@@ -344,6 +344,24 @@ def fast_matrix_array(nx, ny, pitchx, pitchy, refn=2, **kwargs):
     tri_edges = np.concatenate(tri_edges, axis=0)
 
     mesh = Mesh.from_geometry(verts, edges, tris, tri_edges, refn=refn)
+    mesh.on_boundary = np.zeros(len(mesh.vertices), dtype=np.bool)
+
+    # check and flag boundary vertices
+    x, y, z = mesh.vertices.T
+    for cx, cy, cz in centers:
+        xmin = cx - xl / 2  - 2 * eps
+        xmax = cx + xl / 2 + 2 * eps
+        ymin = cy - yl / 2 - 2 * eps
+        ymax = cy + yl / 2 + 2 * eps
+        mask_x = np.logical_and(x >= xmin, x <= xmax)
+        mask_y = np.logical_and(y >= ymin, y <= ymax)
+        mem_mask = np.logical_and(mask_x, mask_y)
+
+        mask1 = np.abs(x[mem_mask] - xmin) <= 2 * eps
+        mask2 = np.abs(x[mem_mask] - xmax) <= 2 * eps
+        mask3 = np.abs(y[mem_mask] - ymin) <= 2 * eps
+        mask4 = np.abs(y[mem_mask] - ymax) <= 2 * eps
+        mesh.on_boundary[mem_mask] = np.any(np.c_[mask1, mask2, mask3, mask4], axis=1)
 
     return mesh
 
@@ -393,7 +411,7 @@ def _from_abstract(cls, array, refn=2, **kwargs):
     patch_ids = np.ones((nverts, 4), dtype=np.int32) * np.nan
     membrane_ids = np.ones(nverts, dtype=np.int32) * np.nan
     element_ids = np.ones(nverts, dtype=np.int32) * np.nan
-    on_bound = np.zeros(nverts, dtype=np.bool)
+    mesh.on_boundary = np.zeros(nverts, dtype=np.bool)
     x, y, z = mesh.vertices.T
 
     for elem in array.elements:
@@ -432,7 +450,7 @@ def _from_abstract(cls, array, refn=2, **kwargs):
             mask2 = np.abs(x[mem_mask] - xmax) <= 2 * eps
             mask3 = np.abs(y[mem_mask] - ymin) <= 2 * eps
             mask4 = np.abs(y[mem_mask] - ymax) <= 2 * eps
-            mesh.on_bound[mem_mask] = np.any(np.c_[mask1, mask2, mask3, mask4], axis=1)
+            mesh.on_boundary[mem_mask] = np.any(np.c_[mask1, mask2, mask3, mask4], axis=1)
 
     # check that no vertices were missed
     assert ~np.any(np.isnan(patch_ids[:,0])) # check that each vertex is assigned to at least one patch

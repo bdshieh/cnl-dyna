@@ -21,90 +21,90 @@ ext_opts = {
 
 ext_modules = [
     Extension(
-        name='cmut_nonlinear_sim.h2lib.basic_cy',
-        sources=['cmut_nonlinear_sim/h2lib/basic_cy.pyx'],
+        name='cnls.h2lib.basic_cy',
+        sources=['cnls/h2lib/basic_cy.pyx'],
         **ext_opts
     ),
     Extension(
-        name='cmut_nonlinear_sim.h2lib.avector_cy',
-        sources=['cmut_nonlinear_sim/h2lib/avector_cy.pyx'],
+        name='cnls.h2lib.avector_cy',
+        sources=['cnls/h2lib/avector_cy.pyx'],
         **ext_opts
     ),
     Extension(
-        name='cmut_nonlinear_sim.h2lib.amatrix_cy',
-        sources=['cmut_nonlinear_sim/h2lib/amatrix_cy.pyx'],
+        name='cnls.h2lib.amatrix_cy',
+        sources=['cnls/h2lib/amatrix_cy.pyx'],
         **ext_opts
     ),
     Extension(
-        name='cmut_nonlinear_sim.h2lib.cluster_cy',
-        sources=['cmut_nonlinear_sim/h2lib/cluster_cy.pyx'],
+        name='cnls.h2lib.cluster_cy',
+        sources=['cnls/h2lib/cluster_cy.pyx'],
         **ext_opts
     ),
     Extension(
-        name='cmut_nonlinear_sim.h2lib.block_cy',
-        sources=['cmut_nonlinear_sim/h2lib/block_cy.pyx'],
+        name='cnls.h2lib.block_cy',
+        sources=['cnls/h2lib/block_cy.pyx'],
         **ext_opts
     ),
     Extension(
-        name='cmut_nonlinear_sim.h2lib.surface3d_cy',
-        sources=['cmut_nonlinear_sim/h2lib/surface3d_cy.pyx'],
+        name='cnls.h2lib.surface3d_cy',
+        sources=['cnls/h2lib/surface3d_cy.pyx'],
         **ext_opts
     ),
     Extension(
-        name='cmut_nonlinear_sim.h2lib.macrosurface3d_cy',
-        sources=['cmut_nonlinear_sim/h2lib/macrosurface3d_cy.pyx'],
+        name='cnls.h2lib.macrosurface3d_cy',
+        sources=['cnls/h2lib/macrosurface3d_cy.pyx'],
         **ext_opts
     ),
     Extension(
-        name='cmut_nonlinear_sim.h2lib.rkmatrix_cy',
-        sources=['cmut_nonlinear_sim/h2lib/rkmatrix_cy.pyx'],
+        name='cnls.h2lib.rkmatrix_cy',
+        sources=['cnls/h2lib/rkmatrix_cy.pyx'],
         **ext_opts
     ),
     Extension(
-        name='cmut_nonlinear_sim.h2lib.hmatrix_cy',
-        sources=['cmut_nonlinear_sim/h2lib/hmatrix_cy.pyx'],
+        name='cnls.h2lib.hmatrix_cy',
+        sources=['cnls/h2lib/hmatrix_cy.pyx'],
         **ext_opts
     ),
     Extension(
-        name='cmut_nonlinear_sim.h2lib.bem3d_cy',
-        sources=['cmut_nonlinear_sim/h2lib/bem3d_cy.pyx'],
+        name='cnls.h2lib.bem3d_cy',
+        sources=['cnls/h2lib/bem3d_cy.pyx'],
         **ext_opts
     ),
     Extension(
-        name='cmut_nonlinear_sim.h2lib.helmholtzbem3d_cy',
-        sources=['cmut_nonlinear_sim/h2lib/helmholtzbem3d_cy.pyx'],
+        name='cnls.h2lib.helmholtzbem3d_cy',
+        sources=['cnls/h2lib/helmholtzbem3d_cy.pyx'],
         **ext_opts
     ),
     Extension(
-        name='cmut_nonlinear_sim.h2lib.truncation_cy',
-        sources=['cmut_nonlinear_sim/h2lib/truncation_cy.pyx'],
+        name='cnls.h2lib.truncation_cy',
+        sources=['cnls/h2lib/truncation_cy.pyx'],
         **ext_opts
     ),
     Extension(
-        name='cmut_nonlinear_sim.h2lib.krylovsolvers_cy',
-        sources=['cmut_nonlinear_sim/h2lib/krylovsolvers_cy.pyx'],
+        name='cnls.h2lib.krylovsolvers_cy',
+        sources=['cnls/h2lib/krylovsolvers_cy.pyx'],
         **ext_opts
     ),
     Extension(
-        name='cmut_nonlinear_sim.h2lib.harith_cy',
-        sources=['cmut_nonlinear_sim/h2lib/harith_cy.pyx'],
+        name='cnls.h2lib.harith_cy',
+        sources=['cnls/h2lib/harith_cy.pyx'],
         **ext_opts
     ),
     Extension(
-        name='cmut_nonlinear_sim.h2lib.factorizations_cy',
-        sources=['cmut_nonlinear_sim/h2lib/factorizations_cy.pyx'],
+        name='cnls.h2lib.factorizations_cy',
+        sources=['cnls/h2lib/factorizations_cy.pyx'],
         **ext_opts
     ),
     Extension(
-        name='cmut_nonlinear_sim.h2lib.sparsematrix_cy',
-        sources=['cmut_nonlinear_sim/h2lib/sparsematrix_cy.pyx'],
+        name='cnls.h2lib.sparsematrix_cy',
+        sources=['cnls/h2lib/sparsematrix_cy.pyx'],
         **ext_opts
     ),
 ]
 
 
 setup(
-    name='cmut-nonlinear-sim',
+    name='cnls',
     version='0.1',
     ext_modules=cythonize(ext_modules),
     packages=find_packages(),
