@@ -48,6 +48,10 @@ def K_matrix_comsol(nmem, file, refn):
     return sps.csr_matrix(sps.block_diag([K for i in range(nmem)]))
 
 
+def K_matrix_pzflex():
+    pass
+
+    
 def MBK_matrix(f, n, nmem, rho, h, att, kfile, compress=True):
     
     M = M_matrix(n, rho, h)

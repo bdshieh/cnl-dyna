@@ -43,4 +43,5 @@ cdef extern from 'hmatrix.h' nogil:
     void addevalsymm_hmatrix_avector(field alpha, pchmatrix hm, pcavector x, pavector y)
     phmatrix clonestructure_hmatrix(pchmatrix src)
     void copy_sparsematrix_hmatrix(psparsematrix sp, phmatrix hm)
+    void add_hmatrix_amatrix(field alpha, bool atrans, pchmatrix a, pamatrix b)
     

@@ -26,4 +26,4 @@ cpdef setentry_sparsematrix(SparseMatrix a, uint row, uint col, field x)
 cpdef size_t getsize_sparsematrix(SparseMatrix a)
 cpdef sort_sparsematrix(SparseMatrix a)
 cpdef clear_sparsematrix(SparseMatrix a)
-
+cpdef add_sparsematrix_amatrix(field alpha, bool atrans, SparseMatrix a, AMatrix b)

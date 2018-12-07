@@ -101,7 +101,6 @@ cpdef sort_sparsematrix(SparseMatrix a):
 cpdef clear_sparsematrix(SparseMatrix a):
     _sparsematrix.clear_sparsematrix(a.ptr)
 
-
-
-
+cpdef add_sparsematrix_amatrix(field alpha, bool atrans, SparseMatrix a, AMatrix b):
+    _sparsematrix.add_sparsematrix_amatrix(alpha, atrans, <pcsparsematrix> a.ptr, b.ptr)
 

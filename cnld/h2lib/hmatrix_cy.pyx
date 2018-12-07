@@ -108,3 +108,6 @@ cpdef copy_sparsematrix_hmatrix(SparseMatrix sp, HMatrix hm):
 cpdef HMatrix clonestructure_hmatrix(HMatrix src):
     cpdef phmatrix hm = _hmatrix.clonestructure_hmatrix(<pchmatrix> src.ptr)
     return HMatrix.wrap(hm, True)
+
+cpdef add_hmatrix_amatrix(field alpha, bool atrans, HMatrix a, AMatrix b):
+    _hmatrix.add_hmatrix_amatrix(alpha, atrans, <pchmatrix> a.ptr, b.ptr)

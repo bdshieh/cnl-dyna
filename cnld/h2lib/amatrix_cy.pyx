@@ -61,3 +61,15 @@ cpdef addeval_amatrix_avector(field alpha, AMatrix a, AVector src, AVector trg):
 cpdef size_t getsize_amatrix(AMatrix a):
     return _amatrix.getsize_amatrix(<pcamatrix> a.ptr)
 
+cpdef scale_amatrix(field alpha, AMatrix a):
+    _amatrix.scale_amatrix(alpha, a.ptr)
+
+cpdef conjugate_amatrix(AMatrix a):
+    _amatrix.conjugate_amatrix(a.ptr)
+
+cpdef add_amatrix(field alpha, bint atrans, AMatrix a, AMatrix b):
+    _amatrix.add_amatrix(alpha, atrans, <pcamatrix> a.ptr, b.ptr)
+
+
+
+ 
