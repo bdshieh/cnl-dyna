@@ -33,7 +33,7 @@ symb #get { kdx } rootmax z
 
 symb #keyindx i 1 $idx 1 $xymin 1
 symb #keyindx j 1 $jdx 1 $xymin 1
-symb #keyindx k 1 $kdx 1 $zin 1 
+symb #keyindx k 1 $kdx 1 $zmin 1 
 symb indgrd = $i$idx
 symb jndgrd = $j$jdx
 symb kndgrd = $k$kdx
@@ -91,6 +91,8 @@ data
 def gen_flxinp(**args):
     '''Generate complete PZFlex script'''
     with open('pzmodel.flxinp', 'w+') as f:
+        # write memory allocation for job
+        f.write('mem 10 10\n')
         # write (prepend) symbols
         for k, v in args.items():
             f.write(f'symb {str(k)} = {v} \n')
@@ -101,7 +103,7 @@ def gen_flxinp(**args):
 def run_pzflex():
     '''Run PZFlex'''
     # subprocess.call(['pzflex', 'pzmodel.flxinp'])
-    subprocess.call(['winpty', 'pzflex.bat', 'pzmodel.flxinp'])
+    subprocess.check_call(['winpty', 'pzflex.bat', 'pzmodel.flxinp'])
 
 
 def postproc(vert, on_bound):
@@ -123,13 +125,13 @@ def postproc(vert, on_bound):
     zdsp = zdsp.mean(axis=-1)
 
     # interpolate z-disp at BE mesh vertices
-    fi = interp2d(xv, yv, zdsp)
+    fi = interp2d(yv, xv, zdsp)
     dsp = np.zeros(len(vert))
     for i, (x, y, z) in enumerate(vert):
         # skip boundary vertices
         if on_bound[i]:
             continue
-        dsp[i](fi(x, y))
+        dsp[i] = fi(x, y)
     
     return np.array(dsp) 
         
@@ -155,6 +157,10 @@ def main(cfg, args):
     # iterate over different meshes/mesh refn
     Ks = []
     for refn, vert, on_bound in zip(refns, verts, on_bounds):
+        
+        if refn <= 3:
+            continue
+
         Kinv = np.zeros((len(vert), len(vert)))
 
         # apply loading onto each vertex
@@ -171,11 +177,17 @@ def main(cfg, args):
             # run pzflex
             run_pzflex()
             # postprocess results
-            Kinv[:,i] = postproc(vert)
+            Kinv[:,i] = postproc(vert, on_bound)
 
             # delete files
             os.remove('pzmodel.flxinp')
+            os.remove('pzmodel.flxprt')
+            os.remove('pzmodel.flxrsto')
+            os.remove('pzmodel.flxwrn')
             os.remove('zdsp.mat')
+        
+        print(np.count_nonzero(Kinv))
+        np.save('Kinv.npy', Kinv)
         Ks.append(inv(Kinv))
 
     np.savez(args.file, refns=refns, Ks=Ks)
