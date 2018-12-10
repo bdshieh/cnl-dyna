@@ -3,6 +3,7 @@
 
 from . cimport sparsematrix as _sparsematrix
 from . basic_cy cimport *
+from . amatrix_cy cimport *
 import numpy as np
 import scipy as sp
 import scipy.sparse
@@ -21,7 +22,7 @@ cdef class SparseMatrix():
     @classmethod
     def from_array(cls, a):
 
-        a = a.astype(np.complex128).squeeze()
+        a = a.astype(np.complex128)
         assert a.ndim == 2
 
         if not isinstance(a, sp.sparse.csr_matrix):
@@ -67,7 +68,7 @@ cdef class SparseMatrix():
     @property
     def coeff(self):
         return np.asarray(self._coeff)
-
+    
     @staticmethod
     cdef wrap(psparsematrix ptr, bint owner=False):
         cdef SparseMatrix obj = SparseMatrix.__new__(SparseMatrix)
@@ -101,6 +102,6 @@ cpdef sort_sparsematrix(SparseMatrix a):
 cpdef clear_sparsematrix(SparseMatrix a):
     _sparsematrix.clear_sparsematrix(a.ptr)
 
-cpdef add_sparsematrix_amatrix(field alpha, bool atrans, SparseMatrix a, AMatrix b):
+cpdef add_sparsematrix_amatrix(field alpha, bint atrans, SparseMatrix a, AMatrix b):
     _sparsematrix.add_sparsematrix_amatrix(alpha, atrans, <pcsparsematrix> a.ptr, b.ptr)
 

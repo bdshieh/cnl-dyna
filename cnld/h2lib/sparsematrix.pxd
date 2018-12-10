@@ -1,6 +1,7 @@
 ## sparsematrix.h ##
 
 from . basic cimport *
+from . amatrix cimport *
 
 cdef extern from 'sparsematrix.h' nogil:
 
@@ -25,5 +26,5 @@ cdef extern from 'sparsematrix.h' nogil:
     size_t getsize_sparsematrix(pcsparsematrix a)
     void sort_sparsematrix(psparsematrix a)
     void clear_sparsematrix(psparsematrix a)
-    void add_sparsematrix_amatrix(field alpha, bool atrans, pcsparsematrix a, pamatrix b)
+    void add_sparsematrix_amatrix(field alpha, bint atrans, pcsparsematrix a, pamatrix b)
     
