@@ -11,7 +11,7 @@ from contextlib import closing
 from itertools import repeat
 import sqlite3 as sql
 import argparse
-from cmut_nonlinear_sim import abstract
+from cnld import abstract
 
 
 ## GEOMETRY-RELATED FUNCTIONS ##

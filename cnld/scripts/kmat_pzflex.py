@@ -100,7 +100,8 @@ def gen_flxinp(**args):
 
 def run_pzflex():
     '''Run PZFlex'''
-    subprocess.call(['pzflex', 'pzmodel.flxinp'])
+    # subprocess.call(['pzflex', 'pzmodel.flxinp'])
+    subprocess.call(['winpty', 'pzflex.bat', 'pzmodel.flxinp'])
 
 
 def postproc(vert, on_bound):

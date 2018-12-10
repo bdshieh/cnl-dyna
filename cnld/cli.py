@@ -2,7 +2,8 @@
 
 
 import argparse
-import importlib
+# from importlib import import_module
+import subprocess
 
 scripts = {}
 scripts['imp-resp-db'] = 'cnld.scripts.imp_resp_db'
@@ -17,7 +18,8 @@ parser.set_defaults(lookup=scripts)
 
 def main():
     args, unknown_args = parser.parse_known_args()
-    args.lookup[args.script_name].main(unknown_args)
+    # import_module(args.lookup[args.script_name]).main(unknown_args)
+    subprocess.call(['python', '-m', args.lookup[args.script_name]] + unknown_args)
     # print(args)
     # print(unknown_args)
 
