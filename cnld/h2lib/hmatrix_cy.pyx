@@ -111,3 +111,6 @@ cpdef HMatrix clonestructure_hmatrix(HMatrix src):
 
 cpdef add_hmatrix_amatrix(field alpha, bool atrans, HMatrix a, AMatrix b):
     _hmatrix.add_hmatrix_amatrix(alpha, atrans, <pchmatrix> a.ptr, b.ptr)
+
+cpdef identity_hmatrix(HMatrix hm):
+    _hmatrix.identity_hmatrix(hm.ptr)

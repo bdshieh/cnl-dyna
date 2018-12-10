@@ -44,4 +44,5 @@ cdef extern from 'hmatrix.h' nogil:
     phmatrix clonestructure_hmatrix(pchmatrix src)
     void copy_sparsematrix_hmatrix(psparsematrix sp, phmatrix hm)
     void add_hmatrix_amatrix(field alpha, bool atrans, pchmatrix a, pamatrix b)
+    void identity_hmatrix(phmatrix hm)
     

@@ -28,3 +28,6 @@ cpdef choleval_hmatrix_avector(HMatrix a, AVector x):
 
 cpdef add_hmatrix(field alpha, HMatrix a, Truncmode tm, real eps, HMatrix  b):
     _harith.add_hmatrix(alpha, <pchmatrix> a.ptr, <pctruncmode> tm.ptr, eps, b.ptr)
+
+cpdef addmul_hmatrix(field alpha, bint xtrans, HMatrix x, bint ytrans, HMatrix y, Truncmode tm, real eps, HMatrix z):
+    _harith.addmul_hmatrix(alpha, xtrans, <pchmatrix> x.ptr, ytrans, <pchmatrix> y.ptr, <pctruncmode> tm.ptr, eps, z.ptr)
