@@ -16,7 +16,7 @@ cdef extern from 'amatrix.h' nogil:
     ctypedef const amatrix * pcamatrix
 
     pamatrix new_amatrix(uint rows, uint cols)
-    # pamatrix new_zero_amatrix(uint rows, uint cols)
+    pamatrix new_zero_amatrix(uint rows, uint cols)
     # pamatrix new_identity_amatrix(uint rows, uint cols)
     void del_amatrix(pamatrix a)
     # void clear_amatrix(pamatrix a)
@@ -31,3 +31,4 @@ cdef extern from 'amatrix.h' nogil:
     void addeval_amatrix_avector(field alpha, pcamatrix a, pcavector src, pavector trg)
     void add_amatrix(field alpha, bint atrans, pcamatrix a, pamatrix b)
     size_t getsize_amatrix(pcamatrix a)
+    void addmul_amatrix(field alpha, bint atrans, pcamatrix a, bint btrans, pcamatrix b, pamatrix c)

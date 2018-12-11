@@ -4,6 +4,7 @@
 from . basic cimport *
 from . hmatrix cimport *
 from . avector cimport *
+from . amatrix cimport *
 from . truncation cimport *
 
 
@@ -17,4 +18,5 @@ cdef extern from 'harith.h' nogil:
     void choleval_hmatrix_avector(pchmatrix a, pavector x)
     void addmul_hmatrix(field alpha, bint xtrans, pchmatrix x, bint ytrans, pchmatrix y, pctruncmode tm, real eps, phmatrix z)
     void add_hmatrix(field alpha, pchmatrix a, pctruncmode tm, real eps, phmatrix  b)
-
+    void add_hmatrix_amatrix(field alpha, bint atrans, pchmatrix a, pamatrix b)
+    void add_amatrix_hmatrix(field alpha, bint atrans, pcamatrix a, pctruncmode tm, real eps, phmatrix b)

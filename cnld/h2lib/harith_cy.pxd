@@ -4,6 +4,7 @@
 from . cimport harith as _harith
 from . basic_cy cimport *
 from . hmatrix_cy  cimport *
+from . amatrix_cy cimport *
 from . avector_cy  cimport *
 from . truncation_cy  cimport *
 
@@ -15,4 +16,6 @@ cpdef choldecomp_hmatrix(HMatrix a, Truncmode tm, real eps)
 cpdef cholsolve_hmatrix_avector(HMatrix a, AVector x)
 cpdef choleval_hmatrix_avector(HMatrix a, AVector x)
 cpdef add_hmatrix(field alpha, HMatrix a, Truncmode tm, real eps, HMatrix  b)
+cpdef add_hmatrix_amatrix(field alpha, bint atrans, HMatrix a, AMatrix b)
 cpdef addmul_hmatrix(field alpha, bint xtrans, HMatrix x, bint ytrans, HMatrix y, Truncmode tm, real eps, HMatrix z)
+cpdef add_amatrix_hmatrix(field alpha, bint atrans, AMatrix a, Truncmode tm, real eps, HMatrix b)

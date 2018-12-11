@@ -307,9 +307,7 @@ def matrix_array(nx, ny, pitchx, pitchy, shape='square', refn=2, **kwargs):
     return mesh
 
 
-def fast_matrix_array(nx, ny, pitchx, pitchy, refn=2, **kwargs):
-
-    xl, yl = kwargs['lengthx'], kwargs['lengthy']
+def fast_matrix_array(nx, ny, pitchx, pitchy, xl, yl, refn=2, **kwargs):
 
     lengthx, lengthy = pitchx * (nx - 1), pitchy * (ny - 1)
     xv = np.linspace(-lengthx / 2, lengthx / 2, nx)

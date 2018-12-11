@@ -23,11 +23,29 @@ class Format:
         return self._mat.rows, self._mat.cols
 
     @property
+    def ndim(self):
+        return len(self.shape)
+
+    @property
     def format(self):
         return self.__class__.__name__
-        
-    def __add__(self, x):
+    
+    def _add(self, x):
         return NotImplemented
+
+    def __add__(self, x):
+        if not isinstance(x, Format):
+            raise ValueError('operation not supported with this type')
+        
+        if self.shape != x.shape:
+            raise ValueError('dimension mismatch')
+        
+        return self._add(x)
+
+    def __rmul__(self, x):
+        if not np.isscalar(x):
+            return NotImplemented
+        return self.__mul__(x)    
 
     def __mul__(self, x):
         return self.dot(x)
@@ -51,7 +69,7 @@ class Format:
         return NotImplemented
 
     def matmat(self, X):
-        X = np.asanyarray(X)
+        # X = np.asanyarray(X)
         if X.ndim != 2:
             raise ValueError
         M, N = self.shape
@@ -63,9 +81,9 @@ class Format:
         return Y
     
     def matvec(self, x):
-        x = np.asanyarray(x)
+        # x = np.asanyarray(x)
         M, N = self.shape
-        if x.shape != (N,) and x.shape != (N,1):
+        if x.shape != (N,) and x.shape != (N, 1):
             raise ValueError('dimension mismatch')
 
         y = self._matvec(x)
@@ -78,17 +96,22 @@ class Format:
         return y
 
     def dot(self, x):
-        if isscalar(x):
+        if np.isscalar(x):
             return self._smul(x)
-        else:
-            x = np.asarray(x)
-            
+
+        # convert all numpy arrays to h2lib arrays
+        elif isinstance(x, np.ndarray):
             if x.ndim == 1 or x.ndim == 2 and x.shape[1] == 1:
-                return self.matvec(x)
-            elif x.ndim == 2:
-                return self.matmat(x)
+                xv = AVector.from_array(x)
             else:
-                raise ValueError
+                xv = AMatrix.from_array(x)
+        
+        if x.ndim == 1 or x.ndim == 2 and x.shape[1] == 1:
+            return self.matvec(x)
+        elif x.ndim == 2:
+            return self.matmat(x)
+        else:
+            raise ValueError
     
     def _adjoint(self):
         return NotImplemented
@@ -133,37 +156,51 @@ class FullFormat(Format):
     def size(self):
         return getsize_amatrix(self._mat)
 
-    def __add__(self, x):
+    def __getitem__(self, key):
+        return self._mat.a[key]
+
+    def __setitem__(self, key, val):
+        self._mat.a[key] = val
+
+    def _add(self, x):
         if isinstance(x, FullFormat):
-            add_amatrix(1.0, False, x._mat, self._mat)
+            B = clone_amatrix(self._mat)
+            add_amatrix(1.0, False, x._mat, B)
+            return FullFormat(B)
         elif isinstance(x, SparseFormat):
-            add_sparsematrix_amatrix(1, False, x._mat, self._mat)
+            B = clone_amatrix(self._mat)
+            add_sparsematrix_amatrix(1.0, False, x._mat, B)
+            return FullFormat(B)
         elif isinstance(x, HFormat):
-            add_hmatrix_amatrix(1, False, x._mat, self._mat)
+            B = clone_amatrix(self._mat)
+            add_hmatrix_amatrix(1.0, False, x._mat, B)
+            return FullFormat(B)
         else:
             return NotImplemented
-        return self
 
     def _smul(self, x):
-        scale_amatrix(x, self._mat)
-        return self
+        B = clone_amatrix(self._mat)
+        scale_amatrix(x, B)
+        return FullFormat(B)
 
     def _matmat(self, x):
         if isinstance(x, FullFormat):
-            addmul_amatrix(1.0, False, self._mat, x._mat)
+            # B = clone_amatrix(self._mat)
+            C = new_zero_amatrix(*self.shape)
+            addmul_amatrix(1.0, False, self._mat, False, x._mat, C)
+            return FullFormat(C)
         elif isinstance(x, SparseFormat):
             raise NotImplementedError('operation not supported with this type')
         elif isinstance(x, HFormat):
             raise NotImplementedError('operation not supported with this type')
         else:
             raise ValueError('operation with unrecognized type')
-        return self
 
     def _matvec(self, x):
-        x = AVector.from_array(x)
+        xv = AVector.from_array(x)
         y = AVector(x.size)
         clear_avector(y)
-        addeval_hmatrix_avector(1.0, self._mat, x, y)
+        addeval_amatrix_avector(1.0, self._mat, xv, y)
         # addevalsymm_hmatrix_avector(1.0, self._mat, x, y)
         return np.asarray(y.v)
 
@@ -193,10 +230,22 @@ class SparseFormat(Format):
         return self._mat.nz
 
     @property
+    def row(self):
+        return self._mat.row
+
+    @property
+    def col(self):
+        return self._mat.col
+
+    @property
+    def coeff(self):
+        return self._mat.coeff
+
+    @property
     def size(self):
         return getsize_sparsematrix(self._mat)
 
-    def __add__(self, x):
+    def _add(self, x):
         return NotImplemented
 
     def _smul(self, x):
@@ -214,10 +263,10 @@ class SparseFormat(Format):
         return self
 
     def _matvec(self, x):
-        x = AVector.from_array(x)
+        xv = AVector.from_array(x)
         y = AVector(x.size)
         clear_avector(y)
-        addeval_sparsematrix_avector(1.0, self._mat, x, y)
+        addeval_sparsematrix_avector(1.0, self._mat, xv, y)
         return np.asarray(y.v)
 
     def _lu(self, eps):
@@ -234,7 +283,7 @@ class SparseFormat(Format):
         
     def _as_hformat(self, href):
         hm = clonestructure_hmatrix(href)
-        copy_sparsematrix_hmatrix(self._sparsematrix, hm)
+        copy_sparsematrix_hmatrix(self._mat, hm)
         return HFormat(hm)
 
 
@@ -248,19 +297,28 @@ class HFormat(Format):
     def size(self):
         return getsize_hmatrix(self._mat)
 
-    def __add__(self, x):
+    @property
+    def shape(self):
+        return getrows_hmatrix(self._mat), getcols_hmatrix(self._mat)
+
+    def _add(self, x):
         if isinstance(x, FullFormat):
+            B = clone_hmatrix(self._mat)
             tm = new_releucl_truncmode()
-            add_amatrix_hmatrix(1.0, False, x._mat, tm, self.eps_add, self._mat)
+            add_amatrix_hmatrix(1.0, False, x._mat, tm, self.eps_add, B)
+            return HFormat(B)
         elif isinstance(x, SparseFormat):
+            B = clone_hmatrix(self._mat)
             tm = new_releucl_truncmode()
-            add_hmatrix(1, False, x._as_hformat(self._mat), self._mat)
+            add_hmatrix(1, (x._as_hformat(self._mat))._mat, tm, self.eps_add, B)
+            return HFormat(B)
         elif isinstance(x, HFormat):
+            B = clone_hmatrix(self._mat)
             tm = new_releucl_truncmode()
-            add_hmatrix(1, False, x._mat, tm, self.eps_add, self._mat)
+            add_hmatrix(1, x._mat, tm, self.eps_add, B)
+            return HFormat(B)
         else:
             return NotImplemented
-        return self
 
     def _smul(self, x):
         id = clonestructure_hmatrix(self._mat)
@@ -268,7 +326,7 @@ class HFormat(Format):
         z = clonestructure_hmatrix(self._mat)
         clear_hmatrix(z)
         tm = new_releucl_truncmode()
-        addmul_hmatrix(x, False, hm, False, self._mat, tm, self.eps_add, z)
+        addmul_hmatrix(x, False, id, False, self._mat, tm, self.eps_add, z)
         return HFormat(z)
 
     def _matmat(self, x):
@@ -277,19 +335,19 @@ class HFormat(Format):
         elif isinstance(x, SparseFormat):
             raise NotImplementedError('operation not supported with this type') 
         elif isinstance(x, HFormat):
-            z = clonestructure_hmatrix(self._mat)
-            clear_hmatrix(z)
+            C = clonestructure_hmatrix(self._mat)
+            clear_hmatrix(C)
             tm = new_releucl_truncmode()
-            addmul_hmatrix(1.0, False, x, False, self._mat, tm, self.eps_add, z)
-            return HFormat(z)
+            addmul_hmatrix(1.0, False, x._mat, False, self._mat, tm, self.eps_add, C)
+            return HFormat(C)
         else:
             raise ValueError('operation with unrecognized type')
 
     def _matvec(self, x):
-        x = AVector.from_array(x)
+        xv = AVector.from_array(x)
         y = AVector(x.size)
         clear_avector(y)
-        addeval_hmatrix_avector(1.0, self._mat, x, y)
+        addeval_hmatrix_avector(1.0, self._mat, xv, y)
         # addevalsymm_hmatrix_avector(1.0, self._mat, x, y)
         return np.asarray(y.v)
 

@@ -12,7 +12,7 @@ ctypedef _amatrix.pcamatrix pcamatrix
 cdef class AMatrix:
     cdef pamatrix ptr
     cdef bint owner
-    cdef public field [:,:] a
+    cdef public field [:,:] _a
     cdef _setup(self, pamatrix ptr, bint owner)
     @staticmethod
     cdef wrap(pamatrix ptr, bint owner=*)
@@ -23,3 +23,5 @@ cpdef size_t getsize_amatrix(AMatrix a)
 cpdef scale_amatrix(field alpha, AMatrix a)
 cpdef conjugate_amatrix(AMatrix a)
 cpdef add_amatrix(field alpha, bint atrans, AMatrix a, AMatrix b)
+cpdef addmul_amatrix(field alpha, bint atrans, AMatrix a, bint btrans, AMatrix b, AMatrix c)
+cpdef AMatrix new_zero_amatrix(uint rows, uint cols)

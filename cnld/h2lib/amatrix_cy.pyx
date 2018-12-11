@@ -24,7 +24,7 @@ cdef class AMatrix():
         assert a.ndim == 2
 
         obj = cls(a.shape[0], a.shape[1])
-        obj.a[:] = a.astype(np.complex128)
+        obj._a[:] = a.astype(np.complex128)
         return obj
 
     def __dealloc(self):
@@ -34,7 +34,7 @@ cdef class AMatrix():
     cdef _setup(self, pamatrix ptr, bint owner):
         self.ptr = ptr
         self.owner = owner
-        self.a = <field [:ptr.rows,:ptr.cols]> (<field *> ptr.a)
+        self._a = <field [:ptr.rows,:ptr.cols]> (<field *> ptr.a)
 
     @property
     def rows(self):
@@ -44,6 +44,10 @@ cdef class AMatrix():
     def cols(self):
         return self.ptr.cols
 
+    @property
+    def a(self):
+        return np.asarray(self._a)
+
     @staticmethod
     cdef wrap(pamatrix ptr, bint owner=False):
         cdef AMatrix obj = AMatrix.__new__(AMatrix)
@@ -51,7 +55,6 @@ cdef class AMatrix():
         return obj
 
 cpdef AMatrix clone_amatrix(AMatrix src):
-
     cdef pamatrix cpy = _amatrix.clone_amatrix(<pcamatrix> src.ptr)
     return AMatrix.wrap(cpy, True)
 
@@ -70,6 +73,9 @@ cpdef conjugate_amatrix(AMatrix a):
 cpdef add_amatrix(field alpha, bint atrans, AMatrix a, AMatrix b):
     _amatrix.add_amatrix(alpha, atrans, <pcamatrix> a.ptr, b.ptr)
 
+cpdef addmul_amatrix(field alpha, bint atrans, AMatrix a, bint btrans, AMatrix b, AMatrix c):
+    _amatrix.addmul_amatrix(alpha, atrans, <pcamatrix> a.ptr, btrans, <pcamatrix> b.ptr, c.ptr)
 
-
- 
+cpdef AMatrix new_zero_amatrix(uint rows, uint cols):
+    cpdef pamatrix mat = _amatrix.new_zero_amatrix(rows, cols)
+    return AMatrix.wrap(mat, True)
