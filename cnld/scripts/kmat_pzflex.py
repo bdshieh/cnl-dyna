@@ -5,6 +5,7 @@ import subprocess, os
 from scipy.io import loadmat
 from scipy.interpolate import interp2d
 from scipy.linalg import inv
+from tqdm import tqdm
 
 
 # base PZFlex script
@@ -63,7 +64,7 @@ c func astep 1 * 0 0 cos 1 100e-9 0 *
 func step 1 0 0 0
 
 plod
-	pdef pld1 func 1e9
+	pdef pld1 func 1
 	vctr vct1 0 0 1
 	sdef pld1 vct1 $i2 $i3 $j2 $j3 $k2 $k2
 
@@ -103,7 +104,8 @@ def gen_flxinp(**args):
 def run_pzflex():
     '''Run PZFlex'''
     # subprocess.call(['pzflex', 'pzmodel.flxinp'])
-    subprocess.check_call(['winpty', 'pzflex.bat', 'pzmodel.flxinp'])
+    subprocess.check_call(['flex_s', 'pzmodel.flxinp'], stdout=subprocess.DEVNULL)
+    # subprocess.check_call(['winpty', '-Xallow-non-tty', 'pzflex.bat', 'pzmodel.flxinp'], stdout=subprocess.DEVNULL)
 
 
 def postproc(vert, on_bound):
@@ -156,41 +158,40 @@ def main(cfg, args):
 
     # iterate over different meshes/mesh refn
     Ks = []
-    for refn, vert, on_bound in zip(refns, verts, on_bounds):
-        
-        if refn <= 3:
-            continue
+    with tqdm(total=sum([len(vert) for vert in verts])) as pbar:
+        for refn, vert, on_bound in zip(refns, verts, on_bounds):
 
-        Kinv = np.zeros((len(vert), len(vert)))
+            Kinv = np.zeros((len(vert), len(vert)))
+            # apply loading onto each vertex
+            for i, (x, y, z) in enumerate(vert):
+                pbar.update()
+                # skip boundary vertices
+                if on_bound[i]:
+                    continue
 
-        # apply loading onto each vertex
-        for i, (x, y, z) in enumerate(vert):
-            # skip boundary vertices
-            if on_bound[i]:
-                continue
+                # set load coordinates
+                pzargs['x_load'] = x
+                pzargs['y_load'] = y
+                # generate script
+                gen_flxinp(**pzargs)
+                # run pzflex
+                run_pzflex()
+                # postprocess results
+                Kinv[:,i] = postproc(vert, on_bound)
 
-            # set load coordinates
-            pzargs['x_load'] = x
-            pzargs['y_load'] = y
-            # generate script
-            gen_flxinp(**pzargs)
-            # run pzflex
-            run_pzflex()
-            # postprocess results
-            Kinv[:,i] = postproc(vert, on_bound)
+                # delete files
+                os.remove('pzmodel.flxinp')
+                os.remove('pzmodel.flxprt')
+                os.remove('pzmodel.flxrsto')
+                os.remove('pzmodel.flxwrn')
+                os.remove('zdsp.mat')
+            
+            K = np.zeros((len(vert), len(vert)))
+            K[np.ix_(~on_bound, ~on_bound)] = inv(Kinv[~on_bound, :][:, ~on_bound])
+            # np.save('K.npy', K)
+            Ks.append(K)
 
-            # delete files
-            os.remove('pzmodel.flxinp')
-            os.remove('pzmodel.flxprt')
-            os.remove('pzmodel.flxrsto')
-            os.remove('pzmodel.flxwrn')
-            os.remove('zdsp.mat')
-        
-        print(np.count_nonzero(Kinv))
-        np.save('Kinv.npy', Kinv)
-        Ks.append(inv(Kinv))
-
-    np.savez(args.file, refns=refns, Ks=Ks)
+    np.savez(args.file, verts=verts, on_bounds=on_bounds, refns=refns, Ks=Ks)
 
 
 if __name__ == '__main__':

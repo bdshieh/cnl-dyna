@@ -23,8 +23,6 @@ def process(job):
     job_id, (cfg, args, f, k) = job
 
     # get options and parameters
-    f = f[0] # remove enclosing list
-    k = k[0]
     c = cfg.sound_speed
     array = abstract.load(cfg.array_config)
     firstmem = array.elements[0].membranes[0]

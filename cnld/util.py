@@ -305,12 +305,13 @@ def create_jobs(*args, mode='zip', is_complete=None):
 
     for arg_no, arg in enumerate(args):
         if isinstance(arg, (tuple, list)):
-
             iterable, chunksize = arg
-            iterable_args.append(chunks(iterable, chunksize))
+            if chunksize == 1:
+                iterable_args.append(iterable)
+            else:
+                iterable_args.append(chunks(iterable, chunksize))
             iterable_idx.append(arg_no)
         else:
-
             static_args.append(itertools.repeat(arg))
             static_idx.append(arg_no)
 
@@ -333,7 +334,6 @@ def create_jobs(*args, mode='zip', is_complete=None):
         combos = itertools.zip_longest(*iterable_args)
 
     for job_id, (r, p) in enumerate(zip(repeats, combos)):
-
         # skip jobs that have been completed
         if is_complete is not None and is_complete[job_id]:
             continue
@@ -346,9 +346,7 @@ def create_jobs(*args, mode='zip', is_complete=None):
 ## DATABASE FUNCTIONS ##
 
 def open_db(f):
-
     def decorator(firstarg, *args, **kwargs):
-
         if isinstance(firstarg, sql.Connection):
             return f(firstarg, *args, **kwargs)
         else:
