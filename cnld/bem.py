@@ -46,7 +46,7 @@ def mem_k_matrix(file, refn):
 
 @util.memoize
 def get_nvert_square_membrane(xl, yl, refn):
-    mesh = square(xl, yl, refn)
+    mesh = square(xl, yl, refn=refn)
     return len(mesh.vertices)
 
 
@@ -61,19 +61,12 @@ def mbk_from_abstract(array, f, refn, format='SparseFormat'):
     blocks = []
     for elem in array.elements:
         for mem in elem.membranes:
+            n = get_nvert_square_membrane(mem.length_x, mem.length_y, refn)
+            M = mem_m_matrix(n, mem.density, mem.thickness)
 
-            xl = mem['length_x']
-            yl = mem['length_y']
-            rho = mem['rho']
-            h = mem['h']
-            n = get_nvert_square_membrane(xl, yl, refn)
-            M = mem_m_matrix(n, rho, h)
+            B = mem_b_matrix(n, mem.att_mech)
 
-            att = mem['att']
-            B = mem_b_matrix(n, att)
-
-            kfile = mem['kfile']
-            K = mem_k_matrix(kfile, refn)
+            K = mem_k_matrix(mem.kmat_file, refn)
 
             block = -(omg ** 2) * M + 1j * omg * B + K
             blocks.append(block)

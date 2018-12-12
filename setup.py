@@ -129,6 +129,7 @@ else:
         version='0.1',
         ext_modules=cythonize(ext_modules),
         packages=find_packages(),
+        package_data={'cnld': ['tests/kmat.npz']},
         install_requires=[
         ],
         entry_points={

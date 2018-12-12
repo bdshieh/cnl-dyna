@@ -7,9 +7,6 @@ from cnld.abstract import *
 from cnld import util
 
 
-
-
-
 def main(cfg, args):
 
     nmem_x, nmem_y = cfg.nmem
@@ -35,7 +32,7 @@ def main(cfg, args):
     memprops['npatch_y'] = npatch_y
     memprops['thickness'] = cfg.thickness
     memprops['density'] = cfg.density
-    memprops['att'] = cfg.att
+    memprops['att_mech'] = cfg.att_mech
     memprops['kmat_file'] = cfg.kmat_file
 
     # calculate patch positions
@@ -117,25 +114,27 @@ def main(cfg, args):
 
 
 # default configuration
-Config = {}
+_Config = {}
 # membrane properties
-Config['length'] = [40e-6, 40e-6]
-Config['electrode'] = [40e-6, 40e-6]
-Config['thickness'] = [2e-6,]
-Config['density'] = [2040,]
-Config['y_modulus'] = [110e9,]
-Config['p_ratio'] = [0.22,]
-Config['isolation'] = 200e-9
-Config['permittivity'] = 6.3
-Config['gap'] = 100e-9
-Config['att'] = 0
-Config['npatch'] = [3, 3]
-Config['kmat_file'] = None
+_Config['length'] = [40e-6, 40e-6]
+_Config['electrode'] = [40e-6, 40e-6]
+_Config['thickness'] = [2e-6,]
+_Config['density'] = [2040,]
+_Config['y_modulus'] = [110e9,]
+_Config['p_ratio'] = [0.22,]
+_Config['isolation'] = 200e-9
+_Config['permittivity'] = 6.3
+_Config['gap'] = 100e-9
+_Config['att_mech'] = 0
+_Config['npatch'] = [3, 3]
+_Config['kmat_file'] = ''
 # array properties
-Config['mempitch'] = [60e-6, 60e-6]
-Config['nmem'] = [1, 1]
-Config['elempitch'] = [60e-6, 60e-6]
-Config['nelem'] = [5, 5]
+_Config['mempitch'] = [60e-6, 60e-6]
+_Config['nmem'] = [1, 1]
+_Config['elempitch'] = [60e-6, 60e-6]
+_Config['nelem'] = [5, 5]
+
+Config = register_type('Config', _Config)
 
 if __name__ == '__main__':
 
@@ -143,10 +142,13 @@ if __name__ == '__main__':
     from cnld import util
 
     # get script parser and parse arguments
-    parser = util.script_parser(main, Config)
+    parser, run_parser = util.script_parser(main, Config)
     args = parser.parse_args()
     array = args.func(args)
 
-    if array is not None and args.file:
-        dump(array, args.file)
+    if array is not None:
+        if args.file:
+            dump(array, args.file)
+        else:
+            print(array)
     

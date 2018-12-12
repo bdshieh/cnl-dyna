@@ -403,12 +403,16 @@ def update_progress(con, job_id):
 
 ''' SCRIPTING FUNCTIONS '''
 
-def script_parser(main, config_dict):
+def script_parser(main, config_def):
     '''
     General script command-line interface with 'config' and 'run' subcommands.
     '''
-    # create config abstract type based on supplied dict
-    Config = abstract.register_type('Config', config_dict)
+    if isinstance(config_def, dict):
+        # create config abstract type based on supplied dict
+        Config = abstract.register_type('Config', config_def)
+    else:
+        # config abstract type already defined
+        Config = config_def
 
     # config subcommand generates a default configuration template
     def config(args):
@@ -431,13 +435,13 @@ def script_parser(main, config_dict):
     config_parser.set_defaults(func=config)
     # define run subparser
     run_parser = subparsers.add_parser('run', help='run_help')
-    run_parser.add_argument('-f', '--file', nargs='?')
     run_parser.add_argument('config', nargs='?')
+    run_parser.add_argument('-f', '--file', nargs='?')
     run_parser.add_argument('-t', '--threads', nargs='?', type=int)
     run_parser.add_argument('-w', '--write-over', action='store_true')
     run_parser.set_defaults(func=run)
 
-    return parser
+    return parser, run_parser
 
 
 ''' MISC FUNCTIONS '''

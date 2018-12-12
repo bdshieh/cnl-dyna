@@ -1,12 +1,12 @@
-'''Abstract representation and manipulation of CMUT and PMUT arrays
 '''
-# __all__ = ['SquareCmutMembrane', 'CircularCmutMembrane', 'Patch', 'Element', 'Array', 'SimulationOptions', 
-#            'move_membrane', 'translate_membrane', 'rotate_membrane', 'move_element', 'translate_element',
-#            'rotate_element', 'element_position_from_membranes', 'focus_element', 'dump', 'dumps',
-#            'bias_element', 'activate_element', 'deactivate_element', 'move_array', 'load', 'loads',
-#            'translate_array', 'rotate_array', 'get_element_positions_from_array', 
-#            'get_membrane_positions_from_array', 'focus_array', 'get_element_count', 'abstracttype',
-#            'classes']
+Abstract representation and manipulation of CMUT and PMUT arrays.
+'''
+__all__ = ['SquareCmutMembrane', 'CircularCmutMembrane', 'Patch', 'Element', 'Array', 
+           'move_membrane', 'translate_membrane', 'rotate_membrane', 'move_element', 'translate_element',
+           'rotate_element', 'element_position_from_membranes', 'focus_element', 'dump', 'dumps',
+           'bias_element', 'activate_element', 'deactivate_element', 'move_array', 'load', 'loads',
+           'translate_array', 'rotate_array', 'get_element_positions_from_array', 
+           'get_membrane_positions_from_array', 'focus_array', 'get_element_count', 'register_type']
 
 from namedlist import namedlist, FACTORY
 from collections import OrderedDict
@@ -156,7 +156,7 @@ _SquareCmutMembrane['gap'] = 100e-9
 _SquareCmutMembrane['att_mech'] = 0
 _SquareCmutMembrane['npatch_x'] = 3
 _SquareCmutMembrane['npatch_y'] = 3
-_SquareCmutMembrane['k_matrix_comsol_file'] = None
+_SquareCmutMembrane['kmat_file'] = None
 _SquareCmutMembrane['patches'] = FACTORY(list)
 SquareCmutMembrane = register_type('SquareCmutMembrane', _SquareCmutMembrane)
 
@@ -175,7 +175,7 @@ _CircularCmutMembrane['gap'] = 100e-9
 _CircularCmutMembrane['att_mech'] = 0
 _CircularCmutMembrane['npatch_r'] = 2
 _CircularCmutMembrane['npatch_theta'] = 4
-_CircularCmutMembrane['k_matrix_comsol_file'] = None
+_CircularCmutMembrane['kmat_file'] = None
 _CircularCmutMembrane['patches'] = FACTORY(list)
 CircularCmutMembrane = register_type('CircularCmutMembrane', _CircularCmutMembrane)
 
@@ -390,7 +390,7 @@ def rotate_array(a, vec, angle, origin=None):
 
     # rotate elements
     for e in a.elements:
-        util.rotate_element(e, origin, vec, angle)
+        rotate_element(e, origin, vec, angle)
 
 
 @vectorize
