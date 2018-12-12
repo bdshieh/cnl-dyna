@@ -1,4 +1,6 @@
-## cmut-nonlinear-sim / util.py
+'''
+Utility functions.
+''' 
 
 import numpy as np
 import pandas as pd
@@ -14,7 +16,7 @@ import argparse
 from cnld import abstract
 
 
-## GEOMETRY-RELATED FUNCTIONS ##
+''' GEOMETRY-RELATED FUNCTIONS '''
 
 def meshview(v1, v2, v3, mode='cartesian', as_list=True):
 
@@ -153,7 +155,7 @@ def distance(*args):
     return cdist(*np.atleast_2d(*args))
 
 
-## SIGNAL PROCESSING AND RF DATA FUNCTIONS ##
+''' SIGNAL PROCESSING AND RF DATA FUNCTIONS '''
 
 def gausspulse(fc, fbw, fs):
 
@@ -279,7 +281,7 @@ def qfft(s, nfft=None, fs=1, dr=100, fig=None, **kwargs):
     return freqs[:cutoff], ftdb[:, :cutoff]
 
 
-## JOB-RELATED UTILITY FUNCTIONS ##
+''' JOB-RELATED FUNCTIONS '''
 
 def chunks(iterable, n):
 
@@ -343,7 +345,7 @@ def create_jobs(*args, mode='zip', is_complete=None):
         yield job_id + 1, tuple(res[i] for i in np.argsort(static_idx + iterable_idx))
 
 
-## DATABASE FUNCTIONS ##
+''' DATABASE FUNCTIONS '''
 
 def open_db(f):
     def decorator(firstarg, *args, **kwargs):
@@ -399,7 +401,7 @@ def update_progress(con, job_id):
         con.execute('UPDATE progress SET is_complete=1 WHERE job_id=?', [job_id,])
 
 
-## SCRIPTING FUNCTIONS ##
+''' SCRIPTING FUNCTIONS '''
 
 def script_parser(main, config_dict):
     '''
@@ -418,7 +420,7 @@ def script_parser(main, config_dict):
             cfg = Config(**abstract.load(args.config))
         else:
             cfg = Config()
-        main(cfg, args)
+        return main(cfg, args)
 
     # create argument parser
     parser = argparse.ArgumentParser()
@@ -429,10 +431,37 @@ def script_parser(main, config_dict):
     config_parser.set_defaults(func=config)
     # define run subparser
     run_parser = subparsers.add_parser('run', help='run_help')
-    run_parser.add_argument('file')
+    run_parser.add_argument('-f', '--file', nargs='?')
     run_parser.add_argument('config', nargs='?')
     run_parser.add_argument('-t', '--threads', nargs='?', type=int)
     run_parser.add_argument('-w', '--write-over', action='store_true')
     run_parser.set_defaults(func=run)
 
     return parser
+
+
+''' MISC FUNCTIONS '''
+
+def memoize(func):
+    '''
+    Simple memoizer to cache repeated function calls.
+    '''
+    def ishashable(obj):
+        try:
+            hash(obj)
+        except TypeError:
+            return False
+        return True
+    
+    def make_hashable(obj):
+        if not ishashable(obj):
+            return str(obj)
+        return obj
+
+    memo = {}
+    def decorator(*args):
+        key = tuple(make_hashable(a) for a in args)
+        if key not in memo:
+            memo[key] = func(*args)
+        return memo[key]
+    return decorator

@@ -4,36 +4,15 @@ import pytest
 import numpy as np
 import scipy.sparse as sps
 
-from cnld.compressed_formats2 import *
-from cnld.h2lib import *
-from cnld.mesh import fast_matrix_array
+from cnld import arrays, abstract, bem
 
 
 ''' FIXTURES '''
 
 @pytest.fixture
-def make_npfull():
-    def f(shape=(20,20)):
-        return np.ones(shape)
-    return f
+def array():
+    array = arrays.matrix()
 
-@pytest.fixture
-def make_npsparse():
-    def f(shape=(20,20)):
-        return sps.csr_matrix(np.ones(shape))
-    return f
-
-@pytest.fixture
-def make_full(make_npfull):
-    def f(shape=(20,20)):
-        return FullFormat(AMatrix.from_array(make_npfull(shape)))
-    return f
-
-@pytest.fixture
-def make_sparse(make_npsparse):
-    def f(shape=(20,20)):
-        return SparseFormat(SparseMatrix.from_array(make_npsparse(shape)))
-    return f
 
 @pytest.fixture
 def make_h():
@@ -61,8 +40,6 @@ def make_h():
         return HFormat(H)
     return f
 
-
-''' TESTS '''
 
 class TestFullFormat:
 

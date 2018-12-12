@@ -1,4 +1,5 @@
-''' Generates patch-to-patch impulse responses (in frequency domain) database for an array of CMUT membranes.
+''' 
+Generates patch-to-patch impulse responses (in frequency domain) database for an array of CMUT membranes.
 '''
 import numpy as np
 import multiprocessing
@@ -7,11 +8,11 @@ from tqdm import tqdm
 import os, sys, traceback
 
 from cnld import abstract, bem, util
-from cnld.mesh import Mesh, calc_mesh_refn_square
+from cnld.mesh import Mesh, calc_refn_square
 from cnld.impulse_response import create_database, update_database
 
 
-## PROCESS FUNCTIONS ##
+''' PROCESS FUNCTIONS '''
 
 def init_process(_write_lock):
     global write_lock
@@ -32,27 +33,21 @@ def process(job):
     wavelen = 2 * np.pi * f / c
     length_x = firstmem.length_x
     length_y = firstmem.length_y
-    refn = calc_mesh_refn_square(length_x, length_y, wavelen)
+    refn = calc_refn_square(length_x, length_y, wavelen)
+
     # create mesh
     mesh = Mesh.from_abstract(array, refn)
 
-    # create MBK matrix in SparseFormat based on first membrane
-    n = len(mesh.vertices)
-    nmem = abstract.get_membrane_count(array)
-    rho = firstmem.rho
-    h = firstmem.h
-    att = firstmem.att
-    kfile = firstmem.k_matrix_comsol_file
-    MBK = bem.MBK_matrix(f, len(mesh.vertices), nmem, rho, h, att, kfile, compress=True)
+    # create MBK matrix in SparseFormat
+    MBK = bem.mbk_from_abstract(array, f, refn)
 
     # create Z matrix in HFormat
     hmkwrds = ['aprx', 'basis', 'admis', 'eta', 'eps', 'm', 'clf', 'eps_aca', 'rk', 'q_reg', 'q_sing', 'strict']
     hmargs = { k:cfg[k] for k in hmkwrds }
-    Z = bem.Z_matrix('HFormat', mesh, k, **hmargs)
+    Z = bem.z_from_abstract(array, k, refn, **hmargs)
 
     # construct G in HFormat from MBK and Z
-    MBK.to_hformat(Z).add(Z)
-    G = MBK
+    G = MBK + Z
 
     # LU decomposition
     G_LU = G.lu()
@@ -92,7 +87,7 @@ def run_process(*args, **kwargs):
         raise Exception("".join(traceback.format_exception(*sys.exc_info())))
 
 
-## ENTRY POINT ##
+''' ENTRY POINT '''
 
 def main(cfg, args):
     ''''''
@@ -150,7 +145,7 @@ if __name__ == '__main__':
     import sys
     from cnld import util
 
-    # define configuration for this script
+    # define default configuration for this script
     Config = {}
     Config['freqs'] = 500e3, 10e6, 500e3
     Config['sound_speed'] = 1500.

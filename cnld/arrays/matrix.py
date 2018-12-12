@@ -1,44 +1,24 @@
-''' Abstract representation of a matrix array.
+''' 
+Abstract representation of a matrix array.
 '''
 import numpy as np
 
-from cmut_nonlinear_sim.abstract import *
-
-# default parameters
-defaults = {}
-# membrane properties
-defaults['length'] = [40e-6, 40e-6]
-defaults['electrode'] = [40e-6, 40e-6]
-defaults['thickness'] = [2e-6,]
-defaults['density'] = [2040,]
-defaults['y_modulus'] = [110e9,]
-defaults['p_ratio'] = [0.22,]
-defaults['isolation'] = 200e-9
-defaults['permittivity'] = 6.3
-defaults['gap'] = 100e-9
-defaults['att_mech'] = 0
-defaults['npatch'] = [3, 3]
-defaults['k_matrix_comsol_file'] = None
-# array properties
-defaults['mempitch'] = [60e-6, 60e-6]
-defaults['nmem'] = [1, 1]
-defaults['elempitch'] = [60e-6, 60e-6]
-defaults['nelem'] = [5, 5]
+from cnld.abstract import *
+from cnld import util
 
 
-def init(**kwargs):
 
-    # set defaults if not in kwargs:
-    for k, v in defaults.items():
-        kwargs.setdefault(k, v)
 
-    nmem_x, nmem_y = kwargs['nmem']
-    mempitch_x, mempitch_y = kwargs['mempitch']
-    length_x, length_y = kwargs['length']
-    electrode_x, electrode_y = kwargs['electrode']
-    npatch_x, npatch_y = kwargs['npatch']
-    nelem_x, nelem_y = kwargs['nelem']
-    elempitch_x, elempitch_y = kwargs['elempitch']
+
+def main(cfg, args):
+
+    nmem_x, nmem_y = cfg.nmem
+    mempitch_x, mempitch_y = cfg.mempitch
+    length_x, length_y = cfg.length
+    electrode_x, electrode_y = cfg.electrode
+    npatch_x, npatch_y = cfg.npatch
+    nelem_x, nelem_y = cfg.nelem
+    elempitch_x, elempitch_y = cfg.elempitch
 
     # membrane properties
     memprops = {}
@@ -46,17 +26,17 @@ def init(**kwargs):
     memprops['length_y'] = length_y
     memprops['electrode_x'] = electrode_x
     memprops['electrode_y'] = electrode_y
-    memprops['y_modulus'] = kwargs['y_modulus']
-    memprops['p_ratio'] = kwargs['p_ratio']
-    memprops['isolation'] = kwargs['isolation']
-    memprops['permittivity'] = kwargs['permittivity']
-    memprops['gap'] = kwargs['gap']
+    memprops['y_modulus'] = cfg.y_modulus
+    memprops['p_ratio'] = cfg.p_ratio
+    memprops['isolation'] = cfg.isolation
+    memprops['permittivity'] = cfg.permittivity
+    memprops['gap'] = cfg.gap
     memprops['npatch_x'] = npatch_x
     memprops['npatch_y'] = npatch_y
-    memprops['thickness'] = kwargs['thickness']
-    memprops['density'] = kwargs['density']
-    memprops['att_mech'] = kwargs['att_mech']
-    memprops['k_matrix_comsol_file'] = kwargs['k_matrix_comsol_file']
+    memprops['thickness'] = cfg.thickness
+    memprops['density'] = cfg.density
+    memprops['att'] = cfg.att
+    memprops['kmat_file'] = cfg.kmat_file
 
     # calculate patch positions
     patchpitch_x = length_x / npatch_x
@@ -91,15 +71,11 @@ def init(**kwargs):
     patch_counter = 0
 
     for epos in elem_pos:
-
         # construct membrane list
         membranes = []
-        
         for mpos in mem_pos:
-
             # construct patch list
             patches = []
-
             for ppos in patch_pos:
 
                 # construct patch
@@ -140,28 +116,37 @@ def init(**kwargs):
     return array
 
 
-## COMMAND LINE INTERFACE ##
+# default configuration
+Config = {}
+# membrane properties
+Config['length'] = [40e-6, 40e-6]
+Config['electrode'] = [40e-6, 40e-6]
+Config['thickness'] = [2e-6,]
+Config['density'] = [2040,]
+Config['y_modulus'] = [110e9,]
+Config['p_ratio'] = [0.22,]
+Config['isolation'] = 200e-9
+Config['permittivity'] = 6.3
+Config['gap'] = 100e-9
+Config['att'] = 0
+Config['npatch'] = [3, 3]
+Config['kmat_file'] = None
+# array properties
+Config['mempitch'] = [60e-6, 60e-6]
+Config['nmem'] = [1, 1]
+Config['elempitch'] = [60e-6, 60e-6]
+Config['nelem'] = [5, 5]
 
 if __name__ == '__main__':
 
-    import argparse
+    import sys
+    from cnld import util
 
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-nmem', '--nmem', nargs=2, type=int)
-    parser.add_argument('-mempitch', '--mempitch', nargs=2, type=float)
-    parser.add_argument('-nelem', '--nelem', nargs=2, type=int)
-    parser.add_argument('-elempitch', '--elempitch', nargs=2, type=float)
-    parser.add_argument('-d', '--dump', nargs='?', default=None)
-    parser.set_defaults(**defaults)
+    # get script parser and parse arguments
+    parser = util.script_parser(main, Config)
+    args = parser.parse_args()
+    array = args.func(args)
 
-    args = vars(parser.parse_args())
-    filename = args.pop('dump')
-
-    spec = init(**args)
-    print(spec)
-
-    if filename is not None:
-        dump(spec, filename)
-
-    # from cmut_nonlinear_sim.mesh import Mesh
-    # mesh = Mesh.from_abstract(spec, refn=3)
+    if array is not None and args.file:
+        dump(array, args.file)
+    

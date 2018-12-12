@@ -462,7 +462,7 @@ def _from_abstract(cls, array, refn=2, **kwargs):
     return mesh
 
 
-def calc_mesh_refn_square(lx, ly, wavelen, step_per_wavelen=10, maxrefn=20):
+def calc_refn_square(lx, ly, wavelen, step_per_wavelen=10, maxrefn=20):
 
     refn = 2
 

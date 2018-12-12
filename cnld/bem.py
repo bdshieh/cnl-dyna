@@ -6,10 +6,9 @@ from matplotlib import pyplot as plt
 from scipy import sparse as sps, linalg
 from scipy.io import loadmat
 
-from . compressed_formats import ZMatrix, MBKMatrix
-# from . import h2lib
-from . mesh import from_spec
-
+from . compressed_formats2 import ZHMatrix, ZFullMatrix, MbkSparseMatrix, MbkFullMatrix
+from . mesh import Mesh, square, circle
+from . import util
 
 
 def isiterable(obj):
@@ -20,7 +19,8 @@ def isiterable(obj):
         return False
 
 
-def M_matrix(n, rho, h):
+@util.memoize
+def mem_m_matrix(n, rho, h):
 
     if not isiterable(rho):
         rho = [rho,]
@@ -31,55 +31,72 @@ def M_matrix(n, rho, h):
     return sps.csr_matrix(sps.eye(n) * mass)
 
 
-def B_matrix(n, att):
+@util.memoize
+def mem_b_matrix(n, att):
     return sps.csr_matrix(sps.eye(n) * att)
 
 
-def K_matrix_comsol(nmem, file, refn):
-    ''''''
-    # K = linalg.inv(loadmat(file)['x'].T)
-    with np.load(file) as root:
-        Ks = root['K']
-        refns = root['refn']
+@util.memoize
+def mem_k_matrix(file, refn):
+    with np.load(file) as npf:
+        idx = np.argmax(npf['refns'] == refn)
+        K = npf['Ks'][idx]
+    return K
+
+
+@util.memoize
+def get_nvert_square_membrane(xl, yl, refn):
+    mesh = square(xl, yl, refn)
+    return len(mesh.vertices)
+
+
+@util.memoize
+def get_nvert_circle_membrane(xl, yl, refn):
+    raise NotImplementedError
+
+
+def mbk_from_abstract(array, f, refn, format='SparseFormat'):
+
+    omg = 2 * np.pi * f
+    blocks = []
+    for elem in array.elements:
+        for mem in elem.membranes:
+
+            xl = mem['length_x']
+            yl = mem['length_y']
+            rho = mem['rho']
+            h = mem['h']
+            n = get_nvert_square_membrane(xl, yl, refn)
+            M = mem_m_matrix(n, rho, h)
+
+            att = mem['att']
+            B = mem_b_matrix(n, att)
+
+            kfile = mem['kfile']
+            K = mem_k_matrix(kfile, refn)
+
+            block = -(omg ** 2) * M + 1j * omg * B + K
+            blocks.append(block)
     
-    idx = np.argmin(np.abs(refns - refn))
-    K = Ks[idx]
-
-    return sps.csr_matrix(sps.block_diag([K for i in range(nmem)]))
-
-
-def K_matrix_pzflex():
-    pass
-
-    
-def MBK_matrix(f, n, nmem, rho, h, att, kfile, compress=True):
-    
-    M = M_matrix(n, rho, h)
-    B = B_matrix(n, att)
-    K = K_matrix_comsol(nmem, kfile)
-
-    omg = 2 * np.pi * f 
-    MBK = -(omg ** 2) * M + 1j * omg * B + K
-
-    if compress:
-        return MBKMatrix(MBK)
-    return MBK
+    if format.lower() in ['sparse', 'sparseformat']:
+        return MbkSparseMatrix(sps.csr_matrix(sps.block_diag(blocks)))
+    else:
+        return MbkFullMatrix(sps.block_diag(blocks).todense())
 
 
-def Z_matrix(format, mesh, k, *args, **kwargs):
-    return ZMatrix(format, mesh, k, *args, **kwargs)
+def mbk_from_mesh():
+    raise NotImplementedError
 
 
+def z_from_abstract(array, k, refn, format='HFormat', *args, **kwargs):
+    mesh = Mesh.from_abstract(array, refn)
+    return z_from_mesh(mesh, k, format, *args, **kwargs)
 
-# for frequency each f, create mesh from spec
 
-# from mesh, generate M, B, K as Scipy sparse matrices
-# convert M, B, K to MBK in compressed sparseformat
+def z_from_mesh(mesh, k, format='HFormat', *args, **kwargs):
+    if format.lower() in ['hformat', 'h']:
+        return ZHMatrix(mesh, k, *args, **kwargs)
+    else:
+        return ZFullMatrix(mesh, k, *args, **kwargs)
 
-# generate Z in compressed hformat
-# perform G = MBK + Z by converting MBK to hformat and adding
-
-# decompose LU = G
-# solve x(f) using LU for lumped forcings
-# calculate time impulse response using ifft
 

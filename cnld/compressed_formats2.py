@@ -1,16 +1,20 @@
-## zmatrix.py ##
+'''
+Data-sparse (compressed) formats for matrices using h2lib
+'''
 
 from . h2lib import *
-from timeit import default_timer as timer
 
+import numpy as np
+from timeit import default_timer as timer
+from scipy.sparse import csr_matrix, issparse
 from matplotlib import pyplot as plt
 from matplotlib import patches
-from scipy.sparse import csr_matrix, issparse
 
 
-
-
-class Format:
+class BaseFormat:
+    '''
+    Base class defining abstract interface for formats
+    '''
 
     def __init__(self, mat):
         self._mat = mat
@@ -18,9 +22,18 @@ class Format:
     def __del__(self):
         if self._mat is not None: del self._mat
 
+    ''' PROPERTIES '''
+    @property
+    def rows(self):
+        return
+
+    @property
+    def cols(self):
+        return
+
     @property
     def shape(self):
-        return self._mat.rows, self._mat.cols
+        return self.rows, self.cols
 
     @property
     def ndim(self):
@@ -30,11 +43,12 @@ class Format:
     def format(self):
         return self.__class__.__name__
     
+    ''' MAGIC OPERATIONS '''
     def _add(self, x):
         return NotImplemented
 
     def __add__(self, x):
-        if not isinstance(x, Format):
+        if not isinstance(x, BaseFormat):
             raise ValueError('operation not supported with this type')
         
         if self.shape != x.shape:
@@ -51,7 +65,7 @@ class Format:
         return self.dot(x)
 
     def __call__(self, x):
-        return self * other
+        return self * x
 
     def __neg__(self):
         return self * -1
@@ -59,6 +73,7 @@ class Format:
     def __sub__(self, x):
         return self.__add__(-x)
 
+    ''' LINALG OPERATIONS '''
     def _smul(self, x):
         raise NotImplementedError
 
@@ -124,7 +139,8 @@ class Format:
 
     def transpose(self):
         return self._transpose()
-    
+
+    ''' LINALG SOLVING '''  
     def _lu(self, eps):
         raise NotImplementedError
     
@@ -150,18 +166,32 @@ class Format:
         pass
 
 
-class FullFormat(Format):
+class FullFormat(BaseFormat):
+    '''
+    Full (dense) matrix format, i.e. no compression
+    '''
+
+    ''' PROPERTIES '''
+    @property
+    def rows(self):
+        return self._mat.rows
+
+    @property
+    def cols(self):
+        return self._mat.cols
 
     @property
     def size(self):
         return getsize_amatrix(self._mat)
 
+    ''' INDEXING '''
     def __getitem__(self, key):
         return self._mat.a[key]
 
     def __setitem__(self, key, val):
         self._mat.a[key] = val
 
+    ''' OPERATIONS '''
     def _add(self, x):
         if isinstance(x, FullFormat):
             B = clone_amatrix(self._mat)
@@ -223,8 +253,24 @@ class FullFormat(Format):
         return np.asarray(x.v)
 
 
-class SparseFormat(Format):
+class SparseFormat(BaseFormat):
+    '''
+    Sparse matrix format
+    '''
 
+    ''' PROPERTIES '''
+    @property
+    def rows(self):
+        return self._mat.rows
+
+    @property
+    def cols(self):
+        return self._mat.cols
+
+    @property
+    def size(self):
+        return getsize_sparsematrix(self._mat)
+        
     @property
     def nnz(self):
         return self._mat.nz
@@ -241,10 +287,7 @@ class SparseFormat(Format):
     def coeff(self):
         return self._mat.coeff
 
-    @property
-    def size(self):
-        return getsize_sparsematrix(self._mat)
-
+    ''' OPERATIONS '''
     def _add(self, x):
         return NotImplemented
 
@@ -260,7 +303,6 @@ class SparseFormat(Format):
             raise NotImplementedError('operation not supported with this type')
         else:
             raise ValueError('operation with unrecognized type')
-        return self
 
     def _matvec(self, x):
         xv = AVector.from_array(x)
@@ -280,27 +322,42 @@ class SparseFormat(Format):
 
     def _cholsolve(self, b):
         raise NotImplementedError('operation not supported with this type')
-        
+
+    ''' OTHER '''
     def _as_hformat(self, href):
+        '''
+        Convert sparse format to hierarchical format using 
+        the h-structure in href
+        '''
         hm = clonestructure_hmatrix(href)
         copy_sparsematrix_hmatrix(self._mat, hm)
         return HFormat(hm)
 
 
-class HFormat(Format):
+class HFormat(BaseFormat):
+    '''
+    Hierarchical matrix format
+    '''
 
+    ''' DATA ATTRIBUTES '''
     eps_add = 1e-12
     eps_lu = 1e-12
     eps_chol = 1e-12
+
+    ''' PROPERTIES '''
+    @property
+    def rows(self):
+        return getrows_hmatrix(self._mat)
+
+    @property
+    def cols(self):
+        return getcols_hmatrix(self._mat)
 
     @property
     def size(self):
         return getsize_hmatrix(self._mat)
 
-    @property
-    def shape(self):
-        return getrows_hmatrix(self._mat), getcols_hmatrix(self._mat)
-
+    ''' OPERATIONS '''
     def _add(self, x):
         if isinstance(x, FullFormat):
             B = clone_hmatrix(self._mat)
@@ -310,6 +367,7 @@ class HFormat(Format):
         elif isinstance(x, SparseFormat):
             B = clone_hmatrix(self._mat)
             tm = new_releucl_truncmode()
+            # sparse format is converted to hformat prior to addition
             add_hmatrix(1, (x._as_hformat(self._mat))._mat, tm, self.eps_add, B)
             return HFormat(B)
         elif isinstance(x, HFormat):
@@ -354,12 +412,12 @@ class HFormat(Format):
     def _lu(self):
         LU = clone_hmatrix(self._mat)
         tm = new_releucl_truncmode()
-        return HFormat(lrdecomp_hmatrix(Z_lu, tm, self.eps_lu))
+        return HFormat(lrdecomp_hmatrix(LU, tm, self.eps_lu))
 
     def _chol(self):
-        LU = clone_hmatrix(self._mat)
+        CHOL = clone_hmatrix(self._mat)
         tm = new_releucl_truncmode()
-        return HFormat(choldecomp_hmatrix(Z_lu, tm, self.eps_chol))
+        return HFormat(choldecomp_hmatrix(CHOL, tm, self.eps_chol))
    
     def _lusolve(self, b):
         x = AVector.from_array(b)
@@ -370,7 +428,8 @@ class HFormat(Format):
         x = AVector.from_array(b)
         cholsolve_hmatrix_avector(self._mat, x)
         return np.asarray(x.v)
-    
+
+    ''' OTHER '''
     def _draw_hmatrix(self, hm, bbox, maxidx, ax):
         if len(hm.son) == 0:
             if hm.r:
@@ -454,7 +513,7 @@ def _mbk_repr(self):
 
     repr = []
     repr.append('MBKMatrix (Mass, Damping, Stiffness Matrix)\n')
-    repr.append(f'  Format: {self.format}\n')
+    repr.append(f'  BaseFormat: {self.format}\n')
     repr.append(f'  Shape: {self.shape}\n')
     repr.append(f'  Size: {self.size:.2f} MB\n')
     return ''.join(repr)
@@ -464,7 +523,7 @@ def _z_repr(self):
 
     repr = []
     repr.append('ZMatrix (Acoustic Impedance Matrix)\n')
-    repr.append(f'  Format: {self.format}\n')
+    repr.append(f'  BaseFormat: {self.format}\n')
     repr.append(f'  Shape: {self.shape}\n')
     repr.append(f'  Size: {self.size:.2f} MB\n')
     return ''.join(repr)
