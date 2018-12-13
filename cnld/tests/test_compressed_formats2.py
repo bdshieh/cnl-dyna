@@ -119,6 +119,12 @@ class TestFullFormat:
         CHOL = mat.chol()
 
 
+class TestSparseFormat:
+
+    def test_add(self, make_h, make_sparse):
+        H = make_h()
+        mat = make_sparse(H.shape) + H
+        
 
 class TestHFormat:
 

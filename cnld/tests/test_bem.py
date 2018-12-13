@@ -10,9 +10,9 @@ from cnld.mesh import Mesh
 import cnld.arrays.matrix
 
 
-test_dir = os.path.dirname(os.path.realpath(__file__))
-
 ''' FIXTURES '''
+
+test_dir = os.path.dirname(os.path.realpath(__file__))
 
 @pytest.fixture
 def array():
@@ -22,10 +22,12 @@ def array():
     cfg.kmat_file = os.path.join(test_dir, 'kmat.npz')
     return cnld.arrays.matrix.main(cfg, None)
 
+
 @pytest.fixture
 def mesh(array):
     return Mesh.from_abstract(array, refn=3)
     
+
 @pytest.fixture
 def hmargs():
     hmargs = {}
@@ -52,6 +54,7 @@ def test_mbk_from_abstract(array):
     MBK = bem.mbk_from_abstract(array, f=1e6, refn=3, format='FullFormat')
     assert MBK.size > 0
 
+
 def test_z_from_mesh(mesh, hmargs):
     k = 2 * np.pi * 1e6 / 1500.
 
@@ -60,6 +63,7 @@ def test_z_from_mesh(mesh, hmargs):
 
     Z = bem.z_from_mesh(mesh, k, format='FullFormat', **hmargs)
     assert Z.size > 0
+
 
 def test_z_from_abstract(array, hmargs):
     k = 2 * np.pi * 1e6 / 1500.

@@ -55,6 +55,9 @@ class BaseFormat:
             raise ValueError('dimension mismatch')
         
         return self._add(x)
+    
+    def __radd__(self, x):
+        return self.__add__(x)
 
     def __rmul__(self, x):
         if not np.isscalar(x):
@@ -72,6 +75,9 @@ class BaseFormat:
 
     def __sub__(self, x):
         return self.__add__(-x)
+    
+    def __rsub__(self, x):
+        return self.__sub__(x) * -1
 
     ''' LINALG OPERATIONS '''
     def _smul(self, x):
@@ -141,10 +147,10 @@ class BaseFormat:
         return self._transpose()
 
     ''' LINALG SOLVING '''  
-    def _lu(self, eps):
+    def _lu(self):
         raise NotImplementedError
     
-    def _chol(self, eps):
+    def _chol(self):
         raise NotImplementedError
     
     def _lusolve(self, b):
@@ -153,17 +159,17 @@ class BaseFormat:
     def _cholsolve(self, b):
         raise NotImplementedError
 
-    def lu(self, eps=None):
-        pass
+    def lu(self):
+        return self._lu()
     
     def lusolve(self, b):
-        pass
+        return self._lusolve(b)
 
-    def chol(self, eps=None):
-        pass
+    def chol(self):
+        return self._chol()
     
     def cholsolve(self, b):
-        pass
+        return self._cholsolve(b)
 
 
 class FullFormat(BaseFormat):
@@ -234,13 +240,15 @@ class FullFormat(BaseFormat):
         # addevalsymm_hmatrix_avector(1.0, self._mat, x, y)
         return np.asarray(y.v)
 
-    def _lu(self, eps):
+    def _lu(self):
         LU = clone_amatrix(self._mat)
-        return FullFormat(lrdecomp_amatrix(LU))
+        lrdecomp_amatrix(LU)
+        return FullFormat(LU)
     
-    def _chol(self, eps):
+    def _chol(self):
         CH = clone_amatrix(self._mat)
-        return FullFormat(choldecomp_amatrix(CH))
+        choldecomp_amatrix(CH)
+        return FullFormat(CH)
    
     def _lusolve(self, b):
         x = AVector.from_array(b)
@@ -311,10 +319,10 @@ class SparseFormat(BaseFormat):
         addeval_sparsematrix_avector(1.0, self._mat, xv, y)
         return np.asarray(y.v)
 
-    def _lu(self, eps):
+    def _lu(self):
         raise NotImplementedError('operation not supported with this type')
     
-    def _chol(self, eps):
+    def _chol(self):
         raise NotImplementedError('operation not supported with this type')
    
     def _lusolve(self, b):
@@ -412,12 +420,14 @@ class HFormat(BaseFormat):
     def _lu(self):
         LU = clone_hmatrix(self._mat)
         tm = new_releucl_truncmode()
-        return HFormat(lrdecomp_hmatrix(LU, tm, self.eps_lu))
+        lrdecomp_hmatrix(LU, tm, self.eps_lu)
+        return HFormat(LU)
 
     def _chol(self):
         CHOL = clone_hmatrix(self._mat)
         tm = new_releucl_truncmode()
-        return HFormat(choldecomp_hmatrix(CHOL, tm, self.eps_chol))
+        choldecomp_hmatrix(CHOL, tm, self.eps_chol)
+        return HFormat(CHOL)
    
     def _lusolve(self, b):
         x = AVector.from_array(b)

@@ -3,6 +3,7 @@
 import numpy as np
 import os
 import sqlite3 as sql
+import pandas as pd
 
 from . import util
 
@@ -26,12 +27,13 @@ def create_database(con, **kwargs):
 @util.open_db
 def update_database(con, **kwargs):
 
-    row_keys = ['frequency', 'wavenumber', 'source_patch_id', 'dest_patch_id', 'membrane_id', 
-                'element_id', 'displacement_real', 'displacement_imag']
+    row_keys = ['frequency', 'wavenumber', 'source_patch_id', 'dest_patch_id', 'source_membrane_id',
+                'dest_membrane_id', 'source_element_id', 'dest_element_id', 'displacement_real', 
+                'displacement_imag']
     row_data = tuple([kwargs[k] for k in row_keys])
 
     with con:
-        query = 'INSERT INTO displacements VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?)'
+        query = 'INSERT INTO displacements VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
         con.executemany(query, zip(*row_data))
 
 
@@ -66,8 +68,10 @@ def create_displacements_table(con, **kwargs):
                 wavenumber float,
                 source_patch_id integer,
                 dest_patch_id integer,
-                membrane_id integer,
-                element_id integer,
+                source_membrane_id integer,
+                dest_membrane_id integer,
+                source_element_id integer,
+                dest_element_id integer,
                 displacement_real float,
                 displacement_imag float,
                 FOREIGN KEY (frequency, wavenumber) REFERENCES frequencies (frequency, wavenumber)
@@ -76,18 +80,41 @@ def create_displacements_table(con, **kwargs):
         con.execute(query)
 
         # create indexes
-        con.execute('CREATE INDEX frequency_index ON displacements (frequency)')
+        con.execute('CREATE INDEX displacements_index ON displacements (frequency)')
         con.execute('CREATE INDEX source_patch_id_index ON displacements (source_patch_id)')
         con.execute('CREATE INDEX dest_patch_id ON displacements (dest_patch_id)')
-        con.execute('CREATE INDEX membrane_id_index ON displacements (membrane_id)')
-        con.execute('CREATE INDEX element_id_index ON displacements (element_id)')
+        con.execute('CREATE INDEX source_membrane_id_index ON displacements (source_membrane_id)')
+        con.execute('CREATE INDEX dest_membrane_id_index ON displacements (dest_membrane_id)')
+        con.execute('CREATE INDEX source_element_id_index ON displacements (source_element_id)')
+        con.execute('CREATE INDEX dest_element_id_index ON displacements (dest_element_id)')
+
+
+@util.open_db
+def read_freq_resp_db(con):
+    with con:
+        query = '''
+                SELECT source_patch_id, dest_patch_id, frequency, displacement_real, displacement_imag FROM displacements
+                ORDER BY source_patch_id, dest_patch_id, frequency
+                '''
+        table = pd.read_sql(query, con)
+        
+    source_patch_ids = np.unique(table['source_patch_id'].values)
+    dest_patch_ids = np.unique(table['dest_patch_id'].values)
+    freqs = np.unique(table['frequency'].values)
+    nsource = len(source_patch_ids)
+    ndest = len(dest_patch_ids)
+    nfreq = len(freqs)
+    assert nsource == ndest
+
+    disp = np.array(table['displacement_real'] + 1j * table['displacement_imag']).reshape((nsource, ndest, nfreq), order='F')
+    return disp
 
 
 if __name__ == '__main__':
     
     from . mesh import fast_matrix_array
 
-    mesh = fast_matrix_array(5, 5, 60e-6, 60e-6, refn=3, lengthx=40e-6, lengthy=40e-6)
+    mesh = fast_matrix_array(5, 5, 60e-6, 60e-6, refn=3, xl=40e-6, yl=40e-6)
     freqs = np.arange(50e3, 30e6 + 50e3, 50e3)
     wavenums = 2 * np.pi * freqs / 1500
 

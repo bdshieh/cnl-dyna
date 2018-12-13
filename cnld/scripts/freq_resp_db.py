@@ -14,14 +14,16 @@ from cnld.impulse_response import create_database, update_database
 
 ''' PROCESS FUNCTIONS '''
 
-def init_process(_write_lock):
-    global write_lock
+def init_process(_write_lock, _cfg, _args):
+    global write_lock, cfg, args
     write_lock = _write_lock
+    cfg = _cfg
+    args = _args
 
 
 def process(job):
     ''''''
-    job_id, (cfg, args, f, k) = job
+    job_id, (f, k) = job
 
     # get options and parameters
     c = cfg.sound_speed
@@ -34,20 +36,23 @@ def process(job):
     length_x = firstmem.length_x
     length_y = firstmem.length_y
     refn = calc_refn_square(length_x, length_y, wavelen)
+    if refn < 3: refn = 3  # enforce minimum mesh refinement
 
     # create mesh
     mesh = Mesh.from_abstract(array, refn)
 
     # create MBK matrix in SparseFormat
-    MBK = bem.mbk_from_abstract(array, f, refn)
+    MBK = bem.mbk_from_abstract(array, f, refn, format='SparseFormat')
 
     # create Z matrix in HFormat
     hmkwrds = ['aprx', 'basis', 'admis', 'eta', 'eps', 'm', 'clf', 'eps_aca', 'rk', 'q_reg', 'q_sing', 'strict']
-    hmargs = { k:cfg[k] for k in hmkwrds }
+    hmargs = { k:getattr(cfg, k) for k in hmkwrds }
     Z = bem.z_from_abstract(array, k, refn, **hmargs)
 
     # construct G in HFormat from MBK and Z
-    G = MBK + Z
+    # G = MBK + (2 * np.pi * f) ** 2 * -1000. * Z 
+    G = -(2 * np.pi * f)**2 * 1000. * 2 * Z
+    # G = MBK
 
     # LU decomposition
     G_LU = G.lu()
@@ -59,13 +64,17 @@ def process(job):
     for sid in source_patch_id:
         # solve
         b = np.zeros(len(mesh.vertices))
-        mask = np.any(mesh.patch_ids == sid, axis=1)
-        b[mask] = 1
+        smask = np.any(mesh.patch_ids == sid, axis=1)
+        b[smask] = 1
         x = G_LU.lusolve(b)
         x_patch = []
+        dest_membrane_ids = []
+        dest_element_ids = []
         for did in dest_patch_id:
-            mask = np.any(mesh.patch_ids == did)
-            x_patch.append(np.mean(x[mask]))
+            dmask = np.any(mesh.patch_ids == did, axis=1)
+            x_patch.append(np.mean(x[dmask]))
+            dest_membrane_ids.append(mesh.membrane_ids[dmask][0])
+            dest_element_ids.append(mesh.element_ids[dmask][0])
 
         # write results to database
         data = {}
@@ -73,6 +82,10 @@ def process(job):
         data['wavenumber'] = repeat(k)
         data['source_patch_id'] = repeat(sid)
         data['dest_patch_id'] = dest_patch_id
+        data['source_membrane_id'] = repeat(mesh.membrane_ids[smask][0])
+        data['dest_membrane_id'] = dest_membrane_ids
+        data['source_element_id'] = repeat(mesh.element_ids[smask][0])
+        data['dest_element_id'] = dest_element_ids
         data['displacement_real'] = np.real(x_patch)
         data['displacement_imag'] = np.imag(x_patch)
         with write_lock:
@@ -109,7 +122,7 @@ def main(cfg, args):
     if os.path.isfile(file):
         if write_over:  # if file exists, write over
             os.remove(file)  # remove existing file
-            create_database(file, freqs=freqs, wavenums=wavenums)  # create database
+            create_database(file, frequencies=freqs, wavenumbers=wavenums)  # create database
             util.create_progress_table(file, njobs)
 
         else: # continue from current progress
@@ -122,14 +135,14 @@ def main(cfg, args):
             os.makedirs(file_dir)
 
         # create database
-        create_database(file, freqs=freqs, wavenums=wavenums)  # create database
+        create_database(file, frequencies=freqs, wavenumbers=wavenums)  # create database
         util.create_progress_table(file, njobs)
 
     # start multiprocessing pool and run process
     try:
         write_lock = multiprocessing.Lock()
-        pool = multiprocessing.Pool(threads, initializer=init_process, initargs=(write_lock,))
-        jobs = util.create_jobs(cfg, args, (freqs, 1), (wavenums, 1), mode='zip', is_complete=is_complete)
+        pool = multiprocessing.Pool(threads, initializer=init_process, initargs=(write_lock, cfg, args))
+        jobs = util.create_jobs((freqs, 1), (wavenums, 1), mode='zip', is_complete=is_complete)
         result = pool.imap_unordered(run_process, jobs)
         for r in tqdm(result, desc='Calculating', total=njobs, initial=ijob):
             pass
@@ -150,7 +163,6 @@ if __name__ == '__main__':
     Config['freqs'] = 500e3, 10e6, 500e3
     Config['sound_speed'] = 1500.
     Config['array_config'] = ''
-    Config['kmat_file'] = ''
     Config['aprx'] = 'paca'
     Config['basis'] = 'linear'
     Config['admis'] = 'max'
@@ -165,7 +177,7 @@ if __name__ == '__main__':
     Config['strict'] = False
 
     # get script parser and parse arguments
-    parser = util.script_parser(main, Config)
+    parser, run_parser = util.script_parser(main, Config)
     args = parser.parse_args()
     args.func(args)
 
