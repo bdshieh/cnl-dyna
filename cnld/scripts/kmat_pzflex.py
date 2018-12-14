@@ -137,7 +137,7 @@ def postproc(vert, on_bound):
         # skip boundary vertices
         if on_bound[i]:
             continue
-        dsp[i] = fi(x, y)
+        dsp[i] = fi(y, x)
     
     return np.array(dsp) 
         
