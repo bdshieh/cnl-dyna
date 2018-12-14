@@ -43,10 +43,14 @@ grid $indgrd $jndgrd $kndgrd
 geom keypnt $idx $jdx $kdx
 
 c ** MATERIALS **
+c symb cbulk sqrt($E * (1 - $v) / ($rho * (1 + $v) * (1 - 2 * $v)))
+c symb cshear sqrt($E / (2 * (1 + $v)) / $rho)
 matr
 	type elas
 	wvsp on
-	prop sin 2200 11000 6250
+    prop sin 2040 7846 4700
+c   prop sin $rho $cbulk $cshear
+c	prop sin 2200 11000 6250
 c 	mdmp sin 1e6 db 4000
 
 c ** MATERIAL ASSIGNMENT **
@@ -211,6 +215,6 @@ if __name__ == '__main__':
     Config['zmin'] = 2e-6 / 8
 
     # get script parser and parse arguments
-    parser = util.script_parser(main, Config)
+    parser, run_parser = util.script_parser(main, Config)
     args = parser.parse_args()
     args.func(args)
