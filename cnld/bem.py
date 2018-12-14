@@ -66,7 +66,7 @@ def mbk_from_abstract(array, f, refn, format='SparseFormat'):
 
             B = mem_b_matrix(n, mem.att_mech)
 
-            K = mem_k_matrix(mem.kmat_file, refn) / 1e9  ###### TEMPORARY
+            K = mem_k_matrix(mem.kmat_file, refn) # / 1e9  ###### TEMPORARY
 
             block = -(omg ** 2) * M + 1j * omg * B + K
             blocks.append(block)

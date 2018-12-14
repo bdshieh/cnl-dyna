@@ -42,7 +42,8 @@ def process(job):
     mesh = Mesh.from_abstract(array, refn)
 
     # create MBK matrix in SparseFormat
-    MBK = bem.mbk_from_abstract(array, f, refn, format='SparseFormat')
+    # MBK = bem.mbk_from_abstract(array, f, refn, format='SparseFormat')
+    MBK = bem.mbk_from_abstract(array, f, refn, format='FullFormat')
 
     # create Z matrix in HFormat
     hmkwrds = ['aprx', 'basis', 'admis', 'eta', 'eps', 'm', 'clf', 'eps_aca', 'rk', 'q_reg', 'q_sing', 'strict']
@@ -52,8 +53,8 @@ def process(job):
     # construct G in HFormat from MBK and Z
     # G = MBK + (2 * np.pi * f) ** 2 * -1000. * Z 
     # G = MBK + -(2 * np.pi * f)**2 * 1000. / (mesh.g[0]) * Z
-    G = MBK + -(2 * np.pi * f)**2 * 1000. * Z
-    # G = MBK
+    # G = MBK + -(2 * np.pi * f)**2 * 1000. * Z
+    G = MBK
 
     # LU decomposition
     G_LU = G.lu()
