@@ -16,6 +16,7 @@ cdef class Surface3d:
     cdef public uint [:,:] t
     cdef public uint [:,:] s
     cdef public real [:,:] n
+    cdef public real [:] g
     cdef _setup(self, psurface3d ptr, bint owner)
     @staticmethod
     cdef wrap(psurface3d ptr, bint owner=*)

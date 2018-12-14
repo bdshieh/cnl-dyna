@@ -103,7 +103,7 @@ class Mesh:
 
     @property
     def g(self):
-        return self._surface.g
+        return np.asarray(self._surface.g)
 
     @property
     def hmin(self):

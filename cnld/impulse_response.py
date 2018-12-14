@@ -107,7 +107,7 @@ def read_freq_resp_db(con):
     assert nsource == ndest
 
     disp = np.array(table['displacement_real'] + 1j * table['displacement_imag']).reshape((nsource, ndest, nfreq), order='F')
-    return disp
+    return disp, freqs
 
 
 if __name__ == '__main__':

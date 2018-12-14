@@ -32,7 +32,7 @@ def process(job):
     file = args.file
 
     # determine mesh refn needed based on first membrane
-    wavelen = 2 * np.pi * f / c
+    wavelen = c / f
     length_x = firstmem.length_x
     length_y = firstmem.length_y
     refn = calc_refn_square(length_x, length_y, wavelen)
@@ -51,7 +51,8 @@ def process(job):
 
     # construct G in HFormat from MBK and Z
     # G = MBK + (2 * np.pi * f) ** 2 * -1000. * Z 
-    G = -(2 * np.pi * f)**2 * 1000. * 2 * Z
+    # G = MBK + -(2 * np.pi * f)**2 * 1000. / (mesh.g[0]) * Z
+    G = MBK + -(2 * np.pi * f)**2 * 1000. * Z
     # G = MBK
 
     # LU decomposition

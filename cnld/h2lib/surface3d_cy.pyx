@@ -27,6 +27,7 @@ cdef class Surface3d():
         self.t = <uint [:ptr.triangles,:3]> (<uint *> ptr.t)
         self.s = <uint [:ptr.triangles,:3]> (<uint *> ptr.s)
         self.n = <real [:ptr.triangles,:3]> (<real *> ptr.n)
+        self.g = <real [:ptr.triangles]> (<real *> ptr.g)
 
     @property
     def vertices(self):
@@ -40,9 +41,9 @@ cdef class Surface3d():
     def triangles(self):
         return self.ptr.triangles
 
-    @property
-    def g(self):
-        return self.ptr.g[0]
+    # @property
+    # def g(self):
+    #     return self.ptr.g[0]
 
     @property
     def hmin(self):
