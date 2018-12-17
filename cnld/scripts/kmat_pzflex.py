@@ -47,8 +47,9 @@ c symb cbulk sqrt($E * (1 - $v) / ($rho * (1 + $v) * (1 - 2 * $v)))
 c symb cshear sqrt($E / (2 * (1 + $v)) / $rho)
 matr
 	type elas
-	wvsp on
-    prop sin 2040 7846 4700
+	wvsp off
+	prop sin 2040 110e9 45081967213
+c   prop sin 2040 7846 4700
 c   prop sin $rho $cbulk $cshear
 c	prop sin 2200 11000 6250
 c 	mdmp sin 1e6 db 4000
