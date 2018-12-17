@@ -52,7 +52,7 @@ matr
 c   prop sin 2040 7846 4700
 c   prop sin $rho $cbulk $cshear
 c	prop sin 2200 11000 6250
-c 	mdmp sin 1e6 db 4000
+c    mdmp sin 1e6 db 4000    
 
 c ** MATERIAL ASSIGNMENT **
 site regn sin
@@ -86,6 +86,7 @@ symb nstep = $tstop / $step
 c static solver with auto dynamic relaxation 
 drlx auto
 exec $nstep $tstop stat
+c exec ringdown $nstep
 
 c ** DATA OUT **
 data
@@ -190,7 +191,7 @@ def main(cfg, args):
                 os.remove('zdsp.mat')
             
             K = np.zeros((len(vert), len(vert)))
-            K[np.ix_(~on_bound, ~on_bound)] = inv(Kinv[~on_bound, :][:, ~on_bound])
+            K[np.ix_(~on_bound, ~on_bound)] = inv(Kinv[np.ix_(~on_bound, ~on_bound)])
             # np.save('K.npy', K)
             Ks.append(K)
 
