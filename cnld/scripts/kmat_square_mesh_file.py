@@ -31,6 +31,6 @@ if __name__ == '__main__':
     Config['refns'] = 2, 10
 
     # get script parser and parse arguments
-    parser = util.script_parser(main, Config)
+    parser, run_parser = util.script_parser(main, Config)
     args = parser.parse_args()
     args.func(args)

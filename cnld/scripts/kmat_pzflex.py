@@ -144,8 +144,6 @@ def postproc(vert, on_bound):
 
 def main(cfg, args):
 
-    file = args.file
-
     with np.load(cfg.mesh_file) as npf:
         refns = npf['refns']
         verts = npf['verts']
