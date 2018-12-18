@@ -122,15 +122,15 @@ def mem_k_matrix(mesh, E, h, eta):
     triangles = mesh.triangles
     triangle_edges = mesh.triangle_edges
     triangle_areas = mesh.g / 2
-    on_bound = mesh.on_bound
+    on_bound = mesh.on_boundary
 
     triangle_neighbors = np.ones((len(triangles), 3)) * np.nan
-    for tt in len(triangles):
+    for tt in range(len(triangles)):
         for i, te in enumerate(triangle_edges[tt,:]):
             mask = np.any(triangle_edges == te, axis=1)
             args = np.nonzero(mask)[0]
-            triangle_neighbors[tt,i] = args[args != tt][0]
-    
+            if len(args) > 1:
+                triangle_neighbors[tt,i] = args[args != tt][0]
     D = np.zeros((3,3))
     D[0,0] = 1
     D[0,1] = eta
@@ -139,16 +139,16 @@ def mem_k_matrix(mesh, E, h, eta):
     D = D * E * h**3 / (12 * (1 - eta**2))
 
     K = np.zeros((len(nodes), len(nodes)))
-    for p in len(triangles):
+    for p in range(len(triangles)):
         tri = triangles[p,:]
         ap = triangle_areas[p]
         xi, yi, _ = nodes[tri[0],:]
         xj, yj, _ = nodes[tri[1],:]
         xk, yk, _ = nodes[tri[2],:]
         neighbors = triangle_neighbors[p,:]
-        c = neighbors[0] if not np.isnan(neighbors[0]) else None
-        d = neighbors[1] if not np.isnan(neighbors[1]) else None
-        b = neighbors[2] if not np.isnan(neighbors[2]) else None
+        c = int(neighbors[0]) if not np.isnan(neighbors[0]) else None
+        d = int(neighbors[1]) if not np.isnan(neighbors[1]) else None
+        b = int(neighbors[2]) if not np.isnan(neighbors[2]) else None
 
         bound_edge = np.zeros(3, dtype=np.bool)
         for i, ee in enumerate(triangle_edges[p,:]):
@@ -188,26 +188,28 @@ def mem_k_matrix(mesh, E, h, eta):
 
         if b is not None:
             trib = triangles[b,:]
-            idx = np.nonzero(triangle_edges[trib,:] == triangle_edges[tri,2])[0]
+            idx = np.nonzero(triangle_edges[b,:] == triangle_edges[p,2])[0]
             l = trib[idx]
             Kidx.append(l)
             Kpidx.append(3)
         
         if c is not None:
             tric = triangles[c,:]
-            idx = np.nonzero(triangle_edges[tric,:] == triangle_edges[tri,0])[0]
+            idx = np.nonzero(triangle_edges[c,:] == triangle_edges[p,0])[0]
             m = tric[idx]
             Kidx.append(m)
             Kpidx.append(4)
 
         if d is not None:
             trid = triangles[d,:]
-            idx = np.nonzero(triangle_edges[trid,:] == triangle_edges[tri,1])[0]
+            idx = np.nonzero(triangle_edges[d,:] == triangle_edges[p,1])[0]
             n = trid[idx]
             Kidx.append(n)
             Kpidx.append(5)
 
         K[np.ix_(Kidx, Kidx)] += Kp[np.ix_(Kpidx, Kpidx)]
+    
+    return K
 
 
 if __name__ == '__main__':
