@@ -1,0 +1,174 @@
+'''
+'''
+
+import numpy as np
+
+
+def mem_k_matrix(mesh):
+
+    def none_case1(f):
+        def decorator(p):
+            if p is None:
+                return 0
+            else:
+                return f(p)
+        return decorator
+
+    def none_case2(f):
+        def decorator(p, o):
+            if o is None:
+                return 0
+            else:
+                return f(p, o)
+        return decorator
+
+    @none_case1
+    def bibar(p):
+        tri = triangles[p,:]
+        ap = triangle_areas[p]
+        yj = nodes[tri[1],1]
+        yk = nodes[tri[2],1]
+        return (yj - yk) / (2 * ap)
+
+    @none_case1 
+    def bjbar(p):
+        tri = triangles[p,:]
+        ap = triangle_areas[p]
+        yi = nodes[tri[0],1]
+        yk = nodes[tri[2],1]
+        return (yk - yi) / (2 * ap)
+
+    @none_case1
+    def bkbar(p):
+        tri = triangles[p,:]
+        ap = triangle_areas[p]
+        yi = nodes[tri[0],1]
+        yj = nodes[tri[1],1]
+        return (yi - yj) / (2 * ap)
+
+    # idx = np.nonzero(triangle_edges[trib,:] == triangle_edges[trip,2])[0]
+    # yl = nodes[trib[idx],1]
+    # trib = triangles[b,:]
+
+    @none_case2
+    def blbar(p, b):
+        tri = triangles[p,:]
+        ap = triangle_areas[b]
+        yi = nodes[tri[1],1]
+        yj = nodes[tri[1],1]
+        return (yj - yi) / (2 * ap)
+
+    @none_case2
+    def bmbar(p, c):
+        tri = triangles[p,:]
+        ap = triangle_areas[c]
+        yj = nodes[tri[1],1]
+        yk = nodes[tri[2],1]
+        return (yk - yj) / (2 * ap)
+
+    @none_case2
+    def bnbar(p, d):
+        tri = triangles[p,:]
+        ap = triangle_areas[d]
+        yi = nodes[tri[1],1]
+        yk = nodes[tri[2],1]
+        return (yi - yk) / (2 * ap)
+
+    @none_case1
+    def cibar(p):
+        tri = triangles[p,:]
+        ap = triangle_areas[p]
+        xj = nodes[tri[1],0]
+        xk = nodes[tri[2],0]
+        return (xk - xj) / (2 * ap)
+
+    @none_case1
+    def cjbar(p):
+        tri = triangles[p,:]
+        ap = triangle_areas[p]
+        xi = nodes[tri[0],0]
+        xk = nodes[tri[2],0]
+        return (xi - xk) / (2 * ap)
+
+    @none_case1
+    def ckbar(p):
+        tri = triangles[p,:]
+        ap = triangle_areas[p]
+        xi = nodes[tri[0],0]
+        xj = nodes[tri[1],0]
+        return (xj - xi) / (2 * ap)
+    
+    @none_case2
+    def clbar(p, b):
+        tri = triangles[p,:]
+        ap = triangle_areas[b]
+        xi = nodes[tri[0],0]
+        xj = nodes[tri[1],0]
+        return (xi - xj) / (2 * ap)
+
+    @none_case2
+    def cmbar(p, c):
+        tri = triangles[p,:]
+        ap = triangle_areas[c]
+        xj = nodes[tri[1],0]
+        xk = nodes[tri[2],0]
+        return (xj - xk) / (2 * ap)
+
+    @none_case2
+    def cnbar(p, d):
+        tri = triangles[p,:]
+        ap = triangle_areas[d]
+        xi = nodes[tri[0],0]
+        xk = nodes[tri[2],0]
+        return (xk - xi) / (2 * ap)
+
+    nodes = mesh.vertices
+    edges = mesh.edges
+    triangles = mesh.triangles
+    triangle_edges = mesh.triangle_edges
+    triangle_areas = mesh.g / 2
+    on_bound = mesh.on_bound
+
+    triangle_neighbors = np.ones((len(triangles), 3)) * np.nan
+    for tt in len(triangles):
+        for i, te in enumerate(triangle_edges[tt,:]):
+            mask = np.any(triangle_edges == te, axis=1)
+            args = np.nonzero(mask)[0]
+            triangle_neighbors[tt,i] = args[args != tt][0]
+    
+    D = np.zeros((3,3))
+
+    for p in len(triangles):
+        tri = triangles[p,:]
+        xi, yi, _ = nodes[tri[0],:]
+        xj, yj, _ = nodes[tri[1],:]
+        xk, yk, _ = nodes[tri[2],:]
+        neighbors = triangle_neighbors[p,:]
+        c = neighbors[0] if not np.isnan(neighbors[0]) else None
+        d = neighbors[1] if not np.isnan(neighbors[1]) else None
+        b = neighbors[2] if not np.isnan(neighbors[2]) else None
+
+        bound_edge = np.zeros(3, dtype=np.bool)
+        for i, ee in enumerate(triangle_edges[p,:]):
+            bound_edge[i] = True if on_bound[edges[ee,0]] and on_bound[edges[ee,1]] else False
+        jkbound, kibound, ijbound = bound_edge
+
+        B = np.zeros((3, 6))
+        B[0,0] = (yi - yj) * bibar(b) + (yk - yi) * bibar(d) if not jkbound else 0
+        B[0,1] = (yi - yj) * bjbar(b) + (yj - yk) * bjbar(c) if not kibound else 0
+        B[0,2] = (yj - yk) * bkbar(c) + (yk - yi) * bkbar(d) if not ijbound else 0
+        B[0,3] = (yi - yj) * blbar(p, b)
+        B[0,4] = (yj - yk) * bmbar(p, c)
+        B[0,5] = (yk - yi) * bnbar(p, d)
+        B[1,0] = -(xi - xj) * cibar(b) - (xk - xi) * cibar(d) if not jkbound else 0
+        B[1,1] = -(xi - xj) * cjbar(b) - (xj - xk) * cjbar(c) if not kibound else 0
+        B[1,2] = -(xj - xk) * ckbar(c) - (xk - xi) * ckbar(d) if not ijbound else 0
+        B[1,3] = -(xi - xj) * clbar(p, b)
+        B[1,4] = -(xj - xk) * cmbar(p, c)
+        B[1,5] = -(xk - xi) * cnbar(p, d)
+        B[2,0] = (yi - yj) * cibar(b) - (xi - xj) * bibar(b) + (yk - yi) * cibar(d) - (xk - xi) * bibar(d) if not jkbound else 0
+        B[2,1] = (yi - yj) * cjbar(b) - (xj - xk) * bjbar(b) + (yj - yk) * cjbar(c) - (xj - xk) * bjbar(c) if not kibound else 0
+        B[2,2] = (yj - yk) * ckbar(c) - (xj - xk) * bkbar(c) + (yk - yi) * ckbar(d) - (xk - xi) * bkbar(d) if not ijbound else 0
+        B[2,3] = (yi - yj) * clbar(p, b) - (xi - xj) * blbar(p, b)
+        B[2,4] = (yj - yk) * cmbar(p, c) - (xj - xk) * bmbar(p, c)
+        B[2,5] = (yk - yi) * cnbar(p, d) - (xk - xi) * cnbar(p, d)
