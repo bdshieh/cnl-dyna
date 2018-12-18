@@ -1,10 +1,9 @@
 '''
 '''
-
 import numpy as np
 
 
-def mem_k_matrix(mesh):
+def mem_k_matrix(mesh, E, h, eta):
 
     def none_case1(f):
         def decorator(p):
@@ -45,10 +44,6 @@ def mem_k_matrix(mesh):
         yi = nodes[tri[0],1]
         yj = nodes[tri[1],1]
         return (yi - yj) / (2 * ap)
-
-    # idx = np.nonzero(triangle_edges[trib,:] == triangle_edges[trip,2])[0]
-    # yl = nodes[trib[idx],1]
-    # trib = triangles[b,:]
 
     @none_case2
     def blbar(p, b):
@@ -137,9 +132,16 @@ def mem_k_matrix(mesh):
             triangle_neighbors[tt,i] = args[args != tt][0]
     
     D = np.zeros((3,3))
+    D[0,0] = 1
+    D[0,1] = eta
+    D[1,0] = eta
+    D[2,2] = (1 - eta) / 2
+    D = D * E * h**3 / (12 * (1 - eta**2))
 
+    K = np.zeros((len(nodes), len(nodes)))
     for p in len(triangles):
         tri = triangles[p,:]
+        ap = triangle_areas[p]
         xi, yi, _ = nodes[tri[0],:]
         xj, yj, _ = nodes[tri[1],:]
         xk, yk, _ = nodes[tri[2],:]
@@ -172,3 +174,49 @@ def mem_k_matrix(mesh):
         B[2,3] = (yi - yj) * clbar(p, b) - (xi - xj) * blbar(p, b)
         B[2,4] = (yj - yk) * cmbar(p, c) - (xj - xk) * bmbar(p, c)
         B[2,5] = (yk - yi) * cnbar(p, d) - (xk - xi) * cnbar(p, d)
+        B = B / ap
+
+        Kp = (B.T).dot(D).dot(B) * ap
+
+        # idx = np.nonzero(triangle_edges[trib,:] == triangle_edges[trip,2])[0]
+        # yl = nodes[trib[idx],1]
+        # trib = triangles[b,:]
+
+        i, j, k = tri
+        Kidx = [i, j, k]
+        Kpidx = [0, 1, 2]
+
+        if b is not None:
+            trib = triangles[b,:]
+            idx = np.nonzero(triangle_edges[trib,:] == triangle_edges[tri,2])[0]
+            l = trib[idx]
+            Kidx.append(l)
+            Kpidx.append(3)
+        
+        if c is not None:
+            tric = triangles[c,:]
+            idx = np.nonzero(triangle_edges[tric,:] == triangle_edges[tri,0])[0]
+            m = tric[idx]
+            Kidx.append(m)
+            Kpidx.append(4)
+
+        if d is not None:
+            trid = triangles[d,:]
+            idx = np.nonzero(triangle_edges[trid,:] == triangle_edges[tri,1])[0]
+            n = trid[idx]
+            Kidx.append(n)
+            Kpidx.append(5)
+
+        K[np.ix_(Kidx, Kidx)] += Kp[np.ix_(Kpidx, Kpidx)]
+
+
+if __name__ == '__main__':
+
+    from cnld.mesh import square
+
+    E = 110e9
+    h = 2e-6
+    eta = 0.22
+
+    mesh = square(40e-6, 40e-6, refn=4)
+    K = mem_k_matrix(mesh, E, h, eta)
