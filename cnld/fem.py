@@ -212,6 +212,135 @@ def mem_k_matrix(mesh, E, h, eta):
     return K
 
 
+def mem_k_matrix2(mesh, E, h, eta):
+    '''
+    '''
+    def L(x1, y1, x2, y2):
+        return np.sqrt((x2 - x1)**2 + (y2 - y1)**2)
+    
+    def T_matrix(x1, y1, x2, y2):
+        z = [0, 0, 1]
+        r = [x2 - x1, y2 - y1]
+        n = np.cross(z, r)
+        n /= np.linalg.norm(n)
+        nx, ny, _ = n
+        return np.array([[-nx, 0],[0, -ny],[-ny, -nx]])
+
+    nodes = mesh.vertices
+    # edges = mesh.edges
+    triangles = mesh.triangles
+    triangle_edges = mesh.triangle_edges
+    triangle_areas = mesh.g / 2
+    # on_bound = mesh.on_boundary
+    # nnodes = len(nodes)
+    ntriangles = len(triangles)
+
+    # determine list of neighbors for each triangle
+    # None indicates neighbor doesn't exist for that edge (boundary edge)
+    triangle_neighbors = []
+    for tt in range(ntriangles):
+        neighbors = []
+        for te in triangle_edges[tt,:]:
+            mask = np.any(triangle_edges == te, axis=1)
+            args = np.nonzero(mask)[0]
+            if len(args) > 1:
+                neighbors.append(args[args != tt][0])
+            else:
+                neighbors.append(None)
+        triangle_neighbors.append(neighbors)
+
+    # construct constitutive matrix for material
+    D = np.zeros((3,3))
+    D[0,0] = 1
+    D[0,1] = eta
+    D[1,0] = eta
+    D[2,2] = (1 - eta) / 2
+    D = D * E * h**3 / (12 * (1 - eta**2))
+
+    # calculate Jacobian and gradient operator for each triangle
+    gradops = []
+    for tt in range(ntriangles):
+        tri = triangles[tt,:]
+        xi, yi = nodes[tri[0],:2]
+        xj, yj = nodes[tri[1],:2]
+        xk, yk = nodes[tri[2],:2]
+
+        J = np.array([[xj - xi, xk - xi], [yj - yi, yk - yi]])
+        gradop = np.linalg.inv(J.T).dot([[1, 0, -1],[0, 1, -1]])
+
+        gradops.append(gradop)
+
+    # construct K matrix
+    K = np.zeros((len(nodes), len(nodes)))
+    for p in range(ntriangles):
+        trip = triangles[p,:]
+        ap = triangle_areas[p]
+
+        xi, yi = nodes[trip[0],:2]
+        xj, yj = nodes[trip[1],:2]
+        xk, yk = nodes[trip[2],:2]
+
+        neighbors = triangle_neighbors[p]
+        gradp = gradops[p]
+        # list triangle edges, ordered so that z cross-product will produce outward normal
+        edges = [(xk, yk, xj, yj), (xi, yi, xk, yk), (xj, yj, xi, yi)]
+        
+        # begin putting together indexes needed later for matrix assignment
+        ii, jj, kk = trip
+        Kidx = [ii, jj, kk]
+        Kpidx = [0, 1, 2]
+
+        # construct B matrix for control element
+        Bp = np.zeros((3, 6))
+        for j in range(3):
+            n = neighbors[j]
+            if n is None:
+                continue
+            
+            # determine index of the node in the neighbor opposite edge
+            iin, jjn, kkn = triangles[n,:]
+            uidx = [x for x in np.unique([ii, jj, kk, iin, jjn, kkn]) if x not in [ii, jj, kk]][0]
+            # update indexes
+            Kidx.append(uidx)
+            Kpidx.append(3 + j)
+
+            l = L(*edges[j])
+            T = T_matrix(*edges[j])
+            gradn = gradops[n]
+
+            pterm = l / 2 * T.dot(gradp)
+            Bp[:,:3] += pterm
+
+            nterm = l / 2 * T.dot(gradn)
+            idx = [Kpidx[Kidx.index(x)] for x in [iin, jjn, kkn]]
+            Bp[:,idx] += nterm
+
+        Bp /= ap
+
+        # construct local K matrix for control element
+        Kp = (Bp.T).dot(D).dot(Bp) * ap
+
+        # add matrix values to global K matrix
+        K[np.ix_(Kidx, Kidx)] += Kp[np.ix_(Kpidx, Kpidx)]
+    
+    return K
+
+
+def mem_m_matrix(mesh, rho, h):
+
+    nodes = mesh.vertices
+    triangles = mesh.triangles
+    triangle_areas = mesh.g / 2
+
+    M = np.zeros((len(nodes), len(nodes)))
+    for tt in range(len(triangles)):
+        tri = triangles[tt,:]
+        ap = triangle_areas[tt]
+        M[tri, tri] += 1 / 3 * rho * h * ap
+
+    return M
+
+
 if __name__ == '__main__':
 
     from cnld.mesh import square
