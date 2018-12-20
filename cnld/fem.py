@@ -222,9 +222,10 @@ def mem_k_matrix2(mesh, E, h, eta):
         z = [0, 0, 1]
         r = [x2 - x1, y2 - y1]
         n = np.cross(z, r)
-        n /= np.linalg.norm(n)
+        n = n / np.linalg.norm(n)
         nx, ny, _ = n
         return np.array([[-nx, 0],[0, -ny],[-ny, -nx]])
+        # return np.array([[-ny, -nx],[-nx, 0],[0, -ny]])
 
     nodes = mesh.vertices
     # edges = mesh.edges
@@ -248,6 +249,7 @@ def mem_k_matrix2(mesh, E, h, eta):
             else:
                 neighbors.append(None)
         triangle_neighbors.append(neighbors)
+    mesh.triangle_neighbors = triangle_neighbors
 
     # construct constitutive matrix for material
     D = np.zeros((3,3))
@@ -266,7 +268,8 @@ def mem_k_matrix2(mesh, E, h, eta):
         xk, yk = nodes[tri[2],:2]
 
         J = np.array([[xj - xi, xk - xi], [yj - yi, yk - yi]])
-        gradop = np.linalg.inv(J.T).dot([[1, 0, -1],[0, 1, -1]])
+        gradop = np.linalg.inv(J.T).dot([[-1, 1, 0],[-1, 0, 1]])
+        # gradop = np.linalg.inv(J.T).dot([[1, 0, -1],[0, 1, -1]])
 
         gradops.append(gradop)
 
@@ -292,8 +295,7 @@ def mem_k_matrix2(mesh, E, h, eta):
 
         # construct B matrix for control element
         Bp = np.zeros((3, 6))
-        for j in range(3):
-            n = neighbors[j]
+        for j, n in enumerate(neighbors):
             if n is None:
                 continue
             
@@ -314,7 +316,6 @@ def mem_k_matrix2(mesh, E, h, eta):
             nterm = l / 2 * T.dot(gradn)
             idx = [Kpidx[Kidx.index(x)] for x in [iin, jjn, kkn]]
             Bp[:,idx] += nterm
-
         Bp /= ap
 
         # construct local K matrix for control element
@@ -339,6 +340,21 @@ def mem_m_matrix(mesh, rho, h):
         M[tri, tri] += 1 / 3 * rho * h * ap
 
     return M
+
+
+def mem_f_vector(mesh, p):
+
+    nodes = mesh.vertices
+    triangles = mesh.triangles
+    triangle_areas = mesh.g / 2
+
+    f = np.zeros(len(nodes))
+    for tt in range(len(triangles)):
+        tri = triangles[tt,:]
+        ap = triangle_areas[tt]
+        f[tri] += 1 / 3 * p / ap
+
+    return f
 
 
 if __name__ == '__main__':
