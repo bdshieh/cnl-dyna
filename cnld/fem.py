@@ -352,7 +352,7 @@ def mem_f_vector(mesh, p):
     for tt in range(len(triangles)):
         tri = triangles[tt,:]
         ap = triangle_areas[tt]
-        f[tri] += 1 / 3 * p / ap
+        f[tri] += 1 / 3 * p * ap
 
     return f
 
