@@ -211,7 +211,7 @@ def mbk_from_abstract(array, f, refn, format='SparseFormat'):
             
             mesh = square(mem.length_x, mem.length_y, refn=refn)
             M = mem_m_matrix(mesh, mem.density, mem.thickness)
-            K = mem_k_matrix(mesh, mem.ymodulus, mem.thickness, mem.pratio)
+            K = mem_k_matrix(mesh, mem.y_modulus, mem.thickness, mem.p_ratio)
             B = mem_b_matrix_eig(mesh, M, K, 0, 4, 0.002, 0.004)
 
             block = -(omg ** 2) * M + 1j * omg * B + K
