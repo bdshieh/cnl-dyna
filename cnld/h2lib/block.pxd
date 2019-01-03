@@ -17,6 +17,6 @@ cdef class Block:
     @staticmethod
     cdef wrap(pblock ptr, bint owner=*)
 
-from . block cimport admissible_2_cluster, admissible_max_cluster, admissible_sphere_cluster, admissible_2_min_cluster
+from . _block cimport admissible_2_cluster, admissible_max_cluster, admissible_sphere_cluster, admissible_2_min_cluster
 cpdef build_nonstrict_block(Cluster rc, Cluster cc, real eta, str admis)
 cpdef build_strict_block(Cluster rc, Cluster cc, real eta, str admis)
