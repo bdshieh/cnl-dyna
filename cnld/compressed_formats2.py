@@ -15,7 +15,6 @@ class BaseFormat:
     '''
     Base class defining abstract interface for formats
     '''
-
     def __init__(self, mat):
         self._mat = mat
 

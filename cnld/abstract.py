@@ -153,10 +153,12 @@ _SquareCmutMembrane['p_ratio'] = (0.22,)
 _SquareCmutMembrane['isolation'] = 200e-9
 _SquareCmutMembrane['permittivity'] = 6.3
 _SquareCmutMembrane['gap'] = 100e-9
-_SquareCmutMembrane['att_mech'] = 0
+_SquareCmutMembrane['damping_mode_a'] = 0
+_SquareCmutMembrane['damping_mode_b'] = 4
+_SquareCmutMembrane['damping_ratio_a'] = 0.004
+_SquareCmutMembrane['damping_ratio_b'] = 0.004
 _SquareCmutMembrane['npatch_x'] = 3
 _SquareCmutMembrane['npatch_y'] = 3
-_SquareCmutMembrane['kmat_file'] = None
 _SquareCmutMembrane['patches'] = FACTORY(list)
 SquareCmutMembrane = register_type('SquareCmutMembrane', _SquareCmutMembrane)
 
@@ -175,7 +177,6 @@ _CircularCmutMembrane['gap'] = 100e-9
 _CircularCmutMembrane['att_mech'] = 0
 _CircularCmutMembrane['npatch_r'] = 2
 _CircularCmutMembrane['npatch_theta'] = 4
-_CircularCmutMembrane['kmat_file'] = None
 _CircularCmutMembrane['patches'] = FACTORY(list)
 CircularCmutMembrane = register_type('CircularCmutMembrane', _CircularCmutMembrane)
 
@@ -204,15 +205,8 @@ _Array['delay'] = 0
 _Array['elements'] = FACTORY(list)
 Array = register_type('Array', _Array)
 
-# _SimulationOptions = OrderedDict()
-# _SimulationOptions['fluid_density'] = 1000.
-# _SimulationOptions['sound_speed'] = 1500.
-# SimulationOptions = register_type('SimulationOptions', _SimulationOptions)
 
-# classes = tuple(name for name, value in inspect.getmembers(sys.modules[__name__], inspect.isclass))
-
-
-## DECORATORS ##
+'''DECORATORS'''
 
 def vectorize(f):
     '''Allows function to be called with either a single abstract object or list/tuple of them'''
@@ -228,11 +222,8 @@ def vectorize(f):
             return f(m, *args, **kwargs)
     return decorator
 
-# def distance(x, y):
-    # return math.sqrt(math.fsum([(i - j) ** 2 for i, j in zip(x, y)]))
 
-
-## MEMBRANE MANIPLUATIONS ##
+'''MEMBRANE MANIPLUATIONS'''
 
 @vectorize
 def move_membrane(m, pos):
