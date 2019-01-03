@@ -1,22 +1,21 @@
-## harith.h ##
+## harith_cy.pxd ##
 
 
+from . cimport _harith
 from . basic cimport *
-from . hmatrix cimport *
-from . avector cimport *
+from . hmatrix  cimport *
 from . amatrix cimport *
-from . truncation cimport *
+from . avector  cimport *
+from . truncation  cimport *
 
 
-cdef extern from 'harith.h' nogil:
-
-    void lrdecomp_hmatrix(phmatrix a, pctruncmode tm, real eps)
-    void lrsolve_hmatrix_avector(bint atrans, pchmatrix a, pavector x)
-    void lreval_hmatrix_avector(bint atrans, pchmatrix a, pavector x)
-    void choldecomp_hmatrix(phmatrix a, pctruncmode tm, real eps)
-    void cholsolve_hmatrix_avector(pchmatrix a, pavector x)
-    void choleval_hmatrix_avector(pchmatrix a, pavector x)
-    void addmul_hmatrix(field alpha, bint xtrans, pchmatrix x, bint ytrans, pchmatrix y, pctruncmode tm, real eps, phmatrix z)
-    void add_hmatrix(field alpha, pchmatrix a, pctruncmode tm, real eps, phmatrix  b)
-    void add_hmatrix_amatrix(field alpha, bint atrans, pchmatrix a, pamatrix b)
-    void add_amatrix_hmatrix(field alpha, bint atrans, pcamatrix a, pctruncmode tm, real eps, phmatrix b)
+cpdef lrdecomp_hmatrix(HMatrix a, Truncmode tm, real eps)
+cpdef lrsolve_hmatrix_avector(bint atrans, HMatrix a, AVector x)
+cpdef lreval_hmatrix_avector(bint atrans, HMatrix a, AVector x)
+cpdef choldecomp_hmatrix(HMatrix a, Truncmode tm, real eps)
+cpdef cholsolve_hmatrix_avector(HMatrix a, AVector x)
+cpdef choleval_hmatrix_avector(HMatrix a, AVector x)
+cpdef add_hmatrix(field alpha, HMatrix a, Truncmode tm, real eps, HMatrix  b)
+cpdef add_hmatrix_amatrix(field alpha, bint atrans, HMatrix a, AMatrix b)
+cpdef addmul_hmatrix(field alpha, bint xtrans, HMatrix x, bint ytrans, HMatrix y, Truncmode tm, real eps, HMatrix z)
+cpdef add_amatrix_hmatrix(field alpha, bint atrans, AMatrix a, Truncmode tm, real eps, HMatrix b)

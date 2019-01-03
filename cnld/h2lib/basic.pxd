@@ -1,25 +1,14 @@
-## basic.h ##
+## basic_cy.pxd ##
 
-ctypedef double real
-ctypedef double complex field
-ctypedef unsigned int uint
-ctypedef unsigned long size_t
 
-## complex.h ##
-cdef extern from 'complex.h' nogil:
+from . cimport _basic
 
-    double cabs(double complex)
-    double carg(double complex)
-    double complex conj(double complex)
-    double complex cexp(double complex)
-    double creal(double complex)
-    double cimag(double complex)
 
-cdef extern from 'basic.h' nogil:
+ctypedef _basic.real real
+ctypedef _basic.field field
+ctypedef _basic.uint uint
+ctypedef _basic.size_t size_t
 
-    void init_h2lib(int *argc, char ***argv)
-    void uninit_h2lib()
-    real REAL_ABS(real x)
-    real REAL_NORM2(real x, real y)
-    real REAL_NORM3(real x, real y, real z)
-    
+from . basic cimport cabs, carg, conj, cexp, creal, cimag
+cpdef init_h2lib()
+cpdef uninit_h2lib()

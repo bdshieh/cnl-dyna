@@ -1,34 +1,27 @@
-## amatrix.h ##
+## amatrix_cy.pxd ##
 
+
+from . cimport _amatrix
 from . basic cimport *
 from . avector cimport *
 
-cdef extern from 'amatrix.h' nogil:
 
-    struct _amatrix:
-        field * a
-        uint ld
-        uint rows
-        uint cols
-        
-    ctypedef _amatrix amatrix
-    ctypedef amatrix * pamatrix
-    ctypedef const amatrix * pcamatrix
+ctypedef _amatrix.pamatrix pamatrix
+ctypedef _amatrix.pcamatrix pcamatrix
 
-    pamatrix new_amatrix(uint rows, uint cols)
-    pamatrix new_zero_amatrix(uint rows, uint cols)
-    # pamatrix new_identity_amatrix(uint rows, uint cols)
-    void del_amatrix(pamatrix a)
-    # void clear_amatrix(pamatrix a)
-    # void identity_amatrix(pamatrix a)
-    # void random_amatrix (pamatrix a)
-    # void copy_amatrix(bint atrans, pcamatrix a, pamatrix b)
-    pamatrix clone_amatrix(pcamatrix src)
-    void scale_amatrix(field alpha, pamatrix a)
-    void conjugate_amatrix(pamatrix a)
-    # real norm2_amatrix(pcamatrix a)
-    # real norm2diff_amatrix(pcamatrix a, pcamatrix b)
-    void addeval_amatrix_avector(field alpha, pcamatrix a, pcavector src, pavector trg)
-    void add_amatrix(field alpha, bint atrans, pcamatrix a, pamatrix b)
-    size_t getsize_amatrix(pcamatrix a)
-    void addmul_amatrix(field alpha, bint atrans, pcamatrix a, bint btrans, pcamatrix b, pamatrix c)
+cdef class AMatrix:
+    cdef pamatrix ptr
+    cdef bint owner
+    cdef public field [:,:] _a
+    cdef _setup(self, pamatrix ptr, bint owner)
+    @staticmethod
+    cdef wrap(pamatrix ptr, bint owner=*)
+
+cpdef AMatrix clone_amatrix(AMatrix src)
+cpdef addeval_amatrix_avector(field alpha, AMatrix a, AVector src, AVector trg)
+cpdef size_t getsize_amatrix(AMatrix a)
+cpdef scale_amatrix(field alpha, AMatrix a)
+cpdef conjugate_amatrix(AMatrix a)
+cpdef add_amatrix(field alpha, bint atrans, AMatrix a, AMatrix b)
+cpdef addmul_amatrix(field alpha, bint atrans, AMatrix a, bint btrans, AMatrix b, AMatrix c)
+cpdef AMatrix new_zero_amatrix(uint rows, uint cols)

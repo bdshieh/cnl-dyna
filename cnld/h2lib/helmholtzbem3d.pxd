@@ -1,14 +1,16 @@
-## helmholtzbem3d.h ##
+## helmholtzbem3d_cy.pxd ##
 
 
+from . cimport _helmholtzbem3d
 from . basic cimport *
 from . surface3d cimport *
 from . bem3d cimport *
 
 
-cdef extern from 'helmholtzbem3d.h' nogil:
+cpdef new_slp_helmholtz_bem3d(field k, Surface3d surf, uint q_regular, uint q_singular,
+    basisfunctionbem3d row_basis, basisfunctionbem3d col_basis)
 
-    pbem3d new_slp_helmholtz_bem3d(field k, pcsurface3d gr, uint q_regular, uint q_singular, 
-        basisfunctionbem3d row_basis, basisfunctionbem3d col_basis)
-    pbem3d new_dlp_helmholtz_bem3d(field k, pcsurface3d gr, uint q_regular, uint q_singular, 
-        basisfunctionbem3d row_basis, basisfunctionbem3d col_basis, field alpha)
+cpdef new_dlp_helmholtz_bem3d(field k, Surface3d surf, uint q_regular, uint q_singular, 
+    basisfunctionbem3d row_basis, basisfunctionbem3d col_basis, field alpha)
+
+

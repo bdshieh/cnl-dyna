@@ -1,17 +1,15 @@
-## factorizations.h ##
+## factorizations_cy.pxd ##
 
 
-# from . blas cimport *
-from . amatrix cimport *
-from . avector cimport *
-# from . truncation cimport *
+from . cimport _factorizations
+from . basic cimport *
+from . amatrix  cimport *
+from . avector  cimport *
+from . truncation  cimport *
 
 
-cdef extern from 'factorizations.h' nogil:
+cpdef lrdecomp_amatrix(AMatrix a)
+cpdef lrsolve_amatrix_avector(bint atrans, AMatrix a, AVector x)
+cpdef choldecomp_amatrix(AMatrix a)
+cpdef cholsolve_amatrix_avector(AMatrix a, AVector x)
 
-    void lrdecomp_amatrix(pamatrix a)
-    void lrsolve_amatrix_avector(bint atrans, pcamatrix a, pavector x)
-    # void lreval_hmatrix_avector(bint atrans, pchmatrix a, pavector x)
-    void choldecomp_amatrix(pamatrix a)
-    void cholsolve_amatrix_avector(pcamatrix a, pavector x)
-    # void choleval_hmatrix_avector(pchmatrix a, pavector x)

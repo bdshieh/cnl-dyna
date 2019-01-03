@@ -3,7 +3,7 @@
 import numpy as np
 from matplotlib import pyplot as plt
 
-from . h2lib import *
+from cnld.h2lib import *
 
 
 eps = np.finfo(np.float64).eps
@@ -25,7 +25,6 @@ class Mesh:
 
     @classmethod
     def from_macrosurface3d(cls, ms, center=(0,0,0), refn=2):
-
         # mesh must be refined at least once, otherwise h2lib throws exception
         assert refn > 1
 
@@ -51,7 +50,6 @@ class Mesh:
         return _from_abstract(cls, array, refn, **kwargs)
 
     def __add__(self, other):
-
         surf1 = self._surface
         surf2 = other._surface
 
@@ -65,7 +63,6 @@ class Mesh:
             return Mesh.from_surface3d(merge_surface3d(surf1, surf2))
     
     def __iadd__(self, other):
-
         surf1 = self._surface
         surf2 = other._surface
 
@@ -132,7 +129,6 @@ class Mesh:
         translate_surface3d(self._surface, np.array(r, dtype=np.float64))
 
     def draw(self):
-
         vertices = self.vertices
         edges = self.edges
 
@@ -178,37 +174,36 @@ def circle(rl, center=(0,0,0), refn=2):
     
 
 def square_geometry(xl, yl):
-
     # vertices 
     v = np.zeros((5, 3), dtype=np.float64)
-    v[0, :] = -xl / 2, -yl / 2, 0.0  # bottom left 
-    v[1, :] = xl / 2, -yl / 2, 0.0  # bottom right
-    v[2, :] = xl / 2, yl / 2, 0.0  # top right 
-    v[3, :] = -xl / 2, yl / 2, 0.0  # top left
-    v[4, :] = 0.0, 0.0, 0.0  # center
+    v[0,:] = -xl / 2, -yl / 2, 0.0  # bottom left 
+    v[1,:] = xl / 2, -yl / 2, 0.0  # bottom right
+    v[2,:] = xl / 2, yl / 2, 0.0  # top right 
+    v[3,:] = -xl / 2, yl / 2, 0.0  # top left
+    v[4,:] = 0.0, 0.0, 0.0  # center
 
     #  edges 
     e = np.zeros((8,2), dtype=np.uint32)
-    e[0, :] = 0, 1  # bottom
-    e[1, :] = 1, 2  # right
-    e[2, :] = 2, 3  # top
-    e[3, :] = 3, 0  # left
-    e[4, :] = 0, 4  # bottom left
-    e[5, :] = 1, 4  # bottom right
-    e[6, :] = 2, 4  # top right
-    e[7, :] = 3, 4  # top left
+    e[0,:] = 0, 1  # bottom
+    e[1,:] = 1, 2  # right
+    e[2,:] = 2, 3  # top
+    e[3,:] = 3, 0  # left
+    e[4,:] = 0, 4  # bottom left
+    e[5,:] = 1, 4  # bottom right
+    e[6,:] = 2, 4  # top right
+    e[7,:] = 3, 4  # top left
 
     #  triangles and triangle edges 
     t = np.zeros((4, 3), dtype=np.uint32)
     s = np.zeros((4, 3), dtype=np.uint32)
-    t[0, :] = 0, 1, 4  # bottom
-    s[0, :] = 5, 4, 0
-    t[1, :] = 1, 2, 4  # right
-    s[1, :] = 6, 5, 1
-    t[2, :] = 2, 3, 4  # top
-    s[2, :] = 7, 6, 2
-    t[3, :] = 3, 0, 4  # left
-    s[3, :] = 4, 7, 3
+    t[0,:] = 0, 1, 4  # bottom
+    s[0,:] = 5, 4, 0
+    t[1,:] = 1, 2, 4  # right
+    s[1,:] = 6, 5, 1
+    t[2,:] = 2, 3, 4  # top
+    s[2,:] = 7, 6, 2
+    t[3,:] = 3, 0, 4  # left
+    s[3,:] = 4, 7, 3
 
     return v, e, t, s
 
@@ -217,50 +212,49 @@ def square_geometry2(xl, yl):
 
     # vertices 
     v = np.zeros((4, 3), dtype=np.float64)
-    v[0, :] = -xl / 2, -yl / 2, 0.0  # bottom left 
-    v[1, :] = xl / 2, -yl / 2, 0.0  # bottom right
-    v[2, :] = xl / 2, yl / 2, 0.0  # top right 
-    v[3, :] = -xl / 2, yl / 2, 0.0  # top left
+    v[0,:] = -xl / 2, -yl / 2, 0.0  # bottom left 
+    v[1,:] = xl / 2, -yl / 2, 0.0  # bottom right
+    v[2,:] = xl / 2, yl / 2, 0.0  # top right 
+    v[3,:] = -xl / 2, yl / 2, 0.0  # top left
 
     #  edges 
     e = np.zeros((5, 2), dtype=np.uint32)
-    e[0, :] = 0, 1  # bottom
-    e[1, :] = 1, 2  # right
-    e[2, :] = 2, 3  # top
-    e[3, :] = 3, 0  # left
-    e[4, :] = 1, 3  # diagonal
+    e[0,:] = 0, 1  # bottom
+    e[1,:] = 1, 2  # right
+    e[2,:] = 2, 3  # top
+    e[3,:] = 3, 0  # left
+    e[4,:] = 1, 3  # diagonal
 
     #  triangles and triangle edges 
     t = np.zeros((2, 3), dtype=np.uint32)
     s = np.zeros((2, 3), dtype=np.uint32)
-    t[0, :] = 0, 1, 3  # bottom left
-    s[0, :] = 4, 3, 0
-    t[1, :] = 1, 2, 3  # top right
-    s[1, :] = 2, 4, 1
+    t[0,:] = 0, 1, 3  # bottom left
+    s[0,:] = 4, 3, 0
+    t[1,:] = 1, 2, 3  # top right
+    s[1,:] = 2, 4, 1
 
     return v, e, t, s
 
 
 def circle_geometry(rl):
-
     #  vertices 
     v = np.zeros((5, 3), dtype=np.float64)
-    v[0, :] = -rl, 0.0, 0.0 # left 
-    v[1, :] = 0.0, -rl, 0.0 # bottom 
-    v[2, :] = rl, 0.0, 0.0  # right 
-    v[3, :] = 0.0, rl, 0.0 # top 
-    v[4, :] = 0.0, 0.0, 0.0 # center
+    v[0,:] = -rl, 0.0, 0.0 # left 
+    v[1,:] = 0.0, -rl, 0.0 # bottom 
+    v[2,:] = rl, 0.0, 0.0  # right 
+    v[3,:] = 0.0, rl, 0.0 # top 
+    v[4,:] = 0.0, 0.0, 0.0 # center
 
     #  edges 
     e = np.zeros((8,2), dtype=np.uint32)
-    e[0, :] = 0, 1  # bottom left
-    e[1, :] = 1, 2  # bototm right
-    e[2, :] = 2, 3  # top right
-    e[3, :] = 3, 0  # top left
-    e[4, :] = 0, 4  # left horizontal
-    e[5, :] = 1, 4  # bottom vertical
-    e[6, :] = 2, 4  # right horizontal
-    e[7, :] = 3, 4  # right vertical
+    e[0,:] = 0, 1  # bottom left
+    e[1,:] = 1, 2  # bototm right
+    e[2,:] = 2, 3  # top right
+    e[3,:] = 3, 0  # top left
+    e[4,:] = 0, 4  # left horizontal
+    e[5,:] = 1, 4  # bottom vertical
+    e[6,:] = 2, 4  # right horizontal
+    e[7,:] = 3, 4  # right vertical
 
     #  triangles and triangle edges 
     t = np.zeros((4, 3), dtype=np.uint32)
@@ -286,13 +280,11 @@ def matrix_array(nx, ny, pitchx, pitchy, shape='square', refn=2, **kwargs):
     centers = np.stack(np.meshgrid(xv, yv, zv), axis=-1).reshape((-1, 3))
     
     if shape.lower() in ['circle']:
-
         f = circle
         rl = kwargs['radius']
         args = rl,
 
     elif shape.lower() in ['square']:
-
         f = square
         xl, yl = kwargs['lengthx'], kwargs['lengthy']
         args = xl, yl
@@ -320,7 +312,6 @@ def fast_matrix_array(nx, ny, pitchx, pitchy, xl, yl, refn=2, **kwargs):
     eidx = 0
 
     for c in centers:
-
         v, e, t, s = square_geometry(xl, yl)
 
         v += c
@@ -379,7 +370,6 @@ def _from_abstract(cls, array, refn=2, **kwargs):
     
     for elem in array.elements:
         for mem in elem.membranes:
-
             v, e, t, s = square_geometry(mem.length_x, mem.length_y)
 
             v += np.array(mem.position)

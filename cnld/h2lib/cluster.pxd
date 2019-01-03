@@ -1,23 +1,19 @@
-## cluster.h ##
+## cluster_cy.pxd ##
 
+
+from . cimport _cluster
 from . basic cimport *
 
-cdef extern from 'cluster.h' nogil:
 
-    ctypedef _cluster cluster
-    ctypedef cluster * pcluster
-    ctypedef const cluster * pccluster
+ctypedef _cluster.pcluster pcluster
+ctypedef _cluster.pccluster pccluster
 
-    struct _cluster:
-        uint size
-        uint * idx
-        uint sons
-        pcluster * son
-        uint dim
-        real * bmin
-        real * bmax
-        uint desc
-        uint type
-
-    pcluster new_cluster(uint size, uint * idx, uint sons, uint dim)
-    void del_cluster(pcluster t)
+cdef class Cluster:
+    cdef pcluster ptr
+    cdef bint owner
+    cdef readonly uint [:] _idx
+    cdef readonly real [:] _bmin
+    cdef readonly real [:] _bmax
+    cdef _setup(self, pcluster ptr, bint owner)
+    @staticmethod
+    cdef wrap(pcluster ptr, bint owner=*)

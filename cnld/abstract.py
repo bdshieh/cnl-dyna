@@ -6,7 +6,8 @@ __all__ = ['SquareCmutMembrane', 'CircularCmutMembrane', 'Patch', 'Element', 'Ar
            'rotate_element', 'element_position_from_membranes', 'focus_element', 'dump', 'dumps',
            'bias_element', 'activate_element', 'deactivate_element', 'move_array', 'load', 'loads',
            'translate_array', 'rotate_array', 'get_element_positions_from_array', 
-           'get_membrane_positions_from_array', 'focus_array', 'get_element_count', 'register_type']
+           'get_membrane_positions_from_array', 'focus_array', 'get_element_count', 'get_patch_count', 
+           'register_type', 'array_position_from_vertices']
 
 from namedlist import namedlist, FACTORY
 from collections import OrderedDict
@@ -15,15 +16,23 @@ import inspect
 import json
 import numpy as np
 import math
+import collections
+from copy import copy
 
-from . import util
+from cnld import util
+
+
+def _is_abstract_type(obj):
+    '''Hacky method to determine if object is instance of namedlist'''
+    return hasattr(obj, '_asdict')
 
 
 def _generate_dict_with_name_attr(obj):
     '''Converts abstract object into a nested dictionary with __name__ attribute'''
     name = type(obj).__name__
     # for abstract objects and dicts, add __name__ attr
-    if name in names or name is 'dict':
+    # if name in names or name is 'dict':
+    if _is_abstract_type(obj) or isinstance(obj, collections.Mapping):
         d = {}
         d['__name__'] = name
         for k, v in obj._asdict().items():
@@ -78,6 +87,15 @@ def _contains(self, key):
     return key in self._fields
 
 
+def _copy(self):
+    cls = type(self)
+    obj = loads(dumps(self))
+    if _is_abstract_type(obj):
+        return cls(**obj._asdict())
+    else:
+        return cls(**obj)
+
+
 def dump(obj, fp, indent=1, mode='w+', *args, **kwargs):
     ''''''
     json.dump(_generate_dict_with_name_attr(obj), open(fp, mode), indent=indent, *args, **kwargs)
@@ -98,24 +116,27 @@ def loads(s, *args, **kwargs):
     return _generate_object_from_json(json.loads(s, *args, **kwargs))
 
 
-names = []
 def register_type(*args, **kwargs):
-    ''''''
+    '''
+    '''
     cls = namedlist(*args, **kwargs)
     cls.__repr__ = _repr
     cls.__str__ = _str
     cls.__contains__ = _contains
-    names.append(cls.__name__)
+    cls.__copy__ = _copy
+    cls.copy = copy
     return cls
 
 
 def pretty(obj, indent=0):
     '''Pretty print abstract objects'''
     strings = []
-    if type(obj).__name__ in names:
+    # if type(obj).__name__ in names:
+    if _is_abstract_type(obj):
         strings += [' ' * indent, type(obj).__name__, '\n']
         for key, val in obj._asdict().items():
-            if type(val).__name__ in names:
+            # if type(val).__name__ in names:
+            if _is_abstract_type(val):
                 strings += [' ' * (indent + 1), str(key), ': ', '\n']
                 strings += [pretty(val, indent + 1)]
             elif isinstance(val, (list, tuple)):
@@ -126,7 +147,8 @@ def pretty(obj, indent=0):
     elif isinstance(obj, (list, tuple)):
         if len(obj) == 0:
             strings += [' ' * indent , '[]', '\n']
-        elif type(obj[0]).__name__ in names:
+        # elif type(obj[0]).__name__ in names:
+        elif _is_abstract_type(obj[0]):
             for val in obj:
                 strings += [pretty(val, indent + 1)]
         elif isinstance(obj[0], (list, tuple)):
@@ -206,7 +228,7 @@ _Array['elements'] = FACTORY(list)
 Array = register_type('Array', _Array)
 
 
-'''DECORATORS'''
+''' DECORATORS '''
 
 def vectorize(f):
     '''Allows function to be called with either a single abstract object or list/tuple of them'''
@@ -223,7 +245,7 @@ def vectorize(f):
     return decorator
 
 
-'''MEMBRANE MANIPLUATIONS'''
+''' MEMBRANE MANIPLUATIONS '''
 
 @vectorize
 def move_membrane(m, pos):
@@ -251,13 +273,13 @@ def rotate_membrane(m, origin, vec, angle):
     m.position = newpos.tolist()
 
     # update membrane rotation list
-    if 'rotations' in m:
+    if len(m.rotations) > 0:
         m.rotations.append([vec, angle])
     else:
         m.rotations = [[vec, angle]]
 
 
-## ELEMENT MANIPULATIONS ##
+''' ELEMENT MANIPULATIONS '''
 
 @vectorize
 def move_element(e, pos):
@@ -310,7 +332,7 @@ def element_position_from_membranes(e):
 def focus_element(e, pos, sound_speed, quantization=None):
     '''
     '''
-    d = util.distance(e.position, pos)
+    d = float(util.distance(e.position, pos))
     if quantization is None or quantization == 0:
         t = d / sound_speed
     else:
@@ -347,7 +369,7 @@ def deactivate_element(e):
     e.active = False
 
 
-## ARRAY MANIPLUATIONS ##
+''' ARRAY MANIPLUATIONS '''
 
 @vectorize
 def move_array(a, pos):
@@ -447,6 +469,28 @@ def get_patch_count(a):
     '''
     return sum([len(m.patches) for e in a.elements for m in e.membranes])
     
+
+@vectorize
+def get_elements_from_array(array, kind='both'):
+
+    if kind.lower() in ['both']:
+        elements = [e for e in array.elements if e.kind.lower() in ['both', 'txrx']]
+    elif kind.lower() in ['tx', 'transmit']:
+        elements = [e for e in array.elements if e.kind.lower() in ['tx', 'transmit', 'both', 'txrx']]
+    elif kind.lower() in ['rx', 'receive']:
+        elements = [e for e in array.elements if e.kind.lower() in ['rx', 'receive', 'both', 'txrx']]
+    return elements
+
+
+@vectorize
+def get_membranes_from_array(array):
+    return [m for m in e.membranes for e in array.elements]
+
+
+@vectorize
+def array_position_from_vertices(a):
+    a.position = np.mean(np.array(a.vertices), axis=0).tolist()
+
 
 if __name__ == '__main__':
 

@@ -1,19 +1,18 @@
-## rkmatrix.h ##
+## rkmatrix_cy.pxd ##
 
+
+from . cimport _rkmatrix 
 from . basic cimport *
 from . amatrix cimport *
 
 
-cdef extern from 'rkmatrix.h' nogil:
+ctypedef _rkmatrix.prkmatrix prkmatrix
+ctypedef _rkmatrix.pcrkmatrix pcrkmatrix
 
-    struct _rkmatrix:
-        amatrix A
-        amatrix B
-        uint k
-    
-    ctypedef _rkmatrix rkmatrix
-    ctypedef rkmatrix * prkmatrix
-    ctypedef const rkmatrix * pcrkmatrix
+cdef class RKMatrix:
+    cdef prkmatrix ptr
+    cdef bint owner
+    cdef _setup(self, prkmatrix ptr, bint owner)
+    @staticmethod
+    cdef wrap(prkmatrix ptr, bint owner=*)
 
-    prkmatrix new_rkmatrix(uint rows, uint cols, uint k)
-    void del_rkmatrix(prkmatrix r)

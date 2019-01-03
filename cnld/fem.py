@@ -212,7 +212,8 @@ def mbk_from_abstract(array, f, refn, format='SparseFormat'):
             mesh = square(mem.length_x, mem.length_y, refn=refn)
             M = mem_m_matrix(mesh, mem.density, mem.thickness)
             K = mem_k_matrix(mesh, mem.y_modulus, mem.thickness, mem.p_ratio)
-            B = mem_b_matrix_eig(mesh, M, K, 0, 4, 0.002, 0.004)
+            B = mem_b_matrix_eig(mesh, M, K, mem.damping_mode_a, mem.damping_mode_a, 
+                mem.damping_ratio_a, mem.damping_ratio_b)
 
             block = -(omg ** 2) * M + 1j * omg * B + K
             blocks.append(block)

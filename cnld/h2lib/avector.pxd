@@ -1,24 +1,22 @@
-## vector.h ##
+## avector_cy.pxd ##
 
+
+from . cimport _avector
 from . basic cimport *
+# cimport numpy as np
 
-cdef extern from 'avector.h' nogil:
-    
-    struct _avector:
-        field * v
-        uint dim
+ctypedef _avector.pavector pavector
+ctypedef _avector.pcavector pcavector
 
-    ctypedef _avector avector
-    ctypedef avector * pavector
-    ctypedef const avector * pcavector
+cdef class AVector:
+    cdef pavector ptr
+    cdef bint owner
+    cdef public field [:] v
+    cdef _setup(self, pavector ptr, bint owner)
+    @staticmethod
+    cdef wrap(pavector ptr, bint owner=*)
 
-    pavector new_avector(uint dim)
-    pavector new_zero_avector(uint dim)
-    void del_avector(pavector v)
-    # void add_avector(field alpha, pcavector x, pavector y)
-    void clear_avector(pavector v)
-    # void fill_avector(pavector v, field x)
-    # void scale_avector(field alpha, pavector v)
-    void copy_avector(pcavector v, pavector w)
-    void random_avector(pavector v)
-    # real norm2_avector(pcavector v)
+cpdef random_avector(AVector v)
+cpdef clear_avector(AVector v)
+cpdef AVector new_zero_avector(uint dim)
+cpdef copy_avector(AVector v, AVector w)

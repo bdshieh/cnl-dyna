@@ -1,5 +1,7 @@
-## hmatrix.h ##
+## hmatrix_cy.pxd ##
 
+
+from . cimport _hmatrix
 from . basic cimport *
 from . amatrix cimport *
 from . cluster cimport *
@@ -8,40 +10,25 @@ from . rkmatrix cimport *
 from . sparsematrix cimport *
 
 
-cdef extern from 'hmatrix.h' nogil:
+ctypedef _hmatrix.phmatrix phmatrix
+ctypedef _hmatrix.pchmatrix pchmatrix
 
-    # struct _hmatrix
+cdef class HMatrix:
+    cdef phmatrix ptr
+    cdef bint owner
+    cdef _setup(self, phmatrix ptr, bint owner)
+    @staticmethod
+    cdef wrap(phmatrix ptr, bint owner=*)
 
-    ctypedef _hmatrix hmatrix
-    ctypedef hmatrix * phmatrix
-    ctypedef const hmatrix * pchmatrix
-
-    struct _hmatrix:
-        pccluster rc
-        pccluster cc
-        prkmatrix r
-        pamatrix f
-        phmatrix * son
-        uint rsons
-        uint csons
-        uint refs
-        uint desc
-        
-    phmatrix new_hmatrix(pccluster rc, pccluster cc)
-    # phmatrix new_super_hmatrix(pccluster rc, pccluster cc, uint rsons, uint csons)
-    void del_hmatrix(phmatrix hm)
-
-    void clear_hmatrix(phmatrix hm)
-    void copy_hmatrix(pchmatrix src, phmatrix trg)
-    phmatrix clone_hmatrix(pchmatrix src)
-    size_t getsize_hmatrix(pchmatrix hm)
-    uint getrows_hmatrix(pchmatrix hm)
-    uint getcols_hmatrix(pchmatrix hm)
-    phmatrix build_from_block_hmatrix(pcblock b, uint k)
-    # void norm2_hmatrix(pchmatrix H)
-    void addeval_hmatrix_avector(field alpha, pchmatrix hm, pcavector x, pavector y)
-    void addevalsymm_hmatrix_avector(field alpha, pchmatrix hm, pcavector x, pavector y)
-    phmatrix clonestructure_hmatrix(pchmatrix src)
-    void copy_sparsematrix_hmatrix(psparsematrix sp, phmatrix hm)
-    void identity_hmatrix(phmatrix hm)
-    
+cpdef HMatrix build_from_block_hmatrix(Block b, uint k)
+cpdef clear_hmatrix(HMatrix hm)
+cpdef copy_hmatrix(HMatrix src, HMatrix trg)
+cpdef HMatrix clone_hmatrix(HMatrix src)
+cpdef size_t getsize_hmatrix(HMatrix hm)
+cpdef addeval_hmatrix_avector(field alpha, HMatrix hm, AVector x, AVector y)
+cpdef addevalsymm_hmatrix_avector(field alpha, HMatrix hm, AVector x, AVector y)
+cpdef uint getrows_hmatrix(HMatrix hm)
+cpdef uint getcols_hmatrix(HMatrix hm)
+cpdef HMatrix clonestructure_hmatrix(HMatrix src)
+cpdef copy_sparsematrix_hmatrix(SparseMatrix sp, HMatrix hm)
+cpdef identity_hmatrix(HMatrix hm)

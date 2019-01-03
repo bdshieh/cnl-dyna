@@ -1,22 +1,18 @@
-## truncation.h ##
+## truncation_cy.pxd ##
 
 
+from . cimport _truncation
 from . basic cimport *
 
 
-cdef extern from 'truncation.h' nogil:
-    
-    struct _truncmode:
-        bint frobenius
-        bint absolute
-        bint blocks
-        real zeta_level
-        real zeta_age
+ctypedef _truncation.ptruncmode ptruncmode
+ctypedef _truncation.pctruncmode pctruncmode
 
-    ctypedef _truncmode truncmode
-    ctypedef truncmode * ptruncmode
-    ctypedef const truncmode * pctruncmode
+cdef class Truncmode:
+    cdef ptruncmode ptr
+    cdef bint owner
+    cdef _setup(self, ptruncmode ptr, bint owner)
+    @staticmethod
+    cdef wrap(ptruncmode ptr, bint owner=*)
 
-    ptruncmode new_truncmode()
-    void del_truncmode(ptruncmode tm)
-    ptruncmode new_releucl_truncmode()
+cpdef Truncmode new_releucl_truncmode()

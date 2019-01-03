@@ -1,30 +1,30 @@
-## sparsematrix.h ##
+## sparsematrix.pxd ##
 
+
+from . cimport _sparsematrix
 from . basic cimport *
 from . amatrix cimport *
 
-cdef extern from 'sparsematrix.h' nogil:
 
-    ctypedef field * pfield
-    ctypedef _sparsematrix sparsematrix
-    ctypedef sparsematrix * psparsematrix
-    ctypedef const sparsematrix * pcsparsematrix
+ctypedef _sparsematrix.psparsematrix psparsematrix
+ctypedef _sparsematrix.pcsparsematrix pcsparsematrix
 
-    struct _sparsematrix:
-        uint rows
-        uint cols
-        uint nz
-        uint * row
-        uint * col
-        pfield coeff
-    
-    psparsematrix new_raw_sparsematrix(uint rows, uint cols, uint nz)
-    psparsematrix new_identity_sparsematrix(uint rows, uint cols)
-    void del_sparsematrix(psparsematrix a)
-    field addentry_sparsematrix(psparsematrix a, uint row, uint col, field x)
-    void setentry_sparsematrix(psparsematrix a, uint row, uint col, field x)
-    size_t getsize_sparsematrix(pcsparsematrix a)
-    void sort_sparsematrix(psparsematrix a)
-    void clear_sparsematrix(psparsematrix a)
-    void add_sparsematrix_amatrix(field alpha, bint atrans, pcsparsematrix a, pamatrix b)
-    
+cdef class SparseMatrix:
+    cdef psparsematrix ptr
+    cdef bint owner
+    cdef public uint [:] _row
+    cdef public uint [:] _col
+    cdef public field [:] _coeff
+    cdef _setup(self, psparsematrix ptr, bint owner)
+    @staticmethod
+    cdef wrap(psparsematrix ptr, bint owner=*)
+
+cpdef SparseMatrix new_raw_sparsematrix(uint rows, uint cols, uint nz)
+cpdef SparseMatrix new_identity_sparsematrix(uint rows, uint cols)
+cpdef del_sparsematrix(SparseMatrix a)
+cpdef field addentry_sparsematrix(SparseMatrix a, uint row, uint col, field x)
+cpdef setentry_sparsematrix(SparseMatrix a, uint row, uint col, field x)
+cpdef size_t getsize_sparsematrix(SparseMatrix a)
+cpdef sort_sparsematrix(SparseMatrix a)
+cpdef clear_sparsematrix(SparseMatrix a)
+cpdef add_sparsematrix_amatrix(field alpha, bint atrans, SparseMatrix a, AMatrix b)

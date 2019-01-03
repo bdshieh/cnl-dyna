@@ -42,83 +42,83 @@ else:
 
     ext_modules = [
         Extension(
-            name='cnld.h2lib.basic_cy',
-            sources=['cnld/h2lib/basic_cy.pyx'],
+            name='cnld.h2lib.basic',
+            sources=['cnld/h2lib/basic.pyx'],
             **ext_opts
         ),
         Extension(
-            name='cnld.h2lib.avector_cy',
-            sources=['cnld/h2lib/avector_cy.pyx'],
+            name='cnld.h2lib.avector',
+            sources=['cnld/h2lib/avector.pyx'],
             **ext_opts
         ),
         Extension(
-            name='cnld.h2lib.amatrix_cy',
-            sources=['cnld/h2lib/amatrix_cy.pyx'],
+            name='cnld.h2lib.amatrix',
+            sources=['cnld/h2lib/amatrix.pyx'],
             **ext_opts
         ),
         Extension(
-            name='cnld.h2lib.cluster_cy',
-            sources=['cnld/h2lib/cluster_cy.pyx'],
+            name='cnld.h2lib.cluster',
+            sources=['cnld/h2lib/cluster.pyx'],
             **ext_opts
         ),
         Extension(
-            name='cnld.h2lib.block_cy',
-            sources=['cnld/h2lib/block_cy.pyx'],
+            name='cnld.h2lib.block',
+            sources=['cnld/h2lib/block.pyx'],
             **ext_opts
         ),
         Extension(
-            name='cnld.h2lib.surface3d_cy',
-            sources=['cnld/h2lib/surface3d_cy.pyx'],
+            name='cnld.h2lib.surface3d',
+            sources=['cnld/h2lib/surface3d.pyx'],
             **ext_opts
         ),
         Extension(
-            name='cnld.h2lib.macrosurface3d_cy',
-            sources=['cnld/h2lib/macrosurface3d_cy.pyx'],
+            name='cnld.h2lib.macrosurface3d',
+            sources=['cnld/h2lib/macrosurface3d.pyx'],
             **ext_opts
         ),
         Extension(
-            name='cnld.h2lib.rkmatrix_cy',
-            sources=['cnld/h2lib/rkmatrix_cy.pyx'],
+            name='cnld.h2lib.rkmatrix',
+            sources=['cnld/h2lib/rkmatrix.pyx'],
             **ext_opts
         ),
         Extension(
-            name='cnld.h2lib.hmatrix_cy',
-            sources=['cnld/h2lib/hmatrix_cy.pyx'],
+            name='cnld.h2lib.hmatrix',
+            sources=['cnld/h2lib/hmatrix.pyx'],
             **ext_opts
         ),
         Extension(
-            name='cnld.h2lib.bem3d_cy',
-            sources=['cnld/h2lib/bem3d_cy.pyx'],
+            name='cnld.h2lib.bem3d',
+            sources=['cnld/h2lib/bem3d.pyx'],
             **ext_opts
         ),
         Extension(
-            name='cnld.h2lib.helmholtzbem3d_cy',
-            sources=['cnld/h2lib/helmholtzbem3d_cy.pyx'],
+            name='cnld.h2lib.helmholtzbem3d',
+            sources=['cnld/h2lib/helmholtzbem3d.pyx'],
             **ext_opts
         ),
         Extension(
-            name='cnld.h2lib.truncation_cy',
-            sources=['cnld/h2lib/truncation_cy.pyx'],
+            name='cnld.h2lib.truncation',
+            sources=['cnld/h2lib/truncation.pyx'],
             **ext_opts
         ),
         Extension(
-            name='cnld.h2lib.krylovsolvers_cy',
-            sources=['cnld/h2lib/krylovsolvers_cy.pyx'],
+            name='cnld.h2lib.krylovsolvers',
+            sources=['cnld/h2lib/krylovsolvers.pyx'],
             **ext_opts
         ),
         Extension(
-            name='cnld.h2lib.harith_cy',
-            sources=['cnld/h2lib/harith_cy.pyx'],
+            name='cnld.h2lib.harith',
+            sources=['cnld/h2lib/harith.pyx'],
             **ext_opts
         ),
         Extension(
-            name='cnld.h2lib.factorizations_cy',
-            sources=['cnld/h2lib/factorizations_cy.pyx'],
+            name='cnld.h2lib.factorizations',
+            sources=['cnld/h2lib/factorizations.pyx'],
             **ext_opts
         ),
         Extension(
-            name='cnld.h2lib.sparsematrix_cy',
-            sources=['cnld/h2lib/sparsematrix_cy.pyx'],
+            name='cnld.h2lib.sparsematrix',
+            sources=['cnld/h2lib/sparsematrix.pyx'],
             **ext_opts
         ),
     ]
@@ -129,7 +129,7 @@ else:
         version='0.1',
         ext_modules=cythonize(ext_modules),
         packages=find_packages(),
-        package_data={'cnld': ['tests/kmat.npz']},
+        # package_data={'cnld': ['tests/kmat.npz']},
         install_requires=[
         ],
         entry_points={
