@@ -222,7 +222,8 @@ def mem_k_matrix2(mesh, E, h, eta):
         z = [0, 0, 1]
         r = [x2 - x1, y2 - y1]
         n = np.cross(z, r)
-        n = n / np.linalg.norm(n)
+        norm = np.linalg.norm(n)
+        n = n / norm
         nx, ny, _ = n
         return np.array([[-nx, 0],[0, -ny],[-ny, -nx]])
         # return np.array([[-ny, -nx],[-nx, 0],[0, -ny]])
@@ -256,6 +257,7 @@ def mem_k_matrix2(mesh, E, h, eta):
     D[0,0] = 1
     D[0,1] = eta
     D[1,0] = eta
+    D[1,1] = 1
     D[2,2] = (1 - eta) / 2
     D = D * E * h**3 / (12 * (1 - eta**2))
 
@@ -316,7 +318,7 @@ def mem_k_matrix2(mesh, E, h, eta):
             nterm = l / 2 * T.dot(gradn)
             idx = [Kpidx[Kidx.index(x)] for x in [iin, jjn, kkn]]
             Bp[:,idx] += nterm
-        Bp /= ap
+        Bp = Bp / ap
 
         # construct local K matrix for control element
         Kp = (Bp.T).dot(D).dot(Bp) * ap
