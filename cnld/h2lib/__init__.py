@@ -1,20 +1,20 @@
 
-from . basic_cy import *
-from . avector_cy import *
-from . amatrix_cy import *
-from . cluster_cy import *
-from . block_cy import *
-from . surface3d_cy import *
-from . macrosurface3d_cy import *
-from . bem3d_cy import *
-from . rkmatrix_cy import *
-from . hmatrix_cy import *
-from . helmholtzbem3d_cy import *
-from . truncation_cy import *
-from . krylovsolvers_cy import *
-from . harith_cy import *
-from . factorizations_cy import *
-from . sparsematrix_cy import *
+from . basic import *
+from . avector import *
+from . amatrix import *
+from . cluster import *
+from . block import *
+from . surface3d import *
+from . macrosurface3d import *
+from . bem3d import *
+from . rkmatrix import *
+from . hmatrix import *
+from . helmholtzbem3d import *
+from . truncation import *
+from . krylovsolvers import *
+from . harith import *
+from . factorizations import *
+from . sparsematrix import *
 
 init_h2lib()
 # print('h2lib initialized')

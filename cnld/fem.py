@@ -129,6 +129,30 @@ def mem_k_matrix(mesh, E, h, eta):
 
 
 @util.memoize
+def mem_m_matrix2(mesh, rho, h):
+    '''
+    Mass matrix based on equal distribution of element mass to nodes.
+    '''
+    # get mesh information
+    nodes = mesh.vertices
+    triangles = mesh.triangles
+
+    # construct M matrix by adding contribution from each element
+    M = np.zeros((len(nodes), len(nodes)))
+    for tt in range(len(triangles)):
+        tri = triangles[tt,:]
+        xi, yi = nodes[tri[0],:2]
+        xj, yj = nodes[tri[1],:2]
+        xk, yk = nodes[tri[2],:2]
+
+        da = ((xj - xi) * (yk - yi) - (xk - xi) * (yj - yi))
+        Mt = np.array([[1, 1 / 2, 1 / 2], [1 / 2, 1, 1 / 2], [1 / 2, 1 / 2, 1]]) / 12
+        M[np.ix_(tri, tri)] += Mt * rho * h * da
+
+    return M
+
+
+@util.memoize
 def mem_m_matrix(mesh, rho, h):
     '''
     Mass matrix based on equal distribution of element mass to nodes.

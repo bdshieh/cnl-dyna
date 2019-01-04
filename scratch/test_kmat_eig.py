@@ -12,15 +12,15 @@ from cnld import util, fem, mesh
 if __name__ == '__main__':
 
     E = 110e9
-    h = 2.2e-6
+    h = 2.0e-6
     eta = 0.22
     refn = 4
     sqmesh = mesh.square(40e-6, 40e-6, refn=refn)
     ob = sqmesh.on_boundary
-    K = fem.mem_k_matrix2(sqmesh, E, h, eta)
+    K = fem.mem_k_matrix(sqmesh, E, h, eta)
 
     rho = 2040.
-    M = fem.mem_m_matrix(sqmesh, rho, h)
+    M = fem.mem_m_matrix2(sqmesh, rho, h)
 
     from scipy.linalg import eig, inv
 
@@ -29,7 +29,7 @@ if __name__ == '__main__':
     f = np.sqrt(np.abs(w[sortix])) / (2 * np.pi)
     v = v[:, sortix]
 
-    x = np.zeros((len(sqmesh.vertices), len(v)))
+    x = np.zeros((len(sqmesh.vertices), len(v)), dtype=np.complex128)
     x[~ob, :] = v
 
     from scipy.interpolate import Rbf
