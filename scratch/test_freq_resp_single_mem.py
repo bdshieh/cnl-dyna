@@ -10,11 +10,11 @@ from cnld import util, bem, fem, mesh
 from cnld.compressed_formats2 import MbkSparseMatrix
 
 
-refn = 4
+refn = 5
 c = 1500.
 rho = 2040.
 E = 110e9
-h = 2.0e-6
+h = 1.0e-6
 eta = 0.22
 amode = 0
 bmode = 4
@@ -31,13 +31,17 @@ hmkwargs['eps_aca'] = 1e-2
 hmkwargs['strict'] = False
 hmkwargs['clf'] = 16
 hmkwargs['rk'] = 0
-freqs = np.arange(100e3, 50e6 + 100e3, 100e3)
+freqs = np.arange(500e3, 50e6 + 500e3, 500e3)
 
 sqmesh = mesh.square(40e-6, 40e-6, refn=refn)
 ob = sqmesh.on_boundary
 
+M = fem.mem_m_matrix2(sqmesh, rho, h)
+K = fem.mem_k_matrix(sqmesh, E, h, eta)
 F = fem.mem_f_vector(sqmesh, 1)
 F[ob] = 0
+
+from scipy.sparse.linalg import gmres, cg, bicg, LinearOperator
 
 x = np.zeros((len(sqmesh.vertices), len(freqs)), dtype=np.complex128)
 for i, f in enumerate(tqdm(freqs)):
@@ -46,26 +50,32 @@ for i, f in enumerate(tqdm(freqs)):
     k = omg / c
 
     # MBK = fem.mbk_from_mesh(sqmesh, f, rho, h, E, eta, amode, bmode, za, zb)
-    M = fem.mem_m_matrix2(sqmesh, rho, h)
-    K = fem.mem_k_matrix(sqmesh, E, h, eta)
-    B = fem.mem_b_matrix_eig(sqmesh, M, K, amode, bmode, za, zb)
-    _MBK = -omg**2 * M + 1j * omg * B + K
+
+    # B = fem.mem_b_matrix_eig(sqmesh, M, K, amode, bmode, za, zb)
+    # _MBK = -omg**2 * M + 1j * omg * B + K
+    _MBK = -omg**2 * M + K
     _MBK[np.ix_(ob, ob)] = 0
     MBK = MbkSparseMatrix(_MBK)
 
-    Z = bem.z_from_mesh(sqmesh, k, **hmkwargs)
+    Z = bem.z_from_mesh(sqmesh, k, format='FullFormat', **hmkwargs)
 
-    G = -(1000 * omg**2 * Z) + MBK
+    G = -(1000 * 2 * omg**2 * Z) + MBK
     G_LU = G.lu()
     # _x = np.linalg.solve(G[np.ix_(~ob, ~ob)], F[~ob])
-    _x = G_LU.lusolve(F)
+    # _x = G_LU.lusolve(F)
 
     # Z_LU = Z.lu()
-    # def matvec(x):
-
-        # _x = MBK[np.ix_(~ob, ~ob)].dot(x[~ob]) + (1j * omg * Z * x)[~ob]
-        # _x
-
+    def matvec(x):
+        p1 = -(1000 * 2 * omg**2 * Z) * x
+        p1[ob] = 0
+        p2 = MBK * x
+        p2[ob] = 0
+        return p1 + p2
+    linop = LinearOperator(MBK.shape, matvec)
+    luop = LinearOperator(MBK.shape, G_LU._matvec)
+    _x, _  = gmres(linop, F, x0=np.ones(MBK.shape[0]), tol=1e-12, maxiter=20, M=luop)
+    del G, G_LU, Z
+    
     x[~ob,i] = _x[~ob]
 
 gridx, gridy = np.mgrid[-20e-6:20e-6:101j, -20e-6:20e-6:101j]

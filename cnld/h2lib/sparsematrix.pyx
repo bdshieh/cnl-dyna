@@ -105,3 +105,5 @@ cpdef clear_sparsematrix(SparseMatrix a):
 cpdef add_sparsematrix_amatrix(field alpha, bint atrans, SparseMatrix a, AMatrix b):
     _sparsematrix.add_sparsematrix_amatrix(alpha, atrans, <pcsparsematrix> a.ptr, b.ptr)
 
+cpdef addeval_sparsematrix_avector(field alpha, SparseMatrix a, AVector x, AVector y):
+    _sparsematrix.addeval_sparsematrix_avector(alpha, <pcsparsematrix> a.ptr, <pcavector> x.ptr, y.ptr)
