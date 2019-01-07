@@ -43,12 +43,12 @@ def process(job):
 
     # create MBK matrix in SparseFormat
     # MBK = bem.mbk_from_abstract(array, f, refn, format='SparseFormat')
-    MBK = bem.mbk_from_abstract(array, f, refn, format='FullFormat')
+    MBK = fem.mbk_from_abstract(array, f, refn, format='SparseFormat')
 
     # create Z matrix in HFormat
     hmkwrds = ['aprx', 'basis', 'admis', 'eta', 'eps', 'm', 'clf', 'eps_aca', 'rk', 'q_reg', 'q_sing', 'strict']
     hmargs = { k:getattr(cfg, k) for k in hmkwrds }
-    # Z = bem.z_from_abstract(array, k, refn, **hmargs)
+    Z = bem.z_from_abstract(array, k, refn, **hmargs)
 
     # construct G in HFormat from MBK and Z
     # G = MBK + (2 * np.pi * f) ** 2 * -1000. * Z 

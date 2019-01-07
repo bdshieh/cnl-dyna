@@ -131,7 +131,7 @@ def mem_k_matrix(mesh, E, h, eta):
 @util.memoize
 def mem_m_matrix2(mesh, rho, h):
     '''
-    Mass matrix based on equal distribution of element mass to nodes.
+    Mass matrix based on kinetic energy and linear shape functions (consistent).
     '''
     # get mesh information
     nodes = mesh.vertices
@@ -155,7 +155,7 @@ def mem_m_matrix2(mesh, rho, h):
 @util.memoize
 def mem_m_matrix(mesh, rho, h):
     '''
-    Mass matrix based on equal distribution of element mass to nodes.
+    Mass matrix based on equal distribution of element mass to nodes (diagonally-lumped).
     '''
     # get mesh information
     nodes = mesh.vertices
@@ -239,13 +239,29 @@ def mbk_from_abstract(array, f, refn, format='SparseFormat'):
             B = mem_b_matrix_eig(mesh, M, K, mem.damping_mode_a, mem.damping_mode_a, 
                 mem.damping_ratio_a, mem.damping_ratio_b)
 
-            block = -(omg ** 2) * M + 1j * omg * B + K
+            block = -(omg**2) * M + 1j * omg * B + K
             blocks.append(block)
     
     if format.lower() in ['sparse', 'sparseformat']:
         return MbkSparseMatrix(sps.csr_matrix(sps.block_diag(blocks)))
     else:
         return MbkFullMatrix(sps.block_diag(blocks).todense())
+
+
+def mbk_from_mesh(mesh, f, rho, h, E, eta, amode, bmode, za, zb, format='SparseFormat',):
+    '''
+    '''
+    omg = 2 * np.pi * f
+
+    M = mem_m_matrix(mesh, rho, h)
+    K = mem_k_matrix(mesh, E, h, eta)
+    B = mem_b_matrix_eig(mesh, M, K, amode, bmode, za, zb)
+
+    MBK = -omg**2 + M + 1j * omg * B + K
+    if format.lower() in ['sparse', 'sparseformat']:
+        return MbkSparseMatrix(sps.csr_matrix(MBK))
+    else:
+        return MbkFullMatrix(MBK)
 
 
 if __name__ == '__main__':
