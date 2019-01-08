@@ -10,11 +10,11 @@ from cnld import util, bem, fem, mesh
 from cnld.compressed_formats2 import MbkSparseMatrix
 
 
-refn = 5
+refn = 8
 c = 1500.
 rho = 2040.
 E = 110e9
-h = 1.0e-6
+h = 2e-6
 eta = 0.22
 amode = 0
 bmode = 4
@@ -36,12 +36,12 @@ freqs = np.arange(500e3, 50e6 + 500e3, 500e3)
 sqmesh = mesh.square(40e-6, 40e-6, refn=refn)
 ob = sqmesh.on_boundary
 
-M = fem.mem_m_matrix2(sqmesh, rho, h)
+M = fem.mem_m_matrix(sqmesh, rho, h)
 K = fem.mem_k_matrix(sqmesh, E, h, eta)
 F = fem.mem_f_vector(sqmesh, 1)
-F[ob] = 0
+# F[ob] = 0
 
-from scipy.sparse.linalg import gmres, cg, bicg, LinearOperator
+# from scipy.sparse.linalg import gmres, cg, bicg, LinearOperator
 
 x = np.zeros((len(sqmesh.vertices), len(freqs)), dtype=np.complex128)
 for i, f in enumerate(tqdm(freqs)):
@@ -62,19 +62,19 @@ for i, f in enumerate(tqdm(freqs)):
     G = -(1000 * 2 * omg**2 * Z) + MBK
     G_LU = G.lu()
     # _x = np.linalg.solve(G[np.ix_(~ob, ~ob)], F[~ob])
-    # _x = G_LU.lusolve(F)
+    _x = G_LU.lusolve(F)
 
     # Z_LU = Z.lu()
-    def matvec(x):
-        p1 = -(1000 * 2 * omg**2 * Z) * x
-        p1[ob] = 0
-        p2 = MBK * x
-        p2[ob] = 0
-        return p1 + p2
-    linop = LinearOperator(MBK.shape, matvec)
-    luop = LinearOperator(MBK.shape, G_LU._matvec)
-    _x, _  = gmres(linop, F, x0=np.ones(MBK.shape[0]), tol=1e-12, maxiter=20, M=luop)
-    del G, G_LU, Z
+    # def matvec(x):
+    #     p1 = -(1000 * 2 * omg**2 * Z) * x
+    #     p1[ob] = 0
+    #     p2 = MBK * x
+    #     p2[ob] = 0
+    #     return p1 + p2
+    # linop = LinearOperator(MBK.shape, matvec)
+    # luop = LinearOperator(MBK.shape, G_LU._matvec)
+    # _x, _  = gmres(linop, F, x0=np.ones(MBK.shape[0]), tol=1e-12, maxiter=20, M=luop)
+    # del G, G_LU, Z
     
     x[~ob,i] = _x[~ob]
 

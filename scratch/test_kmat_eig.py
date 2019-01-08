@@ -12,15 +12,15 @@ from cnld import util, fem, mesh
 if __name__ == '__main__':
 
     E = 110e9
-    h = 2.0e-6
+    h = 1e-6
     eta = 0.22
-    refn = 4
+    refn = 9
     sqmesh = mesh.square(40e-6, 40e-6, refn=refn)
     ob = sqmesh.on_boundary
     K = fem.mem_k_matrix(sqmesh, E, h, eta)
 
     rho = 2040.
-    M = fem.mem_m_matrix2(sqmesh, rho, h)
+    M = fem.mem_m_matrix(sqmesh, rho, h)
 
     from scipy.linalg import eig, inv
 
@@ -39,19 +39,16 @@ if __name__ == '__main__':
   
     gridx, gridy = np.mgrid[-20e-6:20e-6:101j, -20e-6:20e-6:101j]
 
-    fi = Rbf(sqmesh.vertices[:,0], sqmesh.vertices[:,1], x[:, 0], function='cubic', smooth=0)
-    xi = fi(gridx, gridy)
-    fig, ax = plt.subplots(figsize=(7,7))
-    im = ax.imshow(np.abs(xi), cmap='RdBu_r')
-    fig.colorbar(im)
-    ax.set_title(f'{f[0] / 1e6:0.2f} MHz')
+    for i in range(6):
 
-    fi = Rbf(sqmesh.vertices[:,0], sqmesh.vertices[:,1], x[:, 4], function='cubic', smooth=0)
-    xi = fi(gridx, gridy)
-    fig, ax = plt.subplots(figsize=(7,7))
-    im = ax.imshow(np.abs(xi), cmap='RdBu_r')
-    fig.colorbar(im)
-    ax.set_title(f'{f[4] / 1e6:0.2f} MHz')
+        fi = Rbf(sqmesh.vertices[:,0], sqmesh.vertices[:,1], x[:, i], function='cubic', smooth=0)
+        xi = fi(gridx, gridy)
+        fig, ax = plt.subplots(figsize=(7,7))
+        im = ax.imshow(np.abs(xi), cmap='RdBu_r')
+        fig.colorbar(im)
+        ax.set_title(f'Mode {i} at {f[i] / 1e6:0.2f} MHz')
+
+
 
     # fi = Rbf(sqmesh.vertices[:,0], sqmesh.vertices[:,1], x[:, fidx2], function='cubic', smooth=0)
     # xi2 = fi(gridx, gridy)

@@ -12,9 +12,9 @@ from cnld import util, fem, mesh
 if __name__ == '__main__':
 
     E = 110e9
-    h = 2.2e-6
+    h = 1e-6
     eta = 0.22
-    refn = 4
+    refn = 6
     sqmesh = mesh.square(40e-6, 40e-6, refn=refn)
     ob = sqmesh.on_boundary
     K = fem.mem_k_matrix(sqmesh, E, h, eta)
@@ -28,7 +28,7 @@ if __name__ == '__main__':
     #     refn = npf['refns'][idx]
 
     # B = 5e-10 * M + 5e-10 * K
-    B = fem.mem_b_matrix_eig(sqmesh, M, K, 0, 4, 0.004, 0.008)
+    # B = fem.mem_b_matrix_eig(sqmesh, M, K, 0, 4, 0.004, 0.008)
 
     # E = 110e9
     # h = 2e-6
@@ -44,7 +44,7 @@ if __name__ == '__main__':
     # M = (sps.eye(K.shape[0]) * rho * h).todense()
     # M[ob] = 1e-9
 
-    freqs = np.arange(100e3, 100e6 + 100e3, 100e3)
+    freqs = np.arange(100e3, 50e6 + 100e3, 100e3)
     F = fem.mem_f_vector(sqmesh, 1)
     # p = np.diag(fem.mem_m_matrix(sqmesh, 1, 1))
     # p = np.ones(K.shape[0])
@@ -52,8 +52,9 @@ if __name__ == '__main__':
     # x = []
     x = np.zeros((len(sqmesh.vertices), len(freqs)), dtype=np.complex128)
     for i, f in enumerate(tqdm(freqs)):
-        G = -(2 * np.pi * f)**2 * M + K + 1j * (2 * np.pi * f) * B
-        # G = -(2 * np.pi * f)**2 * M + K
+        # G = -(2 * np.pi * f)**2 * M + K + 1j * (2 * np.pi * f) * B
+        G = -(2 * np.pi * f)**2 * M + K
+        # G[np.ix_(~ob, ~ob)] = 0
         _x = np.linalg.solve(G[np.ix_(~ob, ~ob)], F[~ob])
         x[~ob,i] = _x
         # _x = np.linalg.solve(G, F)
@@ -90,20 +91,20 @@ if __name__ == '__main__':
     ax.set_title(f'{freqs[fidx2] / 1e6} MHz')
     # plt.show()
 
-    from mpl_toolkits.mplot3d import Axes3D
-    fig = plt.figure(figsize=(7,7))
-    ax = fig.add_subplot(111, projection='3d')
-    ax.plot_surface(gridx, gridy, np.abs(xi), vmin=0, vmax=np.max(np.abs(xi)), cmap='RdBu_r')
-    # plt.show()
+    # from mpl_toolkits.mplot3d import Axes3D
+    # fig = plt.figure(figsize=(7,7))
+    # ax = fig.add_subplot(111, projection='3d')
+    # ax.plot_surface(gridx, gridy, np.abs(xi), vmin=0, vmax=np.max(np.abs(xi)), cmap='RdBu_r')
+    # # plt.show()
 
-    plt.figure(figsize=(7,7))
-    plt.plot(np.abs(xi)[xi.shape[0] // 2, :], '.-')
-    plt.plot(np.abs(xi)[:, xi.shape[1] // 2], '.-')
+    # plt.figure(figsize=(7,7))
+    # plt.plot(np.abs(xi)[xi.shape[0] // 2, :], '.-')
+    # plt.plot(np.abs(xi)[:, xi.shape[1] // 2], '.-')
     # plt.show()
 
     # xo = x.reshape(())
     plt.figure(figsize=(7,7))
-    plt.plot(freqs, np.abs(x).mean(axis=0))
+    plt.plot(freqs, np.abs(x).max(axis=0))
     plt.show()
 
     # import time

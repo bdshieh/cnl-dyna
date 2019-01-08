@@ -129,7 +129,7 @@ def mem_k_matrix(mesh, E, h, eta):
 
 
 @util.memoize
-def mem_m_matrix2(mesh, rho, h):
+def mem_m_matrix(mesh, rho, h):
     '''
     Mass matrix based on kinetic energy and linear shape functions (consistent).
     '''
@@ -153,7 +153,7 @@ def mem_m_matrix2(mesh, rho, h):
 
 
 @util.memoize
-def mem_m_matrix(mesh, rho, h):
+def mem_m_matrix2(mesh, rho, h):
     '''
     Mass matrix based on equal distribution of element mass to nodes (diagonally-lumped).
     '''
@@ -215,6 +215,7 @@ def mem_f_vector(mesh, p):
     nodes = mesh.vertices
     triangles = mesh.triangles
     triangle_areas = mesh.g / 2
+    # ob = mesh.on_boundary
 
     f = np.zeros(len(nodes))
     for tt in range(len(triangles)):
@@ -223,6 +224,32 @@ def mem_f_vector(mesh, p):
         f[tri] += 1 / 3 * p * ap
 
     return f
+
+
+# @util.memoize    
+# def mem_f_vector2(mesh, p):
+#     '''
+#     Pressure load vector based on equal distribution of pressure to element nodes.
+#     '''
+#     nodes = mesh.vertices
+#     triangles = mesh.triangles
+#     # triangle_areas = mesh.g / 2
+#     # ob = mesh.on_boundary
+
+#     f = np.zeros(len(nodes))
+#     for tt in range(len(triangles)):
+#         tri = triangles[tt,:]
+#         # ap = triangle_areas[tt]
+#         xi, yi = nodes[tri[0],:2]
+#         xj, yj = nodes[tri[1],:2]
+#         xk, yk = nodes[tri[2],:2]
+
+#         da = ((xj - xi) * (yk - yi) - (xk - xi) * (yj - yi))
+
+#         f[tri] += 1 / 6 * p * da
+
+#     return f
+
 
 
 def mbk_from_abstract(array, f, refn, format='SparseFormat'):
