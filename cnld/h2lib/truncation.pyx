@@ -15,7 +15,7 @@ cdef class Truncmode:
         cdef ptruncmode ptr = _truncation.new_truncmode()
         self._setup(ptr, owner=True)
 
-    def __dealloc(self):
+    def __dealloc__(self):
         if self.ptr is not NULL and self.owner is True:
             _truncation.del_truncmode(self.ptr)
 

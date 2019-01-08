@@ -26,7 +26,7 @@ cdef class AVector:
         obj.v[:] = v.astype(np.complex128)
         return obj
 
-    def __dealloc(self):
+    def __dealloc__(self):
         if self.ptr is not NULL and self.owner is True:
             _avector.del_avector(self.ptr)
 

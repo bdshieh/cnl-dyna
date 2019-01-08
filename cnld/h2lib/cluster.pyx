@@ -16,7 +16,7 @@ cdef class Cluster:
         cdef pcluster ptr = _cluster.new_cluster(size, &idx[0], sons, dim)
         self._setup(ptr, True)
 
-    def __dealloc(self):
+    def __dealloc__(self):
         if self.ptr is not NULL and self.owner is True:
             _cluster.del_cluster(self.ptr)
     

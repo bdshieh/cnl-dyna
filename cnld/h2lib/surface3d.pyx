@@ -15,7 +15,7 @@ cdef class Surface3d():
         cdef psurface3d ptr = _surface3d.new_surface3d(vertices, edges, triangles)
         self._setup(ptr, True)
 
-    def __dealloc(self):
+    def __dealloc__(self):
         if self.ptr is not NULL and self.owner is True:
             _surface3d.del_surface3d(self.ptr)
 

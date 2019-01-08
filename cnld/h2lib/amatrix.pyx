@@ -27,7 +27,7 @@ cdef class AMatrix():
         obj._a[:] = a.astype(np.complex128)
         return obj
 
-    def __dealloc(self):
+    def __dealloc__(self):
         if self.ptr is not NULL and self.owner is True:
             _amatrix.del_amatrix(self.ptr)
 

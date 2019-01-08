@@ -17,7 +17,7 @@ cdef class Block:
         cdef pblock ptr = _block.new_block(rc.ptr, cc.ptr, a, rsons, csons)
         self._setup(ptr, True)
 
-    def __dealloc(self):
+    def __dealloc__(self):
         if self.ptr is not NULL and self.owner is True:
             _block.del_block(self.ptr)
 

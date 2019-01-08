@@ -21,7 +21,7 @@ cdef class HMatrix:
         cdef phmatrix ptr = _hmatrix.new_hmatrix(rc.ptr, cc.ptr)
         self._setup(ptr, owner=True)
 
-    def __dealloc(self):
+    def __dealloc__(self):
         if self.ptr is not NULL and self.owner is True:
             _hmatrix.del_hmatrix(self.ptr)
 

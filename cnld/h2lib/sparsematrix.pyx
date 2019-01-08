@@ -34,7 +34,7 @@ cdef class SparseMatrix():
         obj._coeff[:] = a.data
         return obj
 
-    def __dealloc(self):
+    def __dealloc__(self):
         if self.ptr is not NULL and self.owner is True:
             _sparsematrix.del_sparsematrix(self.ptr)
 

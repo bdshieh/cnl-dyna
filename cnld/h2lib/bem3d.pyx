@@ -19,7 +19,7 @@ cdef class Bem3d:
         cdef pbem3d ptr = _bem3d.new_bem3d(<pcsurface3d> surf.ptr, row_basis, col_basis)
         self._setup(ptr, True)
 
-    def __dealloc(self):
+    def __dealloc__(self):
         if self.ptr is not NULL and self.owner is True:
             _bem3d.del_bem3d(self.ptr)
 

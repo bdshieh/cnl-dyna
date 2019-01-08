@@ -16,7 +16,7 @@ cdef class Macrosurface3d():
         cdef pmacrosurface3d ptr = _macrosurface3d.new_macrosurface3d(vertices, edges, triangles)
         self._setup(ptr, True)
 
-    def __dealloc(self):
+    def __dealloc__(self):
         if self.ptr is not NULL and self.owner is True:
             _macrosurface3d.del_macrosurface3d(self.ptr)
 
