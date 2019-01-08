@@ -2,6 +2,7 @@
 
 
 # from . blas cimport *
+from . _basic cimport *
 from . _amatrix cimport *
 from . _avector cimport *
 # from . truncation cimport *
@@ -9,7 +10,7 @@ from . _avector cimport *
 
 cdef extern from 'factorizations.h' nogil:
 
-    void lrdecomp_amatrix(pamatrix a)
+    uint lrdecomp_amatrix(pamatrix a)
     void lrsolve_amatrix_avector(bint atrans, pcamatrix a, pavector x)
     # void lreval_hmatrix_avector(bint atrans, pchmatrix a, pavector x)
     void choldecomp_amatrix(pamatrix a)

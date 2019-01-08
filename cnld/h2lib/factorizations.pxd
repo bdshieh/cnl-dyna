@@ -8,7 +8,7 @@ from . avector  cimport *
 from . truncation  cimport *
 
 
-cpdef lrdecomp_amatrix(AMatrix a)
+cpdef uint lrdecomp_amatrix(AMatrix a)
 cpdef lrsolve_amatrix_avector(bint atrans, AMatrix a, AVector x)
 cpdef choldecomp_amatrix(AMatrix a)
 cpdef cholsolve_amatrix_avector(AMatrix a, AVector x)

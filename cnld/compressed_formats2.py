@@ -241,7 +241,9 @@ class FullFormat(BaseFormat):
 
     def _lu(self):
         LU = clone_amatrix(self._mat)
-        lrdecomp_amatrix(LU)
+        succ = lrdecomp_amatrix(LU)
+        if succ != 0:
+            raise RuntimeError('failed to calculate LU decomposition')
         return FullFormat(LU)
     
     def _chol(self):
@@ -581,7 +583,7 @@ class MbkSparseMatrix(SparseFormat):
 
 class ZFullMatrix(FullFormat):
 
-    def __init__(self, mesh, k, basis='linear', m=4, q_reg=2, q_sing=4, **kwargs):
+    def __init__(self, mesh, k, basis='linear', q_reg=2, q_sing=4, **kwargs):
 
         if basis.lower() in ['constant']:
             _basis = basisfunctionbem3d.CONSTANT
