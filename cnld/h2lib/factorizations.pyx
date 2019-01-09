@@ -20,4 +20,7 @@ cpdef choldecomp_amatrix(AMatrix a):
 cpdef cholsolve_amatrix_avector(AMatrix a, AVector x):
     _factorizations.cholsolve_amatrix_avector(<pcamatrix> a.ptr, x.ptr)
 
+cpdef triangularsolve_amatrix_avector(bint alower, bint aunit, bint atrans, AMatrix a, AVector x):
+    _factorizations.triangularsolve_amatrix_avector(alower, aunit, atrans, <pcamatrix> a.ptr, x.ptr)
+
 

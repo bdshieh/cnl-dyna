@@ -13,7 +13,7 @@ cdef class AVector:
         self.owner = False
 
     def __init__(self, uint dim):
-        cdef pavector ptr = _avector.new_avector(dim)
+        cdef pavector ptr = _avector.new_zero_avector(dim)
         self._setup(ptr, True)
     
     @classmethod
@@ -23,7 +23,9 @@ cdef class AVector:
         assert v.ndim == 1
 
         obj = cls(v.size)
-        obj.v[:] = v.astype(np.complex128)
+        # obj.v[:] = v.astype(np.complex128, order='C')
+        wrapper = np.array(obj.v, copy=False)
+        np.copyto(wrapper, v.astype(np.complex128))
         return obj
 
     def __dealloc__(self):
@@ -33,7 +35,7 @@ cdef class AVector:
     cdef _setup(self, pavector ptr, bint owner):
         self.ptr = ptr
         self.owner = owner
-        self.v = <field [:ptr.dim]> (<field *> ptr.v)
+        self.v = <field [:ptr.dim]> (ptr.v)
 
     @property
     def dim(self):

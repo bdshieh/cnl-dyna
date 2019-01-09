@@ -20,3 +20,4 @@ cdef extern from 'harith.h' nogil:
     void add_hmatrix(field alpha, pchmatrix a, pctruncmode tm, real eps, phmatrix  b)
     void add_hmatrix_amatrix(field alpha, bint atrans, pchmatrix a, pamatrix b)
     void add_amatrix_hmatrix(field alpha, bint atrans, pcamatrix a, pctruncmode tm, real eps, phmatrix b)
+    void triangularsolve_hmatrix_avector(bint alower, bint aunit, bint atrans, pchmatrix a, pavector x)

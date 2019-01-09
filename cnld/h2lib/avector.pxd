@@ -11,7 +11,7 @@ ctypedef _avector.pcavector pcavector
 cdef class AVector:
     cdef pavector ptr
     cdef bint owner
-    cdef public field [:] v
+    cdef public field [::1] v
     cdef _setup(self, pavector ptr, bint owner)
     @staticmethod
     cdef wrap(pavector ptr, bint owner=*)

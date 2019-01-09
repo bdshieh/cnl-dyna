@@ -119,12 +119,12 @@ class BaseFormat:
         if np.isscalar(x):
             return self._smul(x)
 
-        # convert all numpy arrays to h2lib arrays
-        elif isinstance(x, np.ndarray):
-            if x.ndim == 1 or x.ndim == 2 and x.shape[1] == 1:
-                xv = AVector.from_array(x)
-            else:
-                xv = AMatrix.from_array(x)
+        # # convert all numpy arrays to h2lib arrays
+        # elif isinstance(x, np.ndarray):
+        #     if x.ndim == 1 or x.ndim == 2 and x.shape[1] == 1:
+        #         xv = AVector.from_array(x)
+        #     else:
+        #         xv = AMatrix.from_array(x)
         
         if x.ndim == 1 or x.ndim == 2 and x.shape[1] == 1:
             return self.matvec(x)
@@ -218,18 +218,18 @@ class FullFormat(BaseFormat):
         scale_amatrix(x, B)
         return FullFormat(B)
 
-    def _matmat(self, x):
-        if isinstance(x, FullFormat):
-            # B = clone_amatrix(self._mat)
-            C = new_zero_amatrix(*self.shape)
-            addmul_amatrix(1.0, False, self._mat, False, x._mat, C)
-            return FullFormat(C)
-        elif isinstance(x, SparseFormat):
-            raise NotImplementedError('operation not supported with this type')
-        elif isinstance(x, HFormat):
-            raise NotImplementedError('operation not supported with this type')
-        else:
-            raise ValueError('operation with unrecognized type')
+    # def _matmat(self, x):
+    #     if isinstance(x, FullFormat):
+    #         # B = clone_amatrix(self._mat)
+    #         C = new_zero_amatrix(*self.shape)
+    #         addmul_amatrix(1.0, False, self._mat, False, x._mat, C)
+    #         return FullFormat(C)
+    #     elif isinstance(x, SparseFormat):
+    #         raise NotImplementedError('operation not supported with this type')
+    #     elif isinstance(x, HFormat):
+    #         raise NotImplementedError('operation not supported with this type')
+    #     else:
+    #         raise ValueError('operation with unrecognized type')
 
     def _matvec(self, x):
         xv = AVector.from_array(x)
@@ -237,7 +237,8 @@ class FullFormat(BaseFormat):
         clear_avector(y)
         addeval_amatrix_avector(1.0, self._mat, xv, y)
         # addevalsymm_hmatrix_avector(1.0, self._mat, x, y)
-        return np.asarray(y.v)
+        out = np.asarray(y.v)
+        return out
 
     def _lu(self):
         LU = clone_amatrix(self._mat)
@@ -260,6 +261,13 @@ class FullFormat(BaseFormat):
         x = AVector.from_array(b)
         cholsolve_amatrix_avector(self._mat, x)
         return np.asarray(x.v)
+    
+    def _triangularsolve(self, b):
+        x = AVector.from_array(b)
+        triangularsolve_amatrix_avector(True, False, True, self._mat, x)
+        # triangularsolve_amatrix_avector(False, False, False, self._mat, x)
+        return np.asarray(x.v)
+
 
 
 class SparseFormat(BaseFormat):
@@ -440,6 +448,12 @@ class HFormat(BaseFormat):
         cholsolve_hmatrix_avector(self._mat, x)
         return np.asarray(x.v)
 
+    def _triangularsolve(self, b):
+        x = AVector.from_array(b)
+        triangularsolve_hmatrix_avector(True, False, False, self._mat, x)
+        triangularsolve_hmatrix_avector(False, False, False, self._mat, x)
+        return np.asarray(x.v)
+
     ''' OTHER '''
     def _draw_hmatrix(self, hm, bbox, maxidx, ax):
         if len(hm.son) == 0:
@@ -526,7 +540,7 @@ def _mbk_repr(self):
     repr.append('MBKMatrix (Mass, Damping, Stiffness Matrix)\n')
     repr.append(f'  BaseFormat: {self.format}\n')
     repr.append(f'  Shape: {self.shape}\n')
-    repr.append(f'  Size: {self.size:.2f} MB\n')
+    repr.append(f'  Size: {self.size / 1024 / 1024:.2f} MB\n')
     return ''.join(repr)
 
 
@@ -536,7 +550,7 @@ def _z_repr(self):
     repr.append('ZMatrix (Acoustic Impedance Matrix)\n')
     repr.append(f'  BaseFormat: {self.format}\n')
     repr.append(f'  Shape: {self.shape}\n')
-    repr.append(f'  Size: {self.size:.2f} MB\n')
+    repr.append(f'  Size: {self.size / 1024 / 1024:.2f} MB\n')
     return ''.join(repr)
 
 

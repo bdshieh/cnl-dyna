@@ -12,4 +12,4 @@ cpdef uint lrdecomp_amatrix(AMatrix a)
 cpdef lrsolve_amatrix_avector(bint atrans, AMatrix a, AVector x)
 cpdef choldecomp_amatrix(AMatrix a)
 cpdef cholsolve_amatrix_avector(AMatrix a, AVector x)
-
+cpdef triangularsolve_amatrix_avector(bint alower, bint aunit, bint atrans, AMatrix a, AVector x)

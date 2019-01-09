@@ -38,3 +38,6 @@ cpdef addmul_hmatrix(field alpha, bint xtrans, HMatrix x, bint ytrans, HMatrix y
 
 cpdef add_amatrix_hmatrix(field alpha, bint atrans, AMatrix a, Truncmode tm, real eps, HMatrix b):
     _harith.add_amatrix_hmatrix(alpha, atrans, <pcamatrix> a.ptr, <pctruncmode> tm.ptr, eps, b.ptr)
+
+cpdef triangularsolve_hmatrix_avector(bint alower, bint aunit, bint atrans, HMatrix a, AVector x):
+    _harith.triangularsolve_hmatrix_avector(alower, aunit, atrans, <pchmatrix> a.ptr, x.ptr)

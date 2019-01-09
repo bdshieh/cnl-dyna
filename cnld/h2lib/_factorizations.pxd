@@ -16,3 +16,4 @@ cdef extern from 'factorizations.h' nogil:
     void choldecomp_amatrix(pamatrix a)
     void cholsolve_amatrix_avector(pcamatrix a, pavector x)
     # void choleval_hmatrix_avector(pchmatrix a, pavector x)
+    void triangularsolve_amatrix_avector(bint alower, bint aunit, bint atrans, pcamatrix a, pavector x)
