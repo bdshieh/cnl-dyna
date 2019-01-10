@@ -34,7 +34,7 @@ hmkwargs['strict'] = True
 hmkwargs['clf'] = 16
 hmkwargs['aprx'] = 'aca'
 hmkwargs['rk'] = 0
-freqs = np.arange(500e3, 50e6 + 500e3, 500e3)
+freqs = np.arange(200e3, 50e6 + 200e3, 200e3)
 
 sqmesh = mesh.square(40e-6, 40e-6, refn=refn)
 ob = sqmesh.on_boundary
@@ -115,11 +115,12 @@ for i, f in enumerate(tqdm(freqs)):
 # fig, ax = plt.subplots(figsize=(7,7))
 # ax.plot(freqs, np.max(np.abs(x), axis=0))
 
-# fig, ax = plt.subplots(figsize=(7,7))
-# ax.plot(freqs, np.max(np.abs(x), axis=0))
+fig, ax = plt.subplots(figsize=(7,7))
+ax.plot(freqs, np.max(np.abs(x), axis=0))
 
-# plt.show()
+plt.show()
 
+np.savez(f'febe_refn_{refn}.npz', freqs=freqs, x=x, refn=refn)
 # create MBK matrix in SparseFormat
 # MBK = bem.mbk_from_abstract(array, f, refn, format='SparseFormat')
 # MBK = fem.mbk_from_abstract(array, f, refn, format='SparseFormat')
