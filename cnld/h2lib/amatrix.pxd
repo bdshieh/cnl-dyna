@@ -12,7 +12,7 @@ ctypedef _amatrix.pcamatrix pcamatrix
 cdef class AMatrix:
     cdef pamatrix ptr
     cdef bint owner
-    cdef public field [:,:] _a
+    cdef field [:,:] _a
     cdef _setup(self, pamatrix ptr, bint owner)
     @staticmethod
     cdef wrap(pamatrix ptr, bint owner=*)

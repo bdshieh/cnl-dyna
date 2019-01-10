@@ -24,8 +24,8 @@ cdef class AVector:
 
         obj = cls(v.size)
         # obj.v[:] = v.astype(np.complex128, order='C')
-        wrapper = np.array(obj.v, copy=False)
-        np.copyto(wrapper, v.astype(np.complex128))
+        # wrapper = np.array(obj.v, copy=False)
+        np.copyto(obj.v, v.astype(np.complex128))
         return obj
 
     def __dealloc__(self):
@@ -35,11 +35,15 @@ cdef class AVector:
     cdef _setup(self, pavector ptr, bint owner):
         self.ptr = ptr
         self.owner = owner
-        self.v = <field [:ptr.dim]> (ptr.v)
+        self._v = <field [:ptr.dim]> (<field *> ptr.v)
 
     @property
     def dim(self):
         return self.ptr.dim
+
+    @property
+    def v(self):
+        return np.asarray(self._v)
 
     @staticmethod
     cdef wrap(pavector ptr, bint owner=False):

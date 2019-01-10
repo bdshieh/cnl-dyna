@@ -24,3 +24,4 @@ cpdef triangularsolve_amatrix_avector(bint alower, bint aunit, bint atrans, AMat
     _factorizations.triangularsolve_amatrix_avector(alower, aunit, atrans, <pcamatrix> a.ptr, x.ptr)
 
 
+

@@ -14,7 +14,7 @@ cdef class AMatrix():
         self.owner = False
 
     def __init__(self, uint rows, uint cols):
-        cdef pamatrix ptr = _amatrix.new_amatrix(rows, cols)
+        cdef pamatrix ptr = _amatrix.new_zero_amatrix(rows, cols)
         self._setup(ptr, True)
 
     @classmethod
@@ -24,7 +24,8 @@ cdef class AMatrix():
         assert a.ndim == 2
 
         obj = cls(a.shape[0], a.shape[1])
-        obj._a[:] = a.astype(np.complex128)
+        # obj._a[:] = a.astype(np.complex128)
+        np.copyto(obj._a, a.astype(np.complex128))
         return obj
 
     def __dealloc__(self):

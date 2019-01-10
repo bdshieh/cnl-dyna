@@ -237,7 +237,7 @@ class FullFormat(BaseFormat):
         clear_avector(y)
         addeval_amatrix_avector(1.0, self._mat, xv, y)
         # addevalsymm_hmatrix_avector(1.0, self._mat, x, y)
-        out = np.asarray(y.v)
+        out = np.array(y.v)
         return out
 
     def _lu(self):
@@ -255,18 +255,19 @@ class FullFormat(BaseFormat):
     def _lusolve(self, b):
         x = AVector.from_array(b)
         lrsolve_amatrix_avector(False, self._mat, x)
-        return np.asarray(x.v)   
+        return np.array(x.v)   
 
     def _cholsolve(self, b):
         x = AVector.from_array(b)
         cholsolve_amatrix_avector(self._mat, x)
-        return np.asarray(x.v)
+        return np.array(x.v)
     
     def _triangularsolve(self, b):
         x = AVector.from_array(b)
-        triangularsolve_amatrix_avector(True, False, True, self._mat, x)
+        lrsolve_amatrix_avector(False, self._mat, x)
+        # triangularsolve_amatrix_avector(True, False, True, self._mat, x)
         # triangularsolve_amatrix_avector(False, False, False, self._mat, x)
-        return np.asarray(x.v)
+        return np.array(x.v)
 
 
 
@@ -326,7 +327,7 @@ class SparseFormat(BaseFormat):
         y = AVector(x.size)
         clear_avector(y)
         addeval_sparsematrix_avector(1.0, self._mat, xv, y)
-        return np.asarray(y.v)
+        return np.array(y.v)
 
     def _lu(self):
         raise NotImplementedError('operation not supported with this type')
@@ -424,7 +425,7 @@ class HFormat(BaseFormat):
         clear_avector(y)
         addeval_hmatrix_avector(1.0, self._mat, xv, y)
         # addevalsymm_hmatrix_avector(1.0, self._mat, x, y)
-        return np.asarray(y.v)
+        return np.array(y.v)
 
     def _lu(self):
         LU = clone_hmatrix(self._mat)
@@ -441,18 +442,19 @@ class HFormat(BaseFormat):
     def _lusolve(self, b):
         x = AVector.from_array(b)
         lrsolve_hmatrix_avector(False, self._mat, x)
-        return np.asarray(x.v)   
+        return np.array(x.v)   
 
     def _cholsolve(self, b):
         x = AVector.from_array(b)
         cholsolve_hmatrix_avector(self._mat, x)
-        return np.asarray(x.v)
+        return np.array(x.v)
 
     def _triangularsolve(self, b):
         x = AVector.from_array(b)
-        triangularsolve_hmatrix_avector(True, False, False, self._mat, x)
-        triangularsolve_hmatrix_avector(False, False, False, self._mat, x)
-        return np.asarray(x.v)
+        lrsolve_hmatrix_avector(False, self._mat, x)
+        # triangularsolve_hmatrix_avector(True, False, False, self._mat, x)
+        # triangularsolve_hmatrix_avector(False, False, False, self._mat, x)
+        return np.array(x.v)
 
     ''' OTHER '''
     def _draw_hmatrix(self, hm, bbox, maxidx, ax):
@@ -662,9 +664,10 @@ class ZHMatrix(HFormat):
 
         self._mat = Z
         self._time_assemble = time_assemble
-        # self._bem = bem
-        # self._root = root
-        # self._broot = broot
+        # keep references to h2lib objects so they don't get garbage collected
+        self._bem = bem
+        self._root = root
+        self._broot = broot
 
     @property
     def time_assemble(self):

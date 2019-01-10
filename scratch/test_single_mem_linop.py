@@ -30,8 +30,9 @@ hmkwargs['admis'] = '2'
 hmkwargs['eta'] = 1.1
 hmkwargs['eps'] = 1e-12
 hmkwargs['eps_aca'] = 1e-2
-hmkwargs['strict'] = False
+hmkwargs['strict'] = True
 hmkwargs['clf'] = 16
+hmkwargs['aprx'] = 'aca'
 hmkwargs['rk'] = 0
 freqs = np.arange(500e3, 50e6 + 500e3, 500e3)
 
@@ -70,9 +71,13 @@ for i, f in enumerate(tqdm(freqs)):
         return p
     Gfe_inv = sps.linalg.LinearOperator((nnodes, nnodes), dtype=np.complex128, matvec=_Gfe_inv)
     
-    Z = bem.z_from_mesh(sqmesh, k, format='FullFormat', **hmkwargs)
+    # Z = bem.z_from_mesh(sqmesh, k, format='FullFormat', **hmkwargs)
+    Z = bem.z_from_mesh(sqmesh, k, format='HFormat', **hmkwargs)
+    # break
     Z_LU = Z.lu()
-
+    # from scipy.linalg import lu_factor, lu_solve
+    # LU, PIV = lu_factor(Z._mat.a)
+    
     def _Gbe(x):
         x[ob] = 0
         p = Z * x
@@ -83,6 +88,7 @@ for i, f in enumerate(tqdm(freqs)):
     def _Gbe_inv(x):
         x[ob] = 0
         p = Z_LU._triangularsolve(x)
+        # p = lu_solve((LU, PIV), x)
         p[ob] = 0
         return -omg**2 * 1000 * 2 * p
     Gbe_inv = sps.linalg.LinearOperator((nnodes, nnodes), dtype=np.complex128, matvec=_Gbe_inv)
@@ -92,9 +98,10 @@ for i, f in enumerate(tqdm(freqs)):
 
     G = Gfe + Gbe
     P = Gbe_inv * Gfe_inv
-    break
-    _x = sps.linalg.bicgstab(G, F, tol=1e-5, maxiter=20, M=P)
-    # x[:,i] = _x
+
+    _x, _ = sps.linalg.lgmres(G, F, tol=1e-12, maxiter=40, M=P)
+    x[:,i] = _x
+    # break
 
 # gridx, gridy = np.mgrid[-20e-6:20e-6:101j, -20e-6:20e-6:101j]
 
