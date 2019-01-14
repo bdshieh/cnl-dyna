@@ -643,17 +643,17 @@ def calc_refn_square(lx, ly, wavelen, step_per_wavelen=5, maxrefn=20):
     return refn
 
 
-def interpolator(mesh, f, function='cubic'):
+def interpolator(mesh, func, function='cubic'):
     '''
     Returns an interpolator for function f defined on the nodes of the given mesh.
     '''
     if isinstance(mesh, Mesh):
-        return Rbf(mesh.vertices[:,0], mesh.vertices[:,1], f, function=function, smooth=0)
+        return Rbf(mesh.vertices[:,0], mesh.vertices[:,1], func, function=function, smooth=0)
     else:
         x, y = mesh
-        return Rbf(x, y, f, function=function, smooth=0)
+        return Rbf(x, y, func, function=function, smooth=0)
 
 
-def integrator(mesh, f, function='linear'):
+def integrator(mesh, func, function='linear'):
     pass
     

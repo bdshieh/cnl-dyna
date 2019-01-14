@@ -7,7 +7,7 @@ from itertools import repeat
 from tqdm import tqdm
 import os, sys, traceback
 
-from cnld import abstract, bem, util
+from cnld import abstract, bem, fem, util
 from cnld.mesh import Mesh, calc_refn_square
 from cnld.impulse_response import create_database, update_database
 
@@ -27,52 +27,38 @@ def process(job):
 
     # get options and parameters
     c = cfg.sound_speed
+    rho = cfg.fluid_rho
     array = abstract.load(cfg.array_config)
     firstmem = array.elements[0].membranes[0]
     file = args.file
 
     # determine mesh refn needed based on first membrane
-    wavelen = c / f
-    length_x = firstmem.length_x
-    length_y = firstmem.length_y
-    refn = calc_refn_square(length_x, length_y, wavelen)
-    if refn < 3: refn = 3  # enforce minimum mesh refinement
 
-    # create mesh
-    mesh = Mesh.from_abstract(array, refn)
-
-    # create MBK matrix in SparseFormat
-    # MBK = bem.mbk_from_abstract(array, f, refn, format='SparseFormat')
-    MBK = fem.mbk_from_abstract(array, f, refn, format='SparseFormat')
+    Gfe, Gfe_inv = fem.mbk_linear_operators(array, f, refn)
 
     # create Z matrix in HFormat
     hmkwrds = ['aprx', 'basis', 'admis', 'eta', 'eps', 'm', 'clf', 'eps_aca', 'rk', 'q_reg', 'q_sing', 'strict']
     hmargs = { k:getattr(cfg, k) for k in hmkwrds }
-    Z = bem.z_from_abstract(array, k, refn, **hmargs)
+    Gbe, Gbe_inv = bem.z_linear_operators(array, f, c, refn, rho, **hmargs)
 
-    # construct G in HFormat from MBK and Z
-    # G = MBK + (2 * np.pi * f) ** 2 * -1000. * Z 
-    # G = MBK + -(2 * np.pi * f)**2 * 1000. / (mesh.g[0]) * Z
-    # G = MBK + -(2 * np.pi * f)**2 * 1000. * Z
-    G = MBK
-
-    # LU decomposition
-    G_LU = G.lu()
 
     # solve for patch to patch responses
+    F = fem.f_from_abstract()
+
     npatch = abstract.get_patch_count(array)
     source_patch_id = np.arange(npatch)
     dest_patch_id = np.arange(npatch)
     for sid in source_patch_id:
         # solve
-        b = np.zeros(len(mesh.vertices))
-        smask = np.any(mesh.patch_ids == sid, axis=1)
-        b[smask] = 1
+        b = F[:, sid]
+
         x = G_LU.lusolve(b)
         x_patch = []
         dest_membrane_ids = []
         dest_element_ids = []
+
         for did in dest_patch_id:
+
             dmask = np.any(mesh.patch_ids == did, axis=1)
             x_patch.append(np.mean(x[dmask]))
             dest_membrane_ids.append(mesh.membrane_ids[dmask][0])

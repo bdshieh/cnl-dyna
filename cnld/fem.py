@@ -7,7 +7,7 @@ from scipy.integrate import dblquad
 
 from cnld import util
 from cnld.compressed_formats2 import ZHMatrix, ZFullMatrix, MbkSparseMatrix, MbkFullMatrix
-from . mesh import square
+from . mesh import square, Mesh
 
 
 @util.memoize
@@ -251,9 +251,10 @@ def mem_f_vector(mesh, p):
 
 #     return f
 
+
 def mem_f_vector_arb_load(mesh, load_func):
     '''
-    Pressure load vector based on equal distribution of pressure to element nodes.
+    Pressure load vector based on an arbitrary load.
     '''
     nodes = mesh.vertices
     triangles = mesh.triangles
@@ -279,6 +280,7 @@ def mem_f_vector_arb_load(mesh, load_func):
 
 def f_from_abstract(array, refn):
     '''
+    Construct load vector based on patches of abstract array.
     '''
     blocks = []
     for elem in array.elements:
@@ -299,8 +301,12 @@ def f_from_abstract(array, refn):
             
             blocks.append(f)
     
-    return sps.block_diag(blocks)
+    return sps.block_diag(blocks, format='csc')
 
+
+@util.memoize
+def inv_block(a):
+    return np.linalg.inv(a)
 
 
 def mbk_from_abstract(array, f, refn, format='SparseFormat'):
@@ -308,6 +314,7 @@ def mbk_from_abstract(array, f, refn, format='SparseFormat'):
     '''
     omg = 2 * np.pi * f
     blocks = []
+    blocks_inv = []
     for elem in array.elements:
         for mem in elem.membranes:
             
@@ -318,28 +325,56 @@ def mbk_from_abstract(array, f, refn, format='SparseFormat'):
                 mem.damping_ratio_a, mem.damping_ratio_b)
 
             block = -(omg**2) * M + 1j * omg * B + K
+            block_inv = inv_block(block)
             blocks.append(block)
+            blocks_inv.append(block_inv)
     
-    if format.lower() in ['sparse', 'sparseformat']:
-        return MbkSparseMatrix(sps.csr_matrix(sps.block_diag(blocks)))
-    else:
-        return MbkFullMatrix(sps.block_diag(blocks).todense())
+    # if format.lower() in ['sparse', 'sparseformat']:
+    #     return MbkSparseMatrix(sps.csr_matrix(sps.block_diag(blocks)))
+    # else:
+    #     return MbkFullMatrix(sps.block_diag(blocks).todense())
+    return sps.block_diag(blocks, format='csr'), sps.block_diag(blocks_inv, format='csr')
 
 
-def mbk_from_mesh(mesh, f, rho, h, E, eta, amode, bmode, za, zb, format='SparseFormat',):
-    '''
-    '''
-    omg = 2 * np.pi * f
+# def mbk_from_mesh(mesh, f, rho, h, E, eta, amode, bmode, za, zb, format='SparseFormat',):
+#     '''
+#     '''
+#     omg = 2 * np.pi * f
 
-    M = mem_m_matrix(mesh, rho, h)
-    K = mem_k_matrix(mesh, E, h, eta)
-    B = mem_b_matrix_eig(mesh, M, K, amode, bmode, za, zb)
+#     M = mem_m_matrix(mesh, rho, h)
+#     K = mem_k_matrix(mesh, E, h, eta)
+#     B = mem_b_matrix_eig(mesh, M, K, amode, bmode, za, zb)
 
-    MBK = -omg**2 + M + 1j * omg * B + K
-    if format.lower() in ['sparse', 'sparseformat']:
-        return MbkSparseMatrix(sps.csr_matrix(MBK))
-    else:
-        return MbkFullMatrix(MBK)
+#     MBK = -omg**2 + M + 1j * omg * B + K
+#     if format.lower() in ['sparse', 'sparseformat']:
+#         return MbkSparseMatrix(sps.csr_matrix(MBK))
+#     else:
+#         return MbkFullMatrix(MBK)
+
+
+def mbk_linear_operators(array, f, refn):
+
+    MBK, MBK_inv = mbk_from_abstract(array, f, refn)
+
+    mesh = Mesh.from_abstract(array)
+    ob = mesh.on_boundary
+    nnodes = len(mesh.vertices)
+
+    def mv(x):
+        x[ob] = 0
+        p = MBK.dot(x)
+        p[ob] = 0
+        return p
+    linop = sps.linalg.LinearOperator((nnodes, nnodes), dtype=np.complex128, matvec=mv)
+
+    def inv_mv(x):
+        x[ob] = 0
+        p = MBK_inv.dot(x)
+        p[ob] = 0
+        return p
+    linop_inv = sps.linalg.LinearOperator((nnodes, nnodes), dtype=np.complex128, matvec=inv_mv)
+
+    return linop, linop_inv
 
 
 if __name__ == '__main__':

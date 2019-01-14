@@ -16,7 +16,7 @@ def load_func(x, y):
 
 sqmesh = mesh.square(40e-6, 40e-6, refn=15)
 
-f = fem.mem_f_vector2(sqmesh, load_func)
+f = fem.mem_f_vector_arb_load(sqmesh, load_func)
 
 fi = mesh.interpolator(sqmesh, f, function='linear')
 gridx, gridy = np.mgrid[-20e-6:20e-6:101j, -20e-6:20e-6:101j]
