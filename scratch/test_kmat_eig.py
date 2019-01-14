@@ -17,8 +17,9 @@ if __name__ == '__main__':
     E = 110e9
     h = 2e-6
     eta = 0.22
-    refn = 6
-    sqmesh = mesh.square(40e-6, 40e-6, refn=refn)
+    type = 1
+    refn = 7
+    sqmesh = mesh.square(40e-6, 40e-6, refn=refn, type=type)
     ob = sqmesh.on_boundary
     K = fem.mem_k_matrix(sqmesh, E, h, eta)
 

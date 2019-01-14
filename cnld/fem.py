@@ -3,6 +3,7 @@
 import numpy as np
 from numpy.linalg import inv, eig
 from scipy import sparse as sps, linalg
+from scipy.integrate import dblquad
 
 from cnld import util
 from cnld.compressed_formats2 import ZHMatrix, ZFullMatrix, MbkSparseMatrix, MbkFullMatrix
@@ -249,6 +250,56 @@ def mem_f_vector(mesh, p):
 #         f[tri] += 1 / 6 * p * da
 
 #     return f
+
+def mem_f_vector_arb_load(mesh, load_func):
+    '''
+    Pressure load vector based on equal distribution of pressure to element nodes.
+    '''
+    nodes = mesh.vertices
+    triangles = mesh.triangles
+
+    f = np.zeros(len(nodes))
+    for tt in range(len(triangles)):
+        tri = triangles[tt,:]
+        xi, yi = nodes[tri[0],:2]
+        xj, yj = nodes[tri[1],:2]
+        xk, yk = nodes[tri[2],:2]
+
+        def load_func_psi_eta(psi, eta):
+            x = (xj - xi) * psi + (xk - xi) * eta + xi
+            y = (yj - yi) * psi + (yk - yi) * eta + yi
+            return load_func(x, y)
+
+        da, _ = dblquad(load_func_psi_eta, 0, 1, 0, lambda x: 1 - x)
+
+        f[tri] += 1 / 6 * da
+
+    return f
+
+
+def f_from_abstract(array, refn):
+    '''
+    '''
+    blocks = []
+    for elem in array.elements:
+        for mem in elem.membranes:
+            mesh = square(mem.length_x, mem.length_y, refn=refn)
+
+            f = sps.csc_matrix((len(mesh.vertices), len(mem.patches)))
+            for i, pat in enumerate(mem.patches):
+                def load_func(x, y):
+                    if x >= pat.position[0] - pat.length_x / 2:
+                        if x <= pat.position[0] + pat.length_x / 2:
+                            if y >= pat.position[1] - pat.length_y / 2:
+                                if y <= pat.position[1] + pat.length_y / 2:
+                                    return 1
+                    return 0
+                
+                f[:,i] = mem_f_vector_arb_load(mesh, load_func)
+            
+            blocks.append(f)
+    
+    return sps.block_diag(blocks)
 
 
 

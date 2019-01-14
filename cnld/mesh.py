@@ -2,6 +2,7 @@
 '''
 import numpy as np
 from matplotlib import pyplot as plt
+from scipy.interpolate import Rbf
 
 from cnld.h2lib import *
 
@@ -144,27 +145,27 @@ class Mesh:
         plt.show()
 
 
-def square(xl, yl, center=(0,0,0), refn=2):
-    mesh = Mesh.from_geometry(*square_geometry(xl, yl), center=center,
+def square(xl, yl, refn=2, type=1, center=(0,0,0)):
+    
+    if type == 1:
+        f = square_geometry
+    elif type == 2:
+        f = square_geometry2
+    elif type == 3:
+        f = square_geometry3
+    else:
+        raise ValueError('invalid type')
+
+    mesh = Mesh.from_geometry(*f(xl, yl), center=center,
         refn=refn, parametrization='square')
+
     # check and flag boundary vertices
     mask1 = np.abs(mesh.vertices[:,0] + xl / 2) <= eps
     mask2 = np.abs(mesh.vertices[:,0] - xl / 2) <= eps
     mask3 = np.abs(mesh.vertices[:,1] + yl / 2) <= eps
     mask4 = np.abs(mesh.vertices[:,1] - yl / 2) <= eps
     mesh.on_boundary = np.any(np.c_[mask1, mask2, mask3, mask4], axis=1)
-    return mesh
 
-
-def square2(xl, yl, center=(0,0,0), refn=2):
-    mesh = Mesh.from_geometry(*square_geometry2(xl, yl), center=center,
-        refn=refn, parametrization='square')
-    # check and flag boundary vertices
-    mask1 = np.abs(mesh.vertices[:,0] + xl / 2) <= eps
-    mask2 = np.abs(mesh.vertices[:,0] - xl / 2) <= eps
-    mask3 = np.abs(mesh.vertices[:,1] + yl / 2) <= eps
-    mask4 = np.abs(mesh.vertices[:,1] - yl / 2) <= eps
-    mesh.on_boundary = np.any(np.c_[mask1, mask2, mask3, mask4], axis=1)
     return mesh
 
 
@@ -174,6 +175,7 @@ def circle(rl, center=(0,0,0), refn=2):
     
 
 def square_geometry(xl, yl):
+
     # vertices 
     v = np.zeros((5, 3), dtype=np.float64)
     v[0,:] = -xl / 2, -yl / 2, 0.0  # bottom left 
@@ -235,6 +237,178 @@ def square_geometry2(xl, yl):
 
     return v, e, t, s
 
+
+def square_geometry3(xl, yl):
+    '''
+    Prototype mesh (type 3) for square membranes; suitable for 3 by 3 patches.
+    '''
+    # vertices 
+    v = np.zeros((25, 3), dtype=np.float64)
+    v[0,:] =  -xl / 2, -yl / 2, 0.0
+    v[1,:] =  -xl / 6, -yl / 2, 0.0  
+    v[2,:] =   xl / 6, -yl / 2, 0.0  
+    v[3,:] =   xl / 2, -yl / 2, 0.0  
+    v[4,:] =  -xl / 3, -yl / 3, 0.0
+    v[5,:] =      0.0, -yl / 3, 0.0  
+    v[6,:] =   xl / 3, -yl / 3, 0.0  
+    v[7,:] = - xl / 2, -yl / 6, 0.0
+    v[8,:] = - xl / 6, -yl / 6, 0.0  
+    v[9,:] =   xl / 6, -yl / 6, 0.0  
+    v[10,:] =  xl / 2, -yl / 6, 0.0
+    v[11,:] = -xl / 3,     0.0, 0.0
+    v[12,:] =     0.0,     0.0, 0.0  
+    v[13,:] =  xl / 3,     0.0, 0.0 
+    v[14,:] = -xl / 2,  yl / 6, 0.0
+    v[15,:] = -xl / 6,  yl / 6, 0.0  
+    v[16,:] =  xl / 6,  yl / 6, 0.0  
+    v[17,:] =  xl / 2,  yl / 6, 0.0
+    v[18,:] = -xl / 3,  yl / 3, 0.0
+    v[19,:] =     0.0,  yl / 3, 0.0  
+    v[20,:] =  xl / 3,  yl / 3, 0.0 
+    v[21,:] = -xl / 2,  yl / 2, 0.0
+    v[22,:] = -xl / 6,  yl / 2, 0.0  
+    v[23,:] =  xl / 6,  yl / 2, 0.0  
+    v[24,:] =  xl / 2,  yl / 2, 0.0
+
+    #  edges 
+    e = np.zeros((60,2), dtype=np.uint32)
+    e[ 0,:] =  0, 1 
+    e[ 1,:] =  1, 2  
+    e[ 2,:] =  2, 3  
+    e[ 3,:] =  0, 4 
+    e[ 4,:] =  1, 4  
+    e[ 5,:] =  1, 5 
+    e[ 6,:] =  2, 5
+    e[ 7,:] =  2, 6  
+    e[ 8,:] =  3, 6 
+    e[ 9,:] =  0, 7  
+    e[10,:] =  1, 8 
+    e[11,:] =  2, 9 
+    e[12,:] =  3, 10
+    e[13,:] =  4, 7 
+    e[14,:] =  4, 8
+    e[15,:] =  5, 8 
+    e[16,:] =  5, 9
+    e[17,:] =  6, 9 
+    e[18,:] =  6, 10
+    e[19,:] =  7, 8
+    e[20,:] =  8, 9 
+    e[21,:] =  9, 10
+
+    e[22,:] =  7, 11 
+    e[23,:] =  8, 11  
+    e[24,:] =  8, 12 
+    e[25,:] =  9, 12
+    e[26,:] =  9, 13  
+    e[27,:] = 10, 13 
+    e[28,:] =  7, 14  
+    e[29,:] =  8, 15 
+    e[30,:] =  9, 16 
+    e[31,:] = 10, 17
+    e[32,:] = 11, 14 
+    e[33,:] = 11, 15
+    e[34,:] = 12, 15 
+    e[35,:] = 12, 16
+    e[36,:] = 13, 16 
+    e[37,:] = 13, 17
+    e[38,:] = 14, 15
+    e[39,:] = 15, 16
+    e[40,:] = 16, 17
+
+    e[41,:] = 14, 18 
+    e[42,:] = 15, 18  
+    e[43,:] = 15, 19 
+    e[44,:] = 16, 19
+    e[45,:] = 16, 20
+    e[46,:] = 17, 20 
+    e[47,:] = 14, 21  
+    e[48,:] = 15, 22 
+    e[49,:] = 16, 23 
+    e[50,:] = 17, 24
+    e[51,:] = 18, 21 
+    e[52,:] = 18, 22
+    e[53,:] = 19, 22 
+    e[54,:] = 19, 23
+    e[55,:] = 20, 23 
+    e[56,:] = 20, 24
+    e[57,:] = 21, 22
+    e[58,:] = 22, 23 
+    e[59,:] = 23, 24
+
+    #  triangles and triangle edges 
+    t = np.zeros((36, 3), dtype=np.uint32)
+    t[ 0,:] =  0,  1, 4
+    t[ 1,:] =  1,  8, 4
+    t[ 2,:] =  8,  7, 4
+    t[ 3,:] =  7,  0, 4
+    t[ 4,:] =  1,  2, 5
+    t[ 5,:] =  2,  9, 5
+    t[ 6,:] =  9,  8, 5
+    t[ 7,:] =  8,  1, 5
+    t[ 8,:] =  2,  3, 6
+    t[ 9,:] =  3, 10, 6
+    t[10,:] = 10,  9, 6
+    t[11,:] =  9,  2, 6
+
+    t[12,:] =  7,  8, 11
+    t[13,:] =  8, 15, 11
+    t[14,:] = 15, 14, 11
+    t[15,:] = 14,  7, 11
+    t[16,:] =  8,  9, 12
+    t[17,:] =  9, 16, 12
+    t[18,:] = 16, 15, 12
+    t[19,:] = 15,  8, 12
+    t[20,:] =  9, 10, 13
+    t[21,:] = 10, 17, 13
+    t[22,:] = 17, 16, 13
+    t[23,:] = 16,  9, 13
+
+    t[24,:] = 14, 15, 18
+    t[25,:] = 15, 22, 18
+    t[26,:] = 22, 21, 18
+    t[27,:] = 21, 14, 18
+    t[28,:] = 15, 16, 19
+    t[29,:] = 16, 23, 19
+    t[30,:] = 23, 22, 19
+    t[31,:] = 22, 15, 19
+    t[32,:] = 16, 17, 20
+    t[33,:] = 17, 24, 20
+    t[34,:] = 24, 23, 20
+    t[35,:] = 23, 16, 20
+
+    s = triangle_edges_from_triangles(t, e)
+
+    return v, e, t, s
+
+
+def triangle_edges_from_triangles(triangles, edges):
+    '''
+    Assign edges to triangles based on triangle vertices. Edges must be on opposite side of
+    their corresponding vertex.
+    '''
+    triangle_edges = np.zeros_like(triangles)
+    for t, tri in enumerate(triangles):
+        a, b, c = tri
+
+        e0 = np.where(np.logical_and(np.any(edges == b, axis=1), 
+            np.any(edges == c, axis=1)))[0]
+        if len(e0) == 0 or len(e0) > 1:
+            raise RuntimeError(f'could not determine corresponding edge for triangle {tri}')
+
+        e1 = np.where(np.logical_and(np.any(edges == c, axis=1), 
+            np.any(edges == a, axis=1)))[0]
+        if len(e1) == 0 or len(e1) > 1:
+            raise RuntimeError(f'could not determine corresponding edge for triangle {tri}')
+
+        e2 = np.where(np.logical_and(np.any(edges == a, axis=1), 
+            np.any(edges == b, axis=1)))[0]
+        if len(e2) == 0 or len(e2) > 1:
+            raise RuntimeError(f'could not determine corresponding edge for triangle {tri}')
+
+        triangle_edges[t,:] = e0, e1, e2
+    
+    return triangle_edges
+    
 
 def circle_geometry(rl):
     #  vertices 
@@ -467,3 +641,19 @@ def calc_refn_square(lx, ly, wavelen, step_per_wavelen=5, maxrefn=20):
             refn += 1
 
     return refn
+
+
+def interpolator(mesh, f, function='cubic'):
+    '''
+    Returns an interpolator for function f defined on the nodes of the given mesh.
+    '''
+    if isinstance(mesh, Mesh):
+        return Rbf(mesh.vertices[:,0], mesh.vertices[:,1], f, function=function, smooth=0)
+    else:
+        x, y = mesh
+        return Rbf(x, y, f, function=function, smooth=0)
+
+
+def integrator(mesh, f, function='linear'):
+    pass
+    
