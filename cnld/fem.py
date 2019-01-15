@@ -53,6 +53,10 @@ def mem_k_matrix(mesh, E, h, eta):
     mesh.triangle_neighbors = triangle_neighbors
 
     # construct constitutive matrix for material
+    h = h[0] # no support for composite membranes yet
+    E = E[0]
+    eta = eta[0]
+
     D = np.zeros((3,3))
     D[0,0] = 1
     D[0,1] = eta
@@ -130,13 +134,26 @@ def mem_k_matrix(mesh, E, h, eta):
 
 
 @util.memoize
-def mem_m_matrix(mesh, rho, h):
+def mem_m_matrix(mesh, rho, h, mu=0.5):
+    '''
+    Mass matrix based on average of lumped and consistent mass matrix (lumped-consistent).
+    '''
+    DLM = mem_dlm_matrix(mesh, rho, h)
+    CMM = mem_cm_matrix(mesh, rho, h)
+
+    return mu * DLM  + (1 - mu) * CMM
+
+
+@util.memoize
+def mem_cm_matrix(mesh, rho, h):
     '''
     Mass matrix based on kinetic energy and linear shape functions (consistent).
     '''
     # get mesh information
     nodes = mesh.vertices
     triangles = mesh.triangles
+
+    mass = sum([x * y for x, y in zip(rho, h)])
 
     # construct M matrix by adding contribution from each element
     M = np.zeros((len(nodes), len(nodes)))
@@ -148,13 +165,13 @@ def mem_m_matrix(mesh, rho, h):
 
         da = ((xj - xi) * (yk - yi) - (xk - xi) * (yj - yi))
         Mt = np.array([[1, 1 / 2, 1 / 2], [1 / 2, 1, 1 / 2], [1 / 2, 1 / 2, 1]]) / 12
-        M[np.ix_(tri, tri)] += Mt * rho * h * da
+        M[np.ix_(tri, tri)] += Mt * mass * da
 
     return M
 
 
 @util.memoize
-def mem_m_matrix2(mesh, rho, h):
+def mem_dlm_matrix(mesh, rho, h):
     '''
     Mass matrix based on equal distribution of element mass to nodes (diagonally-lumped).
     '''
@@ -163,12 +180,14 @@ def mem_m_matrix2(mesh, rho, h):
     triangles = mesh.triangles
     triangle_areas = mesh.g / 2
 
+    mass = sum([x * y for x, y in zip(rho, h)])
+
     # construct M matrix by adding contribution from each element
     M = np.zeros((len(nodes), len(nodes)))
     for tt in range(len(triangles)):
         tri = triangles[tt,:]
         ap = triangle_areas[tt]
-        M[tri, tri] += 1 / 3 * rho * h * ap
+        M[tri, tri] += 1 / 3 * mass * ap
 
     return M
 
@@ -271,7 +290,7 @@ def mem_f_vector_arb_load(mesh, load_func):
             y = (yj - yi) * psi + (yk - yi) * eta + yi
             return load_func(x, y)
 
-        da, _ = dblquad(load_func_psi_eta, 0, 1, 0, lambda x: 1 - x)
+        da, _ = dblquad(load_func_psi_eta, 0, 1, 0, lambda x: 1 - x, epsabs=1e-2, epsrel=1e-2)
 
         f[tri] += 1 / 6 * da
 
@@ -285,15 +304,15 @@ def f_from_abstract(array, refn):
     blocks = []
     for elem in array.elements:
         for mem in elem.membranes:
-            mesh = square(mem.length_x, mem.length_y, refn=refn)
+            mesh = square(mem.length_x, mem.length_y, refn=refn, center=mem.position)
 
             f = sps.csc_matrix((len(mesh.vertices), len(mem.patches)))
             for i, pat in enumerate(mem.patches):
                 def load_func(x, y):
-                    if x >= pat.position[0] - pat.length_x / 2:
-                        if x <= pat.position[0] + pat.length_x / 2:
-                            if y >= pat.position[1] - pat.length_y / 2:
-                                if y <= pat.position[1] + pat.length_y / 2:
+                    if x >= (pat.position[0] - pat.length_x / 2):
+                        if x <= (pat.position[0] + pat.length_x / 2):
+                            if y >= (pat.position[1] - pat.length_y / 2):
+                                if y <= (pat.position[1] + pat.length_y / 2):
                                     return 1
                     return 0
                 
@@ -309,7 +328,7 @@ def inv_block(a):
     return np.linalg.inv(a)
 
 
-def mbk_from_abstract(array, f, refn, format='SparseFormat'):
+def mbk_from_abstract(array, f, refn):
     '''
     '''
     omg = 2 * np.pi * f
@@ -321,10 +340,11 @@ def mbk_from_abstract(array, f, refn, format='SparseFormat'):
             mesh = square(mem.length_x, mem.length_y, refn=refn)
             M = mem_m_matrix(mesh, mem.density, mem.thickness)
             K = mem_k_matrix(mesh, mem.y_modulus, mem.thickness, mem.p_ratio)
-            B = mem_b_matrix_eig(mesh, M, K, mem.damping_mode_a, mem.damping_mode_a, 
-                mem.damping_ratio_a, mem.damping_ratio_b)
+            # B = mem_b_matrix_eig(mesh, M, K, mem.damping_mode_a, mem.damping_mode_a, 
+                # mem.damping_ratio_a, mem.damping_ratio_b)
 
-            block = -(omg**2) * M + 1j * omg * B + K
+            # block = -(omg**2) * M + 1j * omg * B + K
+            block = -(omg**2) * M + K 
             block_inv = inv_block(block)
             blocks.append(block)
             blocks_inv.append(block_inv)

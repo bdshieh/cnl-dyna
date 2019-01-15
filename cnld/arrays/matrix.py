@@ -28,12 +28,12 @@ def main(cfg, args):
     memprops['isolation'] = cfg.isolation
     memprops['permittivity'] = cfg.permittivity
     memprops['gap'] = cfg.gap
-    memprops['npatch_x'] = npatch_x
-    memprops['npatch_y'] = npatch_y
+    memprops['damping_mode_a'] = cfg.damping_mode_a
+    memprops['damping_mode_b'] = cfg.damping_mode_b
+    memprops['damping_ratio_a'] = cfg.damping_ratio_a
+    memprops['damping_ratio_b'] = cfg.damping_ratio_b
     memprops['thickness'] = cfg.thickness
     memprops['density'] = cfg.density
-    memprops['att_mech'] = cfg.att_mech
-    memprops['kmat_file'] = cfg.kmat_file
 
     # calculate patch positions
     patchpitch_x = length_x / npatch_x
@@ -74,7 +74,6 @@ def main(cfg, args):
             # construct patch list
             patches = []
             for ppos in patch_pos:
-
                 # construct patch
                 p = Patch()
                 p.id = patch_counter
@@ -125,16 +124,18 @@ _Config['p_ratio'] = [0.22,]
 _Config['isolation'] = 200e-9
 _Config['permittivity'] = 6.3
 _Config['gap'] = 100e-9
-_Config['att_mech'] = 0
+_Config['damping_mode_a'] = 0
+_Config['damping_mode_b'] = 4
+_Config['damping_ratio_a'] = 0.004
+_Config['damping_ratio_b'] = 0.005
 _Config['npatch'] = [3, 3]
-_Config['kmat_file'] = ''
 # array properties
 _Config['mempitch'] = [60e-6, 60e-6]
 _Config['nmem'] = [1, 1]
 _Config['elempitch'] = [60e-6, 60e-6]
 _Config['nelem'] = [5, 5]
-
 Config = register_type('Config', _Config)
+
 
 if __name__ == '__main__':
 

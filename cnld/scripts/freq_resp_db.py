@@ -6,6 +6,7 @@ import multiprocessing
 from itertools import repeat
 from tqdm import tqdm
 import os, sys, traceback
+from scipy.sparse.linalg import lgmres
 
 from cnld import abstract, bem, fem, util
 from cnld.mesh import Mesh, calc_refn_square
@@ -29,51 +30,46 @@ def process(job):
     c = cfg.sound_speed
     rho = cfg.fluid_rho
     array = abstract.load(cfg.array_config)
-    firstmem = array.elements[0].membranes[0]
+    refn = cfg.mesh_refn
     file = args.file
 
-    # determine mesh refn needed based on first membrane
-
+    # create finite element linear operators
     Gfe, Gfe_inv = fem.mbk_linear_operators(array, f, refn)
 
-    # create Z matrix in HFormat
-    hmkwrds = ['aprx', 'basis', 'admis', 'eta', 'eps', 'm', 'clf', 'eps_aca', 'rk', 'q_reg', 'q_sing', 'strict']
-    hmargs = { k:getattr(cfg, k) for k in hmkwrds }
-    Gbe, Gbe_inv = bem.z_linear_operators(array, f, c, refn, rho, **hmargs)
+    # create boundary element linear operators
+    # hmkwrds = ['aprx', 'basis', 'admis', 'eta', 'eps', 'm', 'clf', 'eps_aca', 'rk', 'q_reg', 'q_sing', 'strict']
+    # hmargs = { k:getattr(cfg, k) for k in hmkwrds }
+    # Gbe, Gbe_inv = bem.z_linear_operators(array, f, c, refn, rho, **hmargs)
 
+    # define total linear system and preconditioner
+    # G = Gfe + Gbe
+    # P = Gbe_inv * Gfe_inv
 
-    # solve for patch to patch responses
-    F = fem.f_from_abstract()
+    # create patch pressure load
+    F = fem.f_from_abstract(array, refn)
 
+    # solve for each source patch
     npatch = abstract.get_patch_count(array)
-    source_patch_id = np.arange(npatch)
-    dest_patch_id = np.arange(npatch)
-    for sid in source_patch_id:
+    source_patch = np.arange(npatch)
+    dest_patch = np.arange(npatch)
+    for sid in source_patch:
         # solve
         b = F[:, sid]
+        x, _ = lgmres(G, b, tol=1e-12, maxiter=40, M=P)
 
-        x = G_LU.lusolve(b)
-        x_patch = []
-        dest_membrane_ids = []
-        dest_element_ids = []
-
-        for did in dest_patch_id:
-
-            dmask = np.any(mesh.patch_ids == did, axis=1)
-            x_patch.append(np.mean(x[dmask]))
-            dest_membrane_ids.append(mesh.membrane_ids[dmask][0])
-            dest_element_ids.append(mesh.element_ids[dmask][0])
+        # average displacement over patches
+        x_patch = (F.T).dot(x) # / patch area?
 
         # write results to database
         data = {}
         data['frequency'] = repeat(f)
         data['wavenumber'] = repeat(k)
-        data['source_patch_id'] = repeat(sid)
-        data['dest_patch_id'] = dest_patch_id
-        data['source_membrane_id'] = repeat(mesh.membrane_ids[smask][0])
-        data['dest_membrane_id'] = dest_membrane_ids
-        data['source_element_id'] = repeat(mesh.element_ids[smask][0])
-        data['dest_element_id'] = dest_element_ids
+        data['source_patch'] = repeat(sid)
+        data['dest_patch'] = dest_patch
+        # data['source_membrane_id'] = repeat(mesh.membrane_ids[smask][0])
+        # data['dest_membrane_id'] = dest_membrane_ids
+        # data['source_element_id'] = repeat(mesh.element_ids[smask][0])
+        # data['dest_element_id'] = dest_element_ids
         data['displacement_real'] = np.real(x_patch)
         data['displacement_imag'] = np.imag(x_patch)
         with write_lock:
@@ -150,7 +146,9 @@ if __name__ == '__main__':
     Config = {}
     Config['freqs'] = 500e3, 10e6, 500e3
     Config['sound_speed'] = 1500.
+    Config['fluid_rho'] = 1000.
     Config['array_config'] = ''
+    Config['mesh_refn'] = 7
     Config['aprx'] = 'paca'
     Config['basis'] = 'linear'
     Config['admis'] = 'max'

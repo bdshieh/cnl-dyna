@@ -179,8 +179,6 @@ _SquareCmutMembrane['damping_mode_a'] = 0
 _SquareCmutMembrane['damping_mode_b'] = 4
 _SquareCmutMembrane['damping_ratio_a'] = 0.004
 _SquareCmutMembrane['damping_ratio_b'] = 0.004
-_SquareCmutMembrane['npatch_x'] = 3
-_SquareCmutMembrane['npatch_y'] = 3
 _SquareCmutMembrane['patches'] = FACTORY(list)
 SquareCmutMembrane = register_type('SquareCmutMembrane', _SquareCmutMembrane)
 
@@ -196,9 +194,10 @@ _CircularCmutMembrane['p_ratio'] = (0.22,)
 _CircularCmutMembrane['isolation'] = 200e-9
 _CircularCmutMembrane['permittivity'] = 6.3
 _CircularCmutMembrane['gap'] = 100e-9
-_CircularCmutMembrane['att_mech'] = 0
-_CircularCmutMembrane['npatch_r'] = 2
-_CircularCmutMembrane['npatch_theta'] = 4
+_CircularCmutMembrane['damping_mode_a'] = 0
+_CircularCmutMembrane['damping_mode_b'] = 4
+_CircularCmutMembrane['damping_ratio_a'] = 0.004
+_CircularCmutMembrane['damping_ratio_b'] = 0.004
 _CircularCmutMembrane['patches'] = FACTORY(list)
 CircularCmutMembrane = register_type('CircularCmutMembrane', _CircularCmutMembrane)
 

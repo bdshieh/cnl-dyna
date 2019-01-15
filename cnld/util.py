@@ -416,8 +416,11 @@ def script_parser(main, config_def):
 
     # config subcommand generates a default configuration template
     def config(args):
-        abstract.dump(Config(), args.file)
-
+        if args.file:
+            abstract.dump(Config(), args.file)
+        else:
+            print(Config())
+            
     # run subcommand will load the config file and pass to main
     def run(args):
         if args.config:
@@ -431,7 +434,7 @@ def script_parser(main, config_def):
     # define config subparser
     subparsers = parser.add_subparsers(help='sub-command help')
     config_parser = subparsers.add_parser('config', help='config_help')
-    config_parser.add_argument('file')
+    config_parser.add_argument('-f', '--file', nargs='?')
     config_parser.set_defaults(func=config)
     # define run subparser
     run_parser = subparsers.add_parser('run', help='run_help')
