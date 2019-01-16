@@ -462,7 +462,11 @@ def memoize(func):
     
     def make_hashable(obj):
         if not ishashable(obj):
+            if isinstance(obj, np.ndarray):
+                return obj.tostring()
             return str(obj)
+        if isinstance(obj, float):
+            return round(obj, 18)
         return obj
 
     memo = {}

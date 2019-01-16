@@ -98,7 +98,7 @@ def z_linear_operators(array, f, c, refn, rho=1000., *args, **kwargs):
 
     Z = z_from_abstract(array, k, refn, *args, **kwargs)
     Z_LU = Z.lu()
-    mesh = Mesh.from_abstract(array)
+    mesh = Mesh.from_abstract(array, refn=refn)
     ob = mesh.on_boundary
     nnodes = len(mesh.vertices)
 

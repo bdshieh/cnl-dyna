@@ -47,9 +47,38 @@ def mem_f_vector_arb_load(mesh, load_func):
 
 from cnld import util
 
-@util.memoize
-def patch_f_vector(nodes, triangles, mlx, mly, px, py, plx, ply):
+def memoize(func):
+    '''
+    Simple memoizer to cache repeated function calls.
+    '''
+    def ishashable(obj):
+        try:
+            hash(obj)
+        except TypeError:
+            return False
+        return True
+    
+    def make_hashable(obj):
+        if not ishashable(obj):
+            if isinstance(obj, np.ndarray):
+                return obj.tostring()
+            return str(obj)
+        if isinstance(obj, float):
+            return round(obj, 18)
+        return obj
 
+    memo = {}
+    def decorator(*args):
+        key = tuple(make_hashable(a) for a in args)
+        if key not in memo:
+            memo[key] = func(*args)
+        return memo[key]
+    return decorator
+
+
+@memoize
+def square_patch_f_vector(nodes, triangles, mlx, mly, px, py, plx, ply):
+    print('called')
     def load_func(x, y):
         if x >= (px - plx / 2):
             if x <= (px + plx / 2):
@@ -65,14 +94,27 @@ def patch_f_vector(nodes, triangles, mlx, mly, px, py, plx, ply):
         xj, yj = nodes[tri[1],:2]
         xk, yk = nodes[tri[2],:2]
 
-        def load_func_psi_eta(psi, eta):
-            x = (xj - xi) * psi + (xk - xi) * eta + xi
-            y = (yj - yi) * psi + (yk - yi) * eta + yi
-            return load_func(x, y)
+        # check if triangle vertices are inside or outside load
+        loadi = load_func(xi, yi)
+        loadj = load_func(xj, yj)
+        loadk = load_func(xk, yk)
+        # if load covers entire triangle
+        if all([loadi, loadj, loadk]):
+            da = ((xj - xi) * (yk - yi) - (xk - xi) * (yj - yi))
+            f[tri] += 1 / 6 * da
+        # if load does not cover any part of triangle
+        elif not any([loadi, loadj, loadk]):
+            continue
+        # if load partially covers triangle
+        else:
+            def load_func_psi_eta(psi, eta):
+                x = (xj - xi) * psi + (xk - xi) * eta + xi
+                y = (yj - yi) * psi + (yk - yi) * eta + yi
+                return load_func(x, y)
 
-        da, _ = dblquad(load_func_psi_eta, 0, 1, 0, lambda x: 1 - x, epsrel=1e-1, epsabs=1e-1)
-
-        f[tri] += 1 / 6 * da
+            da, _ = dblquad(load_func_psi_eta, 0, 1, 0, lambda x: 1 - x, epsrel=1e-1, epsabs=1e-1)
+            f[tri] += 1 / 6 * da
+            # print('quad')
 
     return f
 
@@ -90,13 +132,10 @@ def f_from_abstract(array, refn):
             f = np.zeros((len(sqmesh.vertices), len(mem.patches)))
             for i, pat in enumerate(mem.patches):
                 
-                ff = patch_f_vector(sqmesh.vertices, sqmesh.triangles, mem.length_x, mem.length_y, 
+                ff = square_patch_f_vector(sqmesh.vertices, sqmesh.triangles, mem.length_x, mem.length_y, 
                         pat.position[0] - mem.position[0], pat.position[1] - mem.position[1], 
                         pat.length_x, pat.length_y)
 
-                print(f.shape)
-                # ff = mem_f_vector_arb_load(sqmesh, load_func)
-                print(ff.shape)
                 f[:,i] = ff
 
             blocks.append(f)

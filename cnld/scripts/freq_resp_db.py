@@ -37,13 +37,13 @@ def process(job):
     Gfe, Gfe_inv = fem.mbk_linear_operators(array, f, refn)
 
     # create boundary element linear operators
-    # hmkwrds = ['aprx', 'basis', 'admis', 'eta', 'eps', 'm', 'clf', 'eps_aca', 'rk', 'q_reg', 'q_sing', 'strict']
-    # hmargs = { k:getattr(cfg, k) for k in hmkwrds }
-    # Gbe, Gbe_inv = bem.z_linear_operators(array, f, c, refn, rho, **hmargs)
+    hmkwrds = ['aprx', 'basis', 'admis', 'eta', 'eps', 'm', 'clf', 'eps_aca', 'rk', 'q_reg', 'q_sing', 'strict']
+    hmargs = { k:getattr(cfg, k) for k in hmkwrds }
+    Gbe, Gbe_inv = bem.z_linear_operators(array, f, c, refn, rho, **hmargs)
 
     # define total linear system and preconditioner
-    # G = Gfe + Gbe
-    # P = Gbe_inv * Gfe_inv
+    G = Gfe + Gbe
+    P = Gbe_inv * Gfe_inv
 
     # create patch pressure load
     F = fem.f_from_abstract(array, refn)
@@ -54,7 +54,7 @@ def process(job):
     dest_patch = np.arange(npatch)
     for sid in source_patch:
         # solve
-        b = F[:, sid]
+        b = F[:, sid].todense()
         x, _ = lgmres(G, b, tol=1e-12, maxiter=40, M=P)
 
         # average displacement over patches
@@ -76,6 +76,7 @@ def process(job):
             update_database(file, **data)
             util.update_progress(file, job_id)
 
+    # add saving of metrics (solve time, lgmres steps etc.)
 
 def run_process(*args, **kwargs):
     try:

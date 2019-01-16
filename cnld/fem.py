@@ -246,31 +246,6 @@ def mem_f_vector(mesh, p):
     return f
 
 
-# @util.memoize    
-# def mem_f_vector2(mesh, p):
-#     '''
-#     Pressure load vector based on equal distribution of pressure to element nodes.
-#     '''
-#     nodes = mesh.vertices
-#     triangles = mesh.triangles
-#     # triangle_areas = mesh.g / 2
-#     # ob = mesh.on_boundary
-
-#     f = np.zeros(len(nodes))
-#     for tt in range(len(triangles)):
-#         tri = triangles[tt,:]
-#         # ap = triangle_areas[tt]
-#         xi, yi = nodes[tri[0],:2]
-#         xj, yj = nodes[tri[1],:2]
-#         xk, yk = nodes[tri[2],:2]
-
-#         da = ((xj - xi) * (yk - yi) - (xk - xi) * (yj - yi))
-
-#         f[tri] += 1 / 6 * p * da
-
-#     return f
-
-
 def mem_f_vector_arb_load(mesh, load_func):
     '''
     Pressure load vector based on an arbitrary load.
@@ -290,9 +265,52 @@ def mem_f_vector_arb_load(mesh, load_func):
             y = (yj - yi) * psi + (yk - yi) * eta + yi
             return load_func(x, y)
 
-        da, _ = dblquad(load_func_psi_eta, 0, 1, 0, lambda x: 1 - x, epsabs=1e-2, epsrel=1e-2)
-
+        da, _ = dblquad(load_func_psi_eta, 0, 1, 0, lambda x: 1 - x, epsabs=1e-1, epsrel=1e-1)
         f[tri] += 1 / 6 * da
+
+    return f
+
+
+@util.memoize
+def square_patch_f_vector(nodes, triangles, mlx, mly, px, py, plx, ply):
+    '''
+    Load vector for a square patch.
+    '''
+    def load_func(x, y):
+        if x >= (px - plx / 2):
+            if x <= (px + plx / 2):
+                if y >= (py - ply / 2):
+                    if y <= (py + ply / 2):
+                        return 1
+        return 0
+    
+    f = np.zeros(len(nodes))
+    for tt in range(len(triangles)):
+        tri = triangles[tt,:]
+        xi, yi = nodes[tri[0],:2]
+        xj, yj = nodes[tri[1],:2]
+        xk, yk = nodes[tri[2],:2]
+
+        # check if triangle vertices are inside or outside load
+        loadi = load_func(xi, yi)
+        loadj = load_func(xj, yj)
+        loadk = load_func(xk, yk)
+        # if load covers entire triangle
+        if all([loadi, loadj, loadk]):
+            da = ((xj - xi) * (yk - yi) - (xk - xi) * (yj - yi))
+            f[tri] += 1 / 6 * da
+        # if load does not cover any part of triangle
+        elif not any([loadi, loadj, loadk]):
+            continue
+        # if load partially covers triangle
+        else:
+            def load_func_psi_eta(psi, eta):
+                x = (xj - xi) * psi + (xk - xi) * eta + xi
+                y = (yj - yi) * psi + (yk - yi) * eta + yi
+                return load_func(x, y)
+
+            da, _ = dblquad(load_func_psi_eta, 0, 1, 0, lambda x: 1 - x, epsrel=1e-1, epsabs=1e-1)
+            f[tri] += 1 / 6 * da
 
     return f
 
@@ -304,20 +322,13 @@ def f_from_abstract(array, refn):
     blocks = []
     for elem in array.elements:
         for mem in elem.membranes:
-            mesh = square(mem.length_x, mem.length_y, refn=refn, center=mem.position)
+            sqmesh = square(mem.length_x, mem.length_y, refn=refn)
 
-            f = sps.csc_matrix((len(mesh.vertices), len(mem.patches)))
+            f = np.zeros((len(sqmesh.vertices), len(mem.patches)))
             for i, pat in enumerate(mem.patches):
-                def load_func(x, y):
-                    if x >= (pat.position[0] - pat.length_x / 2):
-                        if x <= (pat.position[0] + pat.length_x / 2):
-                            if y >= (pat.position[1] - pat.length_y / 2):
-                                if y <= (pat.position[1] + pat.length_y / 2):
-                                    return 1
-                    return 0
-                
-                f[:,i] = mem_f_vector_arb_load(mesh, load_func)
-            
+                f[:,i]  = square_patch_f_vector(sqmesh.vertices, sqmesh.triangles, mem.length_x, mem.length_y, 
+                        pat.position[0] - mem.position[0], pat.position[1] - mem.position[1], 
+                        pat.length_x, pat.length_y)
             blocks.append(f)
     
     return sps.block_diag(blocks, format='csc')
@@ -349,10 +360,6 @@ def mbk_from_abstract(array, f, refn):
             blocks.append(block)
             blocks_inv.append(block_inv)
     
-    # if format.lower() in ['sparse', 'sparseformat']:
-    #     return MbkSparseMatrix(sps.csr_matrix(sps.block_diag(blocks)))
-    # else:
-    #     return MbkFullMatrix(sps.block_diag(blocks).todense())
     return sps.block_diag(blocks, format='csr'), sps.block_diag(blocks_inv, format='csr')
 
 
@@ -376,7 +383,7 @@ def mbk_linear_operators(array, f, refn):
 
     MBK, MBK_inv = mbk_from_abstract(array, f, refn)
 
-    mesh = Mesh.from_abstract(array)
+    mesh = Mesh.from_abstract(array, refn=refn)
     ob = mesh.on_boundary
     nnodes = len(mesh.vertices)
 
