@@ -36,7 +36,7 @@ cdef class Bem3d:
         return self.ptr.kernel_const
         
     @staticmethod
-    cdef wrap(pbem3d ptr, bint owner=False):
+    cdef wrap(pbem3d ptr, bint owner=True):
         cdef Bem3d obj = Bem3d.__new__(Bem3d)
         obj._setup(ptr, owner)
         return obj

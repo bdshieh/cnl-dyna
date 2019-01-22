@@ -64,7 +64,7 @@ cdef class Truncmode:
         self.ptr.zeta_age = val
 
     @staticmethod
-    cdef wrap(ptruncmode ptr, bint owner=False):
+    cdef wrap(ptruncmode ptr, bint owner=True):
         cdef Truncmode obj = Truncmode.__new__(Truncmode)
         obj._setup(ptr, owner)
         return obj

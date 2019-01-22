@@ -30,11 +30,11 @@ def update_database(con, **kwargs):
 #                 'dest_membrane_id', 'source_element_id', 'dest_element_id', 'displacement_real', 
 #                 'displacement_imag']
     row_keys = ['frequency', 'wavenumber', 'source_patch', 'dest_patch', 'displacement_real', 
-                'displacement_imag']
+                'displacement_imag', 'time_solve', 'iterations']
     row_data = tuple([kwargs[k] for k in row_keys])
 
     with con:
-        query = 'INSERT INTO displacements VALUES (NULL, ?, ?, ?, ?, ?, ?)'
+        query = 'INSERT INTO displacements VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?)'
         con.executemany(query, zip(*row_data))
 
 
@@ -45,14 +45,11 @@ def create_frequencies_table(con, **kwargs):
     ks = kwargs['wavenumbers']
 
     with con:
-
         # create table
         con.execute('CREATE TABLE frequencies (id INTEGER PRIMARY KEY, frequency float, wavenumber float)')
-
         # create indexes
         con.execute('CREATE UNIQUE INDEX frequency_index ON frequencies (frequency)')
         con.execute('CREATE UNIQUE INDEX wavenumber_index ON frequencies (wavenumber)')
-
         # insert values into table
         con.executemany('INSERT INTO frequencies VALUES (NULL, ?, ?)', zip(fs, ks))
 
@@ -87,6 +84,8 @@ def create_displacements_table(con, **kwargs):
                 dest_patch integer,
                 displacement_real float,
                 displacement_imag float,
+                time_solve float,
+                iterations integer,
                 FOREIGN KEY (frequency, wavenumber) REFERENCES frequencies (frequency, wavenumber)
                 )
                 '''

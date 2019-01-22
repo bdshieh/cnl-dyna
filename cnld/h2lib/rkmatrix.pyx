@@ -41,7 +41,7 @@ cdef class RKMatrix:
 
     ''' Methods '''
     @staticmethod
-    cdef wrap(prkmatrix ptr, bint owner=False):
+    cdef wrap(prkmatrix ptr, bint owner=True):
         cdef RKMatrix obj = RKMatrix.__new__(RKMatrix)
         obj._setup(ptr, owner)
         return obj

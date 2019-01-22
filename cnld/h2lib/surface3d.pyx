@@ -54,7 +54,7 @@ cdef class Surface3d():
         return self.ptr.hmax
         
     @staticmethod
-    cdef wrap(psurface3d ptr, bint owner=False):
+    cdef wrap(psurface3d ptr, bint owner=True):
         cdef Surface3d obj = Surface3d.__new__(Surface3d)
         obj._setup(ptr, owner)
         return obj

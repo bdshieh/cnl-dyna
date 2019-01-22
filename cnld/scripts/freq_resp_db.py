@@ -7,19 +7,19 @@ from itertools import repeat
 from tqdm import tqdm
 import os, sys, traceback
 from scipy.sparse.linalg import lgmres
+from timeit import default_timer as timer
 
-from cnld import abstract, bem, fem, util
-from cnld.mesh import Mesh, calc_refn_square
+from cnld import abstract, util, bem, fem
 from cnld.impulse_response import create_database, update_database
 
 
 ''' PROCESS FUNCTIONS '''
 
-def init_process(_write_lock, _cfg, _args):
-    global write_lock, cfg, args
+def init_process(_write_lock, _cfg, _file):
+    global write_lock, cfg, file
     write_lock = _write_lock
-    cfg = _cfg
-    args = _args
+    cfg = Config(**abstract.loads(_cfg))
+    file = _file
 
 
 def process(job):
@@ -31,7 +31,6 @@ def process(job):
     rho = cfg.fluid_rho
     array = abstract.load(cfg.array_config)
     refn = cfg.mesh_refn
-    file = args.file
 
     # create finite element linear operators
     Gfe, Gfe_inv = fem.mbk_linear_operators(array, f, refn)
@@ -43,7 +42,9 @@ def process(job):
 
     # define total linear system and preconditioner
     G = Gfe + Gbe
-    P = Gbe_inv * Gfe_inv
+    # P = Gbe_inv * Gfe_inv
+    P = Gfe_inv * Gbe_inv
+    # P = Gbe_inv - 0.5 * Gbe_inv * Gfe * Gbe_inv 
 
     # create patch pressure load
     F = fem.f_from_abstract(array, refn)
@@ -53,9 +54,14 @@ def process(job):
     source_patch = np.arange(npatch)
     dest_patch = np.arange(npatch)
     for sid in source_patch:
+        # get RHS
+        b = P.dot(F[:, sid].todense())
+
         # solve
-        b = F[:, sid].todense()
-        x, _ = lgmres(G, b, tol=1e-12, maxiter=40, M=P)
+        counter = util.Counter()
+        start = timer()
+        x, ecode = lgmres(G, b, tol=1e-6, maxiter=40, M=P, callback=counter.increment)
+        time_solve = timer() - start
 
         # average displacement over patches
         x_patch = (F.T).dot(x) # / patch area?
@@ -72,11 +78,16 @@ def process(job):
         # data['dest_element_id'] = dest_element_ids
         data['displacement_real'] = np.real(x_patch)
         data['displacement_imag'] = np.imag(x_patch)
+        data['time_solve'] = repeat(time_solve)
+        data['iterations'] = repeat(counter.count)
+
         with write_lock:
             update_database(file, **data)
-            util.update_progress(file, job_id)
-
-    # add saving of metrics (solve time, lgmres steps etc.)
+            # add saving of metrics (solve time, lgmres steps etc.)
+    
+    with write_lock:
+        util.update_progress(file, job_id)
+    
 
 def run_process(*args, **kwargs):
     try:
@@ -126,42 +137,45 @@ def main(cfg, args):
     # start multiprocessing pool and run process
     try:
         write_lock = multiprocessing.Lock()
-        pool = multiprocessing.Pool(threads, initializer=init_process, initargs=(write_lock, cfg, args))
+        pool = multiprocessing.Pool(threads, initializer=init_process, initargs=(write_lock, 
+            abstract.dumps(cfg), file), maxtasksperchild=1)
         jobs = util.create_jobs((freqs, 1), (wavenums, 1), mode='zip', is_complete=is_complete)
-        result = pool.imap_unordered(run_process, jobs)
+        result = pool.imap_unordered(run_process, jobs, chunksize=1)
         for r in tqdm(result, desc='Calculating', total=njobs, initial=ijob):
             pass
     except Exception as e:
         print(e)
     finally:
-        pool.terminate()
         pool.close()
+        pool.terminate()
+
+
+# define default configuration for this script
+_Config = {}
+_Config['freqs'] = 500e3, 10e6, 500e3
+_Config['sound_speed'] = 1500.
+_Config['fluid_rho'] = 1000.
+_Config['array_config'] = ''
+_Config['mesh_refn'] = 7
+_Config['aprx'] = 'paca'
+_Config['basis'] = 'linear'
+_Config['admis'] = '2'
+_Config['eta'] = 1.1
+_Config['eps'] = 1e-12
+_Config['m'] = 4
+_Config['clf'] = 16
+_Config['eps_aca'] = 1e-2
+_Config['rk'] = 0
+_Config['q_reg'] = 2
+_Config['q_sing'] = 4
+_Config['strict'] = False
+Config = abstract.register_type('Config', _Config)
 
 
 if __name__ == '__main__':
 
     import sys
     from cnld import util
-
-    # define default configuration for this script
-    Config = {}
-    Config['freqs'] = 500e3, 10e6, 500e3
-    Config['sound_speed'] = 1500.
-    Config['fluid_rho'] = 1000.
-    Config['array_config'] = ''
-    Config['mesh_refn'] = 7
-    Config['aprx'] = 'paca'
-    Config['basis'] = 'linear'
-    Config['admis'] = 'max'
-    Config['eta'] = 1.1
-    Config['eps'] = 1e-12
-    Config['m'] = 4
-    Config['clf'] = 16
-    Config['eps_aca'] = 1e-2
-    Config['rk'] = 0
-    Config['q_reg'] = 2
-    Config['q_sing'] = 4
-    Config['strict'] = False
 
     # get script parser and parse arguments
     parser, run_parser = util.script_parser(main, Config)

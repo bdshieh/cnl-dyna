@@ -18,6 +18,7 @@ cdef class Cluster:
 
     def __dealloc__(self):
         if self.ptr is not NULL and self.owner is True:
+            _basic.freemem(<void *> self.ptr.idx)
             _cluster.del_cluster(self.ptr)
     
     cdef _setup(self, pcluster ptr, bint owner):
@@ -68,7 +69,7 @@ cdef class Cluster:
 
     ''' Methods '''
     @staticmethod
-    cdef wrap(pcluster ptr, bint owner=False):
+    cdef wrap(pcluster ptr, bint owner=True):
         cdef Cluster obj = Cluster.__new__(Cluster)
         obj._setup(ptr, owner)
         return obj

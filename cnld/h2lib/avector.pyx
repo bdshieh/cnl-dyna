@@ -46,7 +46,7 @@ cdef class AVector:
         return np.asarray(self._v)
 
     @staticmethod
-    cdef wrap(pavector ptr, bint owner=False):
+    cdef wrap(pavector ptr, bint owner=True):
         cdef AVector obj = AVector.__new__(AVector)
         obj._setup(ptr, owner)
         return obj

@@ -20,4 +20,9 @@ init_h2lib()
 # print('h2lib initialized')
 
 import atexit
-atexit.register(uninit_h2lib)
+
+def uninit():
+    uninit_h2lib()
+    # print('h2lib uninitialized')
+
+atexit.register(uninit)

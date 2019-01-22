@@ -57,7 +57,7 @@ cdef class Block:
     
     ''' Methods '''
     @staticmethod
-    cdef wrap(pblock ptr, bint owner=False):
+    cdef wrap(pblock ptr, bint owner=True):
         cdef Block obj = Block.__new__(Block)
         obj._setup(ptr, owner)
         return obj

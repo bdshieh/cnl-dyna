@@ -405,12 +405,4 @@ def mbk_linear_operators(array, f, refn):
 
 
 if __name__ == '__main__':
-
-    from cnld.mesh import square
-
-    E = 110e9
-    h = 2e-6
-    eta = 0.22
-
-    mesh = square(40e-6, 40e-6, refn=4)
-    K = mem_k_matrix(mesh, E, h, eta)
+    pass

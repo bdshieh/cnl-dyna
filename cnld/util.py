@@ -476,3 +476,15 @@ def memoize(func):
             memo[key] = func(*args)
         return memo[key]
     return decorator
+
+
+class Counter:
+
+    def __init__(self):
+        self.count = 0
+    
+    def increment(self, *args, **kwargs):
+        self.count += 1
+    
+    def decrement(self, *args, **kwargs):
+        self.count -= 1

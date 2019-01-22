@@ -22,4 +22,5 @@ cdef extern from 'basic.h' nogil:
     real REAL_ABS(real x)
     real REAL_NORM2(real x, real y)
     real REAL_NORM3(real x, real y, real z)
+    void freemem(void *ptr)
     

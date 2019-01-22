@@ -9,3 +9,4 @@ cpdef init_h2lib():
 
 cpdef uninit_h2lib():
     _basic.uninit_h2lib()
+

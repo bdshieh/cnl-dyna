@@ -50,7 +50,7 @@ cdef class AMatrix():
         return np.asarray(self._a)
 
     @staticmethod
-    cdef wrap(pamatrix ptr, bint owner=False):
+    cdef wrap(pamatrix ptr, bint owner=True):
         cdef AMatrix obj = AMatrix.__new__(AMatrix)
         obj._setup(ptr, owner)
         return obj

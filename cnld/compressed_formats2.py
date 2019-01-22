@@ -665,9 +665,17 @@ class ZHMatrix(HFormat):
         self._mat = Z
         self._time_assemble = time_assemble
         # keep references to h2lib objects so they don't get garbage collected
-        self._bem = bem
         self._root = root
+        # important! don't ref bem and broot otherwise processes fail to terminate (not sure why)
+        # self._bem = bem
         self._broot = broot
+    
+    def __del__(self):
+        del self._mat
+        del self._root
+        # del self._bem
+        del self._broot
+        
 
     @property
     def time_assemble(self):
