@@ -10,8 +10,6 @@ from scipy.sparse.linalg import lgmres
 from timeit import default_timer as timer
 
 from cnld import abstract, util, bem, fem
-from cnld.compressed_formats2 import MbkSparseMatrix
-from cnld.mesh import Mesh
 from cnld.impulse_response import create_database, update_database
 
 import numpy.linalg
@@ -36,45 +34,53 @@ def process(job):
     array = abstract.load(cfg.array_config)
     refn = cfg.mesh_refn
 
-    # create finite element matrix
-    Gfe, _ = fem.mbk_from_abstract(array, f, refn)
+    # create finite element linear operators
+    Gfe, Gfe_inv = fem.mbk_linear_operators(array, f, refn)
 
-    # create boundary element matrix
+
+    # create boundary element linear operators
     hmkwrds = ['aprx', 'basis', 'admis', 'eta', 'eps', 'm', 'clf', 'eps_aca', 'rk', 'q_reg', 'q_sing', 'strict']
     hmargs = { k:getattr(cfg, k) for k in hmkwrds }
-    Z = bem.z_from_abstract(array, k, refn, **hmargs)
-    omg = 2 * np.pi * f
-    Gbe = -omg**2 * 2 * rho * Z
+    Gbe, Gbe_inv = bem.z_linear_operators(array, f, c, refn, rho, **hmargs)
 
     # define total linear system and preconditioner
-    G = MbkSparseMatrix(Gfe) + Gbe
-    Glu = G.lu()
+    G = Gfe + Gbe
+    P = Gfe_inv
+    # P = Gbe_inv * Gfe_inv
+    # P = Gfe_inv * Gbe_inv
+    # g = np.trace(MBK_inv.todense())
+    # mem_array = array.copy()
+    # mem_array.elements = [array.elements[0],]
+    # Bfe, Bfe_inv = fem.mbk_from_abstract(mem_array, f, refn)
+    # Bfe = Bfe.todense()
+    # Bfe_inv = np.linalg.inv(Bfe)
+    # Bbe = bem.z_from_abstract(mem_array, k, refn=refn, format='FullFormat').data
+    # Bbe_inv = np.linalg.inv(Bbe)
+
+    # g = np.trace(Bfe.dot(Bbe_inv)) * len(array.elements)
+    # P = Gbe_inv - (1 / (1 + g)) * Gbe_inv * Gfe * Gbe_inv 
+    # g = np.trace(Bbe.dot(Bfe_inv)) * len(array.elements)
+    # P = Gfe_inv - (1 / (1 + g)) * Gfe_inv * Gbe * Gfe_inv
 
     # create patch pressure load
     F = fem.f_from_abstract(array, refn)
-    Pavg = fem.patch_averager_from_abstract(array, refn)
-    mesh = Mesh.from_abstract(array, refn)
-    ob = mesh.on_boundary
 
     # solve for each source patch
     npatch = abstract.get_patch_count(array)
     source_patch = np.arange(npatch)
     dest_patch = np.arange(npatch)
-    # patches = abstract.get_patches_from_array(array)
-
     for sid in source_patch:
         # get RHS
-        b = np.array(F[:, sid].todense())
+        b = P.dot(F[:, sid].todense())
 
         # solve
+        counter = util.Counter()
         start = timer()
-        x = Glu.lusolve(b)
+        x, ecode = lgmres(G, b, tol=1e-6, maxiter=40, M=P, callback=counter.increment)
         time_solve = timer() - start
-        x[ob] = 0
 
         # average displacement over patches
-        # area = patches[sid].length_x * patches[sid].length_y
-        x_patch = (Pavg.T).dot(x) # / patch area?
+        x_patch = (F.T).dot(x) # / patch area?
 
         # write results to database
         data = {}
@@ -82,13 +88,18 @@ def process(job):
         data['wavenumber'] = repeat(k)
         data['source_patch'] = repeat(sid)
         data['dest_patch'] = dest_patch
+        # data['source_membrane_id'] = repeat(mesh.membrane_ids[smask][0])
+        # data['dest_membrane_id'] = dest_membrane_ids
+        # data['source_element_id'] = repeat(mesh.element_ids[smask][0])
+        # data['dest_element_id'] = dest_element_ids
         data['displacement_real'] = np.real(x_patch)
         data['displacement_imag'] = np.imag(x_patch)
         data['time_solve'] = repeat(time_solve)
-        data['iterations'] = repeat(0)
+        data['iterations'] = repeat(counter.count)
 
         with write_lock:
             update_database(file, **data)
+            # add saving of metrics (solve time, lgmres steps etc.)
     
     with write_lock:
         util.update_progress(file, job_id)

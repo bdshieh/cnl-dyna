@@ -188,6 +188,10 @@ class FullFormat(BaseFormat):
     @property
     def size(self):
         return getsize_amatrix(self._mat)
+    
+    @property
+    def data(self):
+        return np.array(self._mat.a)
 
     ''' INDEXING '''
     def __getitem__(self, key):

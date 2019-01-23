@@ -482,6 +482,12 @@ def get_elements_from_array(array, kind='both'):
 
 
 @vectorize
+def get_patches_from_array(array):
+    return [p for e in array.elements for m in e.membranes for p in m.patches]
+ 
+
+
+@vectorize
 def get_membranes_from_array(array):
     return [m for m in e.membranes for e in array.elements]
 

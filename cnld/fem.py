@@ -130,6 +130,11 @@ def mem_k_matrix(mesh, E, h, eta):
         # add matrix values to global K matrix
         K[np.ix_(Kidx, Kidx)] += Kp[np.ix_(Kpidx, Kpidx)]
     
+    ob = mesh.on_boundary
+    K[ob,:] = 0
+    K[:, ob] = 0
+    K[ob, ob] = 1
+
     return K
 
 
@@ -189,6 +194,11 @@ def mem_dlm_matrix(mesh, rho, h):
         ap = triangle_areas[tt]
         M[tri, tri] += 1 / 3 * mass * ap
 
+    ob = mesh.on_boundary
+    M[ob,:] = 0
+    M[:, ob] = 0
+    M[ob, ob] = 1
+
     return M
 
 
@@ -243,6 +253,9 @@ def mem_f_vector(mesh, p):
         ap = triangle_areas[tt]
         f[tri] += 1 / 3 * p * ap
 
+    ob = mesh.on_boundary
+    f[ob] = 0
+
     return f
 
 
@@ -268,11 +281,14 @@ def mem_f_vector_arb_load(mesh, load_func):
         da, _ = dblquad(load_func_psi_eta, 0, 1, 0, lambda x: 1 - x, epsabs=1e-1, epsrel=1e-1)
         f[tri] += 1 / 6 * da
 
+    ob = mesh.on_boundary
+    f[ob] = 0
+
     return f
 
 
 @util.memoize
-def square_patch_f_vector(nodes, triangles, mlx, mly, px, py, plx, ply):
+def square_patch_f_vector(nodes, triangles, on_boundary, mlx, mly, px, py, plx, ply):
     '''
     Load vector for a square patch.
     '''
@@ -312,6 +328,8 @@ def square_patch_f_vector(nodes, triangles, mlx, mly, px, py, plx, ply):
             da, _ = dblquad(load_func_psi_eta, 0, 1, 0, lambda x: 1 - x, epsrel=1e-1, epsabs=1e-1)
             f[tri] += 1 / 6 * da
 
+    f[on_boundary] = 0
+
     return f
 
 
@@ -323,15 +341,87 @@ def f_from_abstract(array, refn):
     for elem in array.elements:
         for mem in elem.membranes:
             sqmesh = square(mem.length_x, mem.length_y, refn=refn)
+            ob = sqmesh.on_boundary
 
             f = np.zeros((len(sqmesh.vertices), len(mem.patches)))
             for i, pat in enumerate(mem.patches):
-                f[:,i]  = square_patch_f_vector(sqmesh.vertices, sqmesh.triangles, mem.length_x, mem.length_y, 
-                        pat.position[0] - mem.position[0], pat.position[1] - mem.position[1], 
-                        pat.length_x, pat.length_y)
+                f[:,i]  = square_patch_f_vector(sqmesh.vertices, sqmesh.triangles, sqmesh.on_boundary,
+                    mem.length_x, mem.length_y, pat.position[0] - mem.position[0], 
+                    pat.position[1] - mem.position[1], pat.length_x, pat.length_y)
+                
+                f[ob,i] = 0
             blocks.append(f)
     
     return sps.block_diag(blocks, format='csc')
+
+
+@util.memoize
+def square_patch_averaging_vector(nodes, triangles, on_boundary, mlx, mly, px, py, plx, ply):
+    '''
+    Load vector for a square patch.
+    '''
+    def load_func(x, y):
+        if x >= (px - plx / 2):
+            if x <= (px + plx / 2):
+                if y >= (py - ply / 2):
+                    if y <= (py + ply / 2):
+                        return 1
+        return 0
+    
+    f = np.zeros(len(nodes))
+    for tt in range(len(triangles)):
+        tri = triangles[tt,:]
+        xi, yi = nodes[tri[0],:2]
+        xj, yj = nodes[tri[1],:2]
+        xk, yk = nodes[tri[2],:2]
+
+        # check if triangle vertices are inside or outside load
+        loadi = load_func(xi, yi)
+        loadj = load_func(xj, yj)
+        loadk = load_func(xk, yk)
+        # if load covers entire triangle
+        if all([loadi, loadj, loadk]):
+            f[tri] += 1 / 3
+        # if load does not cover any part of triangle
+        elif not any([loadi, loadj, loadk]):
+            continue
+        # if load partially covers triangle
+        else:
+            def load_func_psi_eta(psi, eta):
+                x = (xj - xi) * psi + (xk - xi) * eta + xi
+                y = (yj - yi) * psi + (yk - yi) * eta + yi
+                return load_func(x, y)
+
+            da, _ = dblquad(load_func_psi_eta, 0, 1, 0, lambda x: 1 - x, epsrel=1e-1, epsabs=1e-1)
+            trida = ((xj - xi) * (yk - yi) - (xk - xi) * (yj - yi)) / 2
+            f[tri] += 1 / 6 * da / trida 
+
+    f[on_boundary] = 0
+
+    return f
+
+
+def patch_averager_from_abstract(array, refn):
+    '''
+    Construct load vector based on patches of abstract array.
+    '''
+    blocks = []
+    for elem in array.elements:
+        for mem in elem.membranes:
+            sqmesh = square(mem.length_x, mem.length_y, refn=refn)
+            # ob = sqmesh.on_boundary
+
+            f = np.zeros((len(sqmesh.vertices), len(mem.patches)))
+            for i, pat in enumerate(mem.patches):
+                f[:,i]  = square_patch_averaging_vector(sqmesh.vertices, sqmesh.triangles, sqmesh.on_boundary,
+                    mem.length_x, mem.length_y, pat.position[0] - mem.position[0], 
+                    pat.position[1] - mem.position[1], pat.length_x, pat.length_y)
+                
+                # f[ob,i] = 0
+            blocks.append(f)
+    
+    return sps.block_diag(blocks, format='csc')
+
 
 
 @util.memoize
@@ -355,7 +445,7 @@ def mbk_from_abstract(array, f, refn):
                 # mem.damping_ratio_a, mem.damping_ratio_b)
 
             # block = -(omg**2) * M + 1j * omg * B + K
-            block = -(omg**2) * M + K 
+            block = -(omg**2) * M + K
             block_inv = inv_block(block)
             blocks.append(block)
             blocks_inv.append(block_inv)
