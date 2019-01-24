@@ -42,7 +42,7 @@ def process(job):
     # create boundary element matrix
     hmkwrds = ['aprx', 'basis', 'admis', 'eta', 'eps', 'm', 'clf', 'eps_aca', 'rk', 'q_reg', 'q_sing', 'strict']
     hmargs = { k:getattr(cfg, k) for k in hmkwrds }
-    Z = bem.z_from_abstract(array, k, refn, **hmargs)
+    Z = bem.z_from_abstract(array, k, refn, format='FullFormat', **hmargs)
     omg = 2 * np.pi * f
     Gbe = -omg**2 * 2 * rho * Z
 
@@ -52,7 +52,6 @@ def process(job):
 
     # create patch pressure load
     F = fem.f_from_abstract(array, refn)
-    Pavg = fem.patch_averager_from_abstract(array, refn)
     mesh = Mesh.from_abstract(array, refn)
     ob = mesh.on_boundary
 
@@ -60,7 +59,7 @@ def process(job):
     npatch = abstract.get_patch_count(array)
     source_patch = np.arange(npatch)
     dest_patch = np.arange(npatch)
-    # patches = abstract.get_patches_from_array(array)
+    patches = abstract.get_patches_from_array(array)
 
     for sid in source_patch:
         # get RHS
@@ -73,8 +72,9 @@ def process(job):
         x[ob] = 0
 
         # average displacement over patches
-        # area = patches[sid].length_x * patches[sid].length_y
-        x_patch = (Pavg.T).dot(x) # / patch area?
+        area = patches[sid].length_x * patches[sid].length_y
+        # x_patch = (Pavg.T).dot(x) # / patch area?
+        x_patch = (F.T).dot(x) / area
 
         # write results to database
         data = {}

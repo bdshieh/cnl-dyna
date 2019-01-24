@@ -112,8 +112,9 @@ def square_patch_f_vector(nodes, triangles, mlx, mly, px, py, plx, ply):
                 y = (yj - yi) * psi + (yk - yi) * eta + yi
                 return load_func(x, y)
 
-            da, _ = dblquad(load_func_psi_eta, 0, 1, 0, lambda x: 1 - x, epsrel=1e-1, epsabs=1e-1)
-            f[tri] += 1 / 6 * da
+            frac, _ = dblquad(load_func_psi_eta, 0, 1, 0, lambda x: 1 - x, epsrel=1e-1, epsabs=1e-1)
+            da = ((xj - xi) * (yk - yi) - (xk - xi) * (yj - yi))
+            f[tri] += 1 / 6 * frac * da
             # print('quad')
 
     return f

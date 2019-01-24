@@ -8,7 +8,7 @@ from scipy.interpolate import Rbf
 import scipy as sp
 import scipy.linalg 
 
-from cnld import util, bem, fem, mesh
+from cnld import util, bem, fem, mesh, abstract
 from cnld.compressed_formats2 import MbkSparseMatrix, MbkFullMatrix
 
 
@@ -34,14 +34,16 @@ hmkwargs['strict'] = True
 hmkwargs['clf'] = 16
 hmkwargs['aprx'] = 'aca'
 hmkwargs['rk'] = 0
-freqs = np.arange(200e3, 50e6 + 200e3, 200e3)
+freqs = np.arange(1e6, 50e6 + 1e6, 1e6)
 
 sqmesh = mesh.square(40e-6, 40e-6, refn=refn)
 ob = sqmesh.on_boundary
 nnodes = len(sqmesh.vertices)
 
-x = np.zeros((nnodes, len(freqs)), dtype=np.complex128)
+F2 = np.array(fem.f_from_abstract(abstract.load('matrix.json'), refn).todense())
+F1 = fem.mem_f_vector(sqmesh, 1)
 
+x = np.zeros((nnodes, len(freqs)), dtype=np.complex128)
 for i, f in enumerate(tqdm(freqs)):
 
     omg = 2 * np.pi * f
@@ -58,10 +60,10 @@ for i, f in enumerate(tqdm(freqs)):
     G = MbkSparseMatrix(Gfe) + Gbe
     Glu = G.lu()
 
-    F = fem.mem_f_vector(sqmesh, 1)
+    
     # F[ob] = 0
-
-    _x = Glu.lusolve(F)
+    b = F2[:,4]
+    _x = Glu.lusolve(b)
     _x[ob] = 0
     x[:,i] = _x
 

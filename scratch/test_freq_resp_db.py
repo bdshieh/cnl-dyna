@@ -31,12 +31,18 @@ if __name__ == '__main__':
 
     db, freqs = read_freq_resp_db('freq-resp.db')
 
-    plt.imshow(20 * np.log10(np.abs(db[...,20])), cmap='RdBu_r')
-    plt.show()
+    plt.figure()
+    plt.imshow(20 * np.log10(np.abs(db[...,15])), cmap='RdBu_r')
+    
+    dbs = db.sum(0).reshape((3,3,2,-1), order='F')
 
-    parea = (40e-6 / 3)**2
-    dbs = db.sum(0).sum(0) / 9
-    plt.plot(freqs / 1e6, np.abs(dbs))
+    plt.figure()
+    plt.imshow(np.abs(dbs[:,:,0,15]), cmap='RdBu_r')
+    plt.figure()
+    plt.imshow(np.abs(dbs[:,:,1,15]), cmap='RdBu_r')
+    plt.figure()
+    plt.plot(freqs / 1e6, np.abs(db.sum(0).sum(0) / 9))
+    
     plt.show()
 
     # print(np.max(np.abs(db)))

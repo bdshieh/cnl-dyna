@@ -56,6 +56,4 @@ def z_linear_operators(array, f, c, refn, rho=1000., *args, **kwargs):
     return linop, linop_inv
 
 
-def z_block_from_abstract():
-    pass
     
