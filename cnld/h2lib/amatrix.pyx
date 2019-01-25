@@ -1,6 +1,5 @@
 ## amatrix_cy.pyx ##
 
-
 from . cimport _amatrix
 from . basic cimport *
 from . avector cimport *
@@ -19,10 +18,10 @@ cdef class AMatrix():
 
     @classmethod
     def from_array(cls, a):
-
         a = a.squeeze()
         assert a.ndim == 2
 
+        # create amatrix and copy data 
         obj = cls(a.shape[0], a.shape[1])
         # obj._a[:] = a.astype(np.complex128)
         np.copyto(obj._a, a.astype(np.complex128))

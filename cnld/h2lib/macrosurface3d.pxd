@@ -12,10 +12,10 @@ ctypedef _macrosurface3d.pcmacrosurface3d pcmacrosurface3d
 cdef class Macrosurface3d:
     cdef pmacrosurface3d ptr
     cdef bint owner
-    cdef public real [:,:] x
-    cdef public uint [:,:] e
-    cdef public uint [:,:] t
-    cdef public uint [:,:] s
+    cdef real [:,:] _x
+    cdef uint [:,:] _e
+    cdef uint [:,:] _t
+    cdef uint [:,:] _s
     cdef _setup(self, pmacrosurface3d ptr, bint owner)
     @staticmethod
     cdef wrap(pmacrosurface3d ptr, bint owner=*)

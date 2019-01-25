@@ -5,6 +5,7 @@ from matplotlib import pyplot as plt
 from scipy.interpolate import Rbf
 
 from cnld.h2lib import *
+from cnld import util
 
 
 eps = np.finfo(np.float64).eps
@@ -34,21 +35,32 @@ class Mesh:
         return obj
 
     @classmethod
-    def from_geometry(cls, vertices, edges, triangles, triangle_edges, center=(0,0,0),
-        refn=2, parametrization='square'):
+    def from_geometry(cls, vertices, edges, triangles, triangle_edges):
         
-        ms = Macrosurface3d(len(vertices), len(edges), len(triangles))
-        ms.x[:] = vertices
-        ms.e[:] = edges
-        ms.t[:] = triangles
-        ms.s[:] = triangle_edges
-        ms.set_parametrization(parametrization)
+        surf = Surface3d(len(vertices), len(edges), len(triangles))
+        surf.x[:] = vertices
+        surf.e[:] = edges
+        surf.t[:] = triangles
+        surf.s[:] = triangle_edges
 
-        return cls.from_macrosurface3d(ms, center=center, refn=refn)
+        return cls.from_surface3d(surf)
 
     @classmethod
-    def from_abstract(cls, array, refn=2, **kwargs):
+    def from_abstract(cls, array, refn=1, **kwargs):
         return _from_abstract(cls, array, refn, **kwargs)
+
+    # @classmethod
+    # def from_geometry(cls, vertices, edges, triangles, triangle_edges, center=(0,0,0),
+    #     refn=2, parametrization='square'):
+        
+    #     ms = Macrosurface3d(len(vertices), len(edges), len(triangles))
+    #     ms.x[:] = vertices
+    #     ms.e[:] = edges
+    #     ms.t[:] = triangles
+    #     ms.s[:] = triangle_edges
+    #     ms.set_parametrization(parametrization)
+
+    #     return cls.from_macrosurface3d(ms, center=center, refn=refn)
 
     def __add__(self, other):
         surf1 = self._surface
@@ -104,12 +116,28 @@ class Mesh:
         return np.asarray(self._surface.g)
 
     @property
+    def triangle_areas(self):
+        return np.asarray(self._surface.g) / 2
+
+    @property
     def hmin(self):
         return self._surface.hmin
     
     @property
     def hmax(self):
         return self._surface.hmax
+
+    @property
+    def nvertices(self):
+        return len(self.vertices)
+    
+    @property
+    def nedges(self):
+        return len(self.edges)
+    
+    @property
+    def ntriangles(self):
+        return len(self.triangles)
 
     @property
     def surface3d(self):
@@ -145,19 +173,247 @@ class Mesh:
         plt.show()
 
 
-def square(xl, yl, refn=2, type=1, center=(0,0,0)):
+def _from_abstract(cls, array, refn=1, **kwargs):
+    '''
+    Generate mesh from abstract representation of an array.
+    '''
+    # generate geometry in terms of vertices, edges, and triangles with refinement
+    # (much faster to construct mesh from entire geometry once instead of membrane by membrane)
+    verts, edges, tris, tri_edges = [], [], [], []
+    vidx = 0
+    eidx = 0
     
-    if type == 1:
-        f = square_geometry
-    elif type == 2:
-        f = square_geometry2
-    elif type == 3:
-        f = square_geometry3
-    else:
-        raise ValueError('invalid type')
+    for elem in array.elements:
+        for mem in elem.membranes:
+            # future: include type selector to choose between square and circle membranes
+            v, e, t, s = geometry_square(mem.length_x, mem.length_y, refn=refn)
 
-    mesh = Mesh.from_geometry(*f(xl, yl), center=center,
-        refn=refn, parametrization='square')
+            v += np.array(mem.position)
+            e += vidx
+            t += vidx
+            s += eidx
+
+            vidx += len(v)
+            eidx += len(e)
+
+            verts.append(v)
+            edges.append(e)
+            tris.append(t)
+            tri_edges.append(s)
+
+    verts = np.concatenate(verts, axis=0)
+    edges = np.concatenate(edges, axis=0)
+    tris = np.concatenate(tris, axis=0)
+    tri_edges = np.concatenate(tri_edges, axis=0)
+
+    # construct mesh from geometry
+    mesh = cls.from_geometry(verts, edges, tris, tri_edges)
+    
+    # assign mesh vertices to patches, membranes, and elements
+    nverts = len(mesh.vertices)
+    # patch_counter = np.zeros(nverts, dtype=np.int32) # keeps track of current patch idx for each vertex
+    # patch_ids = np.ones((nverts, 4), dtype=np.int32) * np.nan
+    membrane_ids = np.ones(nverts, dtype=np.int32) * np.nan
+    element_ids = np.ones(nverts, dtype=np.int32) * np.nan
+    mesh.on_boundary = np.zeros(nverts, dtype=np.bool)
+    x, y, z = mesh.vertices.T
+
+    for elem in array.elements:
+        for mem in elem.membranes:
+            # for pat in mem.patches:
+                # determine vertices which belong to each patch, using
+                # eps for buffer to account for round-off error
+                # pat_x, pat_y, pat_z = pat.position
+                # length_x, length_y = pat.length_x, pat.length_y
+                # xmin = pat_x - length_x / 2  - 2 * eps
+                # xmax = pat_x + length_x / 2 + 2 * eps
+                # ymin = pat_y - length_y / 2 - 2 * eps
+                # ymax = pat_y + length_y / 2 + 2 * eps
+                # mask_x = np.logical_and(x >= xmin, x <= xmax)
+                # mask_y = np.logical_and(y >= ymin, y <= ymax)
+                # mask = np.logical_and(mask_x, mask_y)
+            
+                # patch_ids[mask, patch_counter[mask]] = pat.id
+                # patch_counter[mask] += 1 # increment patch idx
+                # membrane_ids[mask] = mem.id
+                # element_ids[mask] = elem.id
+
+            # determine vertices which belong to each membrane
+            mem_x, mem_y, mem_z = mem.position
+            length_x, length_y = mem.length_x, mem.length_y
+            xmin = mem_x - length_x / 2  - 2 * eps
+            xmax = mem_x + length_x / 2 + 2 * eps
+            ymin = mem_y - length_y / 2 - 2 * eps
+            ymax = mem_y + length_y / 2 + 2 * eps
+            mask_x = np.logical_and(x >= xmin, x <= xmax)
+            mask_y = np.logical_and(y >= ymin, y <= ymax)
+            mem_mask = np.logical_and(mask_x, mask_y)
+            membrane_ids[mem_mask] = mem.id
+            element_ids[mem_mask] = elem.id
+
+            # check and flag boundary vertices
+            mask1 = np.abs(x[mem_mask] - xmin) <= 2 * eps
+            mask2 = np.abs(x[mem_mask] - xmax) <= 2 * eps
+            mask3 = np.abs(y[mem_mask] - ymin) <= 2 * eps
+            mask4 = np.abs(y[mem_mask] - ymax) <= 2 * eps
+            mesh.on_boundary[mem_mask] = np.any(np.c_[mask1, mask2, mask3, mask4], axis=1)
+
+    # check that no vertices were missed
+    # assert ~np.any(np.isnan(patch_ids[:,0])) # check that each vertex is assigned to at least one patch
+    assert ~np.any(np.isnan(membrane_ids))
+    assert ~np.any(np.isnan(element_ids))
+
+    # mesh.patch_ids = patch_ids
+    mesh.membrane_ids = membrane_ids
+    mesh.element_ids = element_ids
+
+    return mesh
+
+
+@util.memoize
+def geometry_square(xl, yl, refn=1, type=1):
+    '''
+    Creates a square mesh geometry (vertices, triangles etc.) which can be used to
+    construct a mesh object.
+    '''
+    if type == 1:
+        # vertices 
+        v = np.zeros((5, 3), dtype=np.float64)
+        v[0,:] = -xl / 2, -yl / 2, 0.0  # bottom left 
+        v[1,:] = xl / 2, -yl / 2, 0.0  # bottom right
+        v[2,:] = xl / 2, yl / 2, 0.0  # top right 
+        v[3,:] = -xl / 2, yl / 2, 0.0  # top left
+        v[4,:] = 0.0, 0.0, 0.0  # center
+        #  edges 
+        e = np.zeros((8, 2), dtype=np.uint32)
+        e[0,:] = 0, 1  # bottom
+        e[1,:] = 1, 2  # right
+        e[2,:] = 2, 3  # top
+        e[3,:] = 3, 0  # left
+        e[4,:] = 0, 4  # bottom left
+        e[5,:] = 1, 4  # bottom right
+        e[6,:] = 2, 4  # top right
+        e[7,:] = 3, 4  # top left
+        #  triangles and triangle edges 
+        t = np.zeros((4, 3), dtype=np.uint32)
+        s = np.zeros((4, 3), dtype=np.uint32)
+        t[0,:] = 0, 1, 4  # bottom
+        s[0,:] = 5, 4, 0
+        t[1,:] = 1, 2, 4  # right
+        s[1,:] = 6, 5, 1
+        t[2,:] = 2, 3, 4  # top
+        s[2,:] = 7, 6, 2
+        t[3,:] = 3, 0, 4  # left
+        s[3,:] = 4, 7, 3
+
+    elif type == 2:
+        # vertices 
+        v = np.zeros((4, 3), dtype=np.float64)
+        v[0,:] = -xl / 2, -yl / 2, 0.0  # bottom left 
+        v[1,:] = xl / 2, -yl / 2, 0.0  # bottom right
+        v[2,:] = xl / 2, yl / 2, 0.0  # top right 
+        v[3,:] = -xl / 2, yl / 2, 0.0  # top left
+        #  edges 
+        e = np.zeros((5, 2), dtype=np.uint32)
+        e[0,:] = 0, 1  # bottom
+        e[1,:] = 1, 2  # right
+        e[2,:] = 2, 3  # top
+        e[3,:] = 3, 0  # left
+        e[4,:] = 1, 3  # diagonal
+        #  triangles and triangle edges 
+        t = np.zeros((2, 3), dtype=np.uint32)
+        s = np.zeros((2, 3), dtype=np.uint32)
+        t[0,:] = 0, 1, 3  # bottom left
+        s[0,:] = 4, 3, 0
+        t[1,:] = 1, 2, 3  # top right
+        s[1,:] = 2, 4, 1   
+    
+    else:
+        raise ValueError('incorrect type')
+
+    # refine geometry using h2lib macrosurface3d -> surface3d procedure
+    if refn > 1:
+        msurf = Macrosurface3d(len(v), len(e), len(t))
+        msurf.x[:] = v
+        msurf.e[:] = e
+        msurf.t[:] = t
+        msurf.s[:] = s
+        msurf.set_parametrization('square')
+        surf = build_from_macrosurface3d_surface3d(msurf, refn)
+
+        # copy arrays from surf
+        v = np.array(surf.x, copy=True)
+        e = np.array(surf.e, copy=True)
+        t = np.array(surf.t, copy=True)
+        s = np.array(surf.s, copy=True)
+
+    # translate geometry
+    # v += np.array(center)
+    return v, e, t, s
+
+
+@util.memoize
+def geometry_circle(rl, refn=1):
+    '''
+    Creates a circle mesh geometry (vertices, triangles etc.) which can be used to
+    construct a mesh object.
+    '''
+    #  vertices 
+    v = np.zeros((5, 3), dtype=np.float64)
+    v[0,:] = -rl, 0.0, 0.0 # left 
+    v[1,:] = 0.0, -rl, 0.0 # bottom 
+    v[2,:] = rl, 0.0, 0.0  # right 
+    v[3,:] = 0.0, rl, 0.0 # top 
+    v[4,:] = 0.0, 0.0, 0.0 # center
+    #  edges 
+    e = np.zeros((8, 2), dtype=np.uint32)
+    e[0,:] = 0, 1  # bottom left
+    e[1,:] = 1, 2  # bototm right
+    e[2,:] = 2, 3  # top right
+    e[3,:] = 3, 0  # top left
+    e[4,:] = 0, 4  # left horizontal
+    e[5,:] = 1, 4  # bottom vertical
+    e[6,:] = 2, 4  # right horizontal
+    e[7,:] = 3, 4  # right vertical
+    #  triangles and triangle edges 
+    t = np.zeros((4, 3), dtype=np.uint32)
+    s = np.zeros((4, 3), dtype=np.uint32)
+    t[0, :] = 0, 1, 4  # bottom left
+    s[0, :] = 5, 4, 0
+    t[1, :] = 1, 2, 4  # bottom right
+    s[1, :] = 6, 5, 1
+    t[2, :] = 2, 3, 4  # top right
+    s[2, :] = 7, 6, 2
+    t[3, :] = 3, 0, 4  # top left
+    s[3, :] = 4, 7, 3
+
+    # refine geomaskd -> surface3d procedure
+    if refn > 1:
+        msurf = Macrosurface3d(len(v), len(e), len(t))
+        msurf.x[:] = v
+        msurf.e[:] = e
+        msurf.t[:] = t
+        msurf.s[:] = s
+        msurf.set_parametrization('circle')
+        surf = build_from_macrosurface3d_surface3d(msurf, refn)
+
+        # copy arrays from surf
+        v = np.copy(surf.x)
+        e = np.copy(surf.e)
+        t = np.copy(surf.t)
+        s = np.copy(surf.s)
+
+    # translate geometry
+    # v += np.array(center)
+    return v, e, t, s
+
+
+def square(xl, yl, refn=1, type=1, center=(0,0,0)):
+    '''
+    '''
+    v, e, t, s = geometry_square(xl, yl, refn=refn, type=type)
+    v += np.array(center)
+    mesh = Mesh.from_geometry(v, e, t, s)
 
     # check and flag boundary vertices
     mask1 = np.abs(mesh.vertices[:,0] + xl / 2) <= eps
@@ -169,76 +425,22 @@ def square(xl, yl, refn=2, type=1, center=(0,0,0)):
     return mesh
 
 
-def circle(rl, center=(0,0,0), refn=2):
-    return Mesh.from_geometry(*circle_geometry(rl), center=center,
-        refn=refn, parametrization='circle')
+def circle(rl, refn=1, center=(0,0,0)):
+    '''
+    '''
+    v, e, t, s = geometry_circle(rl, refn=refn)
+    v += np.array(center)
+    mesh = Mesh.from_geometry(v, e, t, s)
+
+    x, y, z = (mesh.vertices).T
+    r = np.sqrt((x - center[0])**2 + (y - center[1])**2 + (z - center[2])**2)
+    mask = np.abs(r - rl) <= eps
+    mesh.on_boundary = mask
     
-
-def square_geometry(xl, yl):
-
-    # vertices 
-    v = np.zeros((5, 3), dtype=np.float64)
-    v[0,:] = -xl / 2, -yl / 2, 0.0  # bottom left 
-    v[1,:] = xl / 2, -yl / 2, 0.0  # bottom right
-    v[2,:] = xl / 2, yl / 2, 0.0  # top right 
-    v[3,:] = -xl / 2, yl / 2, 0.0  # top left
-    v[4,:] = 0.0, 0.0, 0.0  # center
-
-    #  edges 
-    e = np.zeros((8,2), dtype=np.uint32)
-    e[0,:] = 0, 1  # bottom
-    e[1,:] = 1, 2  # right
-    e[2,:] = 2, 3  # top
-    e[3,:] = 3, 0  # left
-    e[4,:] = 0, 4  # bottom left
-    e[5,:] = 1, 4  # bottom right
-    e[6,:] = 2, 4  # top right
-    e[7,:] = 3, 4  # top left
-
-    #  triangles and triangle edges 
-    t = np.zeros((4, 3), dtype=np.uint32)
-    s = np.zeros((4, 3), dtype=np.uint32)
-    t[0,:] = 0, 1, 4  # bottom
-    s[0,:] = 5, 4, 0
-    t[1,:] = 1, 2, 4  # right
-    s[1,:] = 6, 5, 1
-    t[2,:] = 2, 3, 4  # top
-    s[2,:] = 7, 6, 2
-    t[3,:] = 3, 0, 4  # left
-    s[3,:] = 4, 7, 3
-
-    return v, e, t, s
+    return mesh
 
 
-def square_geometry2(xl, yl):
-
-    # vertices 
-    v = np.zeros((4, 3), dtype=np.float64)
-    v[0,:] = -xl / 2, -yl / 2, 0.0  # bottom left 
-    v[1,:] = xl / 2, -yl / 2, 0.0  # bottom right
-    v[2,:] = xl / 2, yl / 2, 0.0  # top right 
-    v[3,:] = -xl / 2, yl / 2, 0.0  # top left
-
-    #  edges 
-    e = np.zeros((5, 2), dtype=np.uint32)
-    e[0,:] = 0, 1  # bottom
-    e[1,:] = 1, 2  # right
-    e[2,:] = 2, 3  # top
-    e[3,:] = 3, 0  # left
-    e[4,:] = 1, 3  # diagonal
-
-    #  triangles and triangle edges 
-    t = np.zeros((2, 3), dtype=np.uint32)
-    s = np.zeros((2, 3), dtype=np.uint32)
-    t[0,:] = 0, 1, 3  # bottom left
-    s[0,:] = 4, 3, 0
-    t[1,:] = 1, 2, 3  # top right
-    s[1,:] = 2, 4, 1
-
-    return v, e, t, s
-
-
-def square_geometry3(xl, yl):
+def geometry_square3(xl, yl):
     '''
     Prototype mesh (type 3) for square membranes; suitable for 3 by 3 patches.
     '''
@@ -410,70 +612,36 @@ def triangle_edges_from_triangles(triangles, edges):
     return triangle_edges
     
 
-def circle_geometry(rl):
-    #  vertices 
-    v = np.zeros((5, 3), dtype=np.float64)
-    v[0,:] = -rl, 0.0, 0.0 # left 
-    v[1,:] = 0.0, -rl, 0.0 # bottom 
-    v[2,:] = rl, 0.0, 0.0  # right 
-    v[3,:] = 0.0, rl, 0.0 # top 
-    v[4,:] = 0.0, 0.0, 0.0 # center
 
-    #  edges 
-    e = np.zeros((8,2), dtype=np.uint32)
-    e[0,:] = 0, 1  # bottom left
-    e[1,:] = 1, 2  # bototm right
-    e[2,:] = 2, 3  # top right
-    e[3,:] = 3, 0  # top left
-    e[4,:] = 0, 4  # left horizontal
-    e[5,:] = 1, 4  # bottom vertical
-    e[6,:] = 2, 4  # right horizontal
-    e[7,:] = 3, 4  # right vertical
+# def matrix_array(nx, ny, pitchx, pitchy, shape='square', refn=2, **kwargs):
 
-    #  triangles and triangle edges 
-    t = np.zeros((4, 3), dtype=np.uint32)
-    s = np.zeros((4, 3), dtype=np.uint32)
-    t[0, :] = 0, 1, 4  # bottom left
-    s[0, :] = 5, 4, 0
-    t[1, :] = 1, 2, 4  # bottom right
-    s[1, :] = 6, 5, 1
-    t[2, :] = 2, 3, 4  # top right
-    s[2, :] = 7, 6, 2
-    t[3, :] = 3, 0, 4  # top left
-    s[3, :] = 4, 7, 3
-
-    return v, e, t, s
-
-
-def matrix_array(nx, ny, pitchx, pitchy, shape='square', refn=2, **kwargs):
-
-    lengthx, lengthy = pitchx * (nx - 1), pitchy * (ny - 1)
-    xv = np.linspace(-lengthx / 2, lengthx / 2, nx)
-    yv = np.linspace(-lengthy / 2, lengthy / 2, ny)
-    zv = 0
-    centers = np.stack(np.meshgrid(xv, yv, zv), axis=-1).reshape((-1, 3))
+#     lengthx, lengthy = pitchx * (nx - 1), pitchy * (ny - 1)
+#     xv = np.linspace(-lengthx / 2, lengthx / 2, nx)
+#     yv = np.linspace(-lengthy / 2, lengthy / 2, ny)
+#     zv = 0
+#     centers = np.stack(np.meshgrid(xv, yv, zv), axis=-1).reshape((-1, 3))
     
-    if shape.lower() in ['circle']:
-        f = circle
-        rl = kwargs['radius']
-        args = rl,
+#     if shape.lower() in ['circle']:
+#         f = circle
+#         rl = kwargs['radius']
+#         args = rl,
 
-    elif shape.lower() in ['square']:
-        f = square
-        xl, yl = kwargs['lengthx'], kwargs['lengthy']
-        args = xl, yl
+#     elif shape.lower() in ['square']:
+#         f = square
+#         xl, yl = kwargs['lengthx'], kwargs['lengthy']
+#         args = xl, yl
     
-    else:
-        raise TypeError
+#     else:
+#         raise TypeError
 
-    mesh = Mesh()
-    for c in centers:
-        mesh += f(*args, center=c, refn=refn)
+#     mesh = Mesh()
+#     for c in centers:
+#         mesh += f(*args, center=c, refn=refn)
     
-    return mesh
+#     return mesh
 
 
-def fast_matrix_array(nx, ny, pitchx, pitchy, xl, yl, refn=2, **kwargs):
+def matrix_array(nx, ny, pitchx, pitchy, xl, yl, refn=1, **kwargs):
 
     lengthx, lengthy = pitchx * (nx - 1), pitchy * (ny - 1)
     xv = np.linspace(-lengthx / 2, lengthx / 2, nx)
@@ -486,7 +654,7 @@ def fast_matrix_array(nx, ny, pitchx, pitchy, xl, yl, refn=2, **kwargs):
     eidx = 0
 
     for c in centers:
-        v, e, t, s = square_geometry(xl, yl)
+        v, e, t, s = geometry_square(xl, yl, refn=refn)
 
         v += c
         e += vidx
@@ -506,7 +674,7 @@ def fast_matrix_array(nx, ny, pitchx, pitchy, xl, yl, refn=2, **kwargs):
     tris = np.concatenate(tris, axis=0)
     tri_edges = np.concatenate(tri_edges, axis=0)
 
-    mesh = Mesh.from_geometry(verts, edges, tris, tri_edges, refn=refn)
+    mesh = Mesh.from_geometry(verts, edges, tris, tri_edges)
     mesh.on_boundary = np.zeros(len(mesh.vertices), dtype=np.bool)
 
     # check and flag boundary vertices
@@ -531,99 +699,6 @@ def fast_matrix_array(nx, ny, pitchx, pitchy, xl, yl, refn=2, **kwargs):
 
 def linear_array():
     pass
-
-
-def _from_abstract(cls, array, refn=2, **kwargs):
-    '''
-    Generate mesh from abstract representation of an array.
-    '''
-    # generate geometry in terms of vertices, edges, and triangles
-    verts, edges, tris, tri_edges = [], [], [], []
-    vidx = 0
-    eidx = 0
-    
-    for elem in array.elements:
-        for mem in elem.membranes:
-            v, e, t, s = square_geometry(mem.length_x, mem.length_y)
-
-            v += np.array(mem.position)
-            e += vidx
-            t += vidx
-            s += eidx
-
-            vidx += len(v)
-            eidx += len(e)
-
-            verts.append(v)
-            edges.append(e)
-            tris.append(t)
-            tri_edges.append(s)
-
-    verts = np.concatenate(verts, axis=0)
-    edges = np.concatenate(edges, axis=0)
-    tris = np.concatenate(tris, axis=0)
-    tri_edges = np.concatenate(tri_edges, axis=0)
-
-    # construct mesh from geometry
-    mesh = cls.from_geometry(verts, edges, tris, tri_edges, refn=refn)
-    
-    # assign mesh vertices to patches, membranes, and elements
-    nverts = len(mesh.vertices)
-    patch_counter = np.zeros(nverts, dtype=np.int32) # keeps track of current patch idx for each vertex
-    patch_ids = np.ones((nverts, 4), dtype=np.int32) * np.nan
-    membrane_ids = np.ones(nverts, dtype=np.int32) * np.nan
-    element_ids = np.ones(nverts, dtype=np.int32) * np.nan
-    mesh.on_boundary = np.zeros(nverts, dtype=np.bool)
-    x, y, z = mesh.vertices.T
-
-    for elem in array.elements:
-        for mem in elem.membranes:
-            for pat in mem.patches:
-                # determine vertices which belong to each patch, using
-                # eps for buffer to account for round-off error
-                pat_x, pat_y, pat_z = pat.position
-                length_x, length_y = pat.length_x, pat.length_y
-                xmin = pat_x - length_x / 2  - 2 * eps
-                xmax = pat_x + length_x / 2 + 2 * eps
-                ymin = pat_y - length_y / 2 - 2 * eps
-                ymax = pat_y + length_y / 2 + 2 * eps
-                mask_x = np.logical_and(x >= xmin, x <= xmax)
-                mask_y = np.logical_and(y >= ymin, y <= ymax)
-                mask = np.logical_and(mask_x, mask_y)
-            
-                patch_ids[mask, patch_counter[mask]] = pat.id
-                patch_counter[mask] += 1 # increment patch idx
-                membrane_ids[mask] = mem.id
-                element_ids[mask] = elem.id
-
-            # determine vertices which belong to each membrane
-            mem_x, mem_y, mem_z = mem.position
-            length_x, length_y = mem.length_x, mem.length_y
-            xmin = mem_x - length_x / 2  - 2 * eps
-            xmax = mem_x + length_x / 2 + 2 * eps
-            ymin = mem_y - length_y / 2 - 2 * eps
-            ymax = mem_y + length_y / 2 + 2 * eps
-            mask_x = np.logical_and(x >= xmin, x <= xmax)
-            mask_y = np.logical_and(y >= ymin, y <= ymax)
-            mem_mask = np.logical_and(mask_x, mask_y)
-
-            # check and flag boundary vertices
-            mask1 = np.abs(x[mem_mask] - xmin) <= 2 * eps
-            mask2 = np.abs(x[mem_mask] - xmax) <= 2 * eps
-            mask3 = np.abs(y[mem_mask] - ymin) <= 2 * eps
-            mask4 = np.abs(y[mem_mask] - ymax) <= 2 * eps
-            mesh.on_boundary[mem_mask] = np.any(np.c_[mask1, mask2, mask3, mask4], axis=1)
-
-    # check that no vertices were missed
-    assert ~np.any(np.isnan(patch_ids[:,0])) # check that each vertex is assigned to at least one patch
-    assert ~np.any(np.isnan(membrane_ids))
-    assert ~np.any(np.isnan(element_ids))
-
-    mesh.patch_ids = patch_ids
-    mesh.membrane_ids = membrane_ids
-    mesh.element_ids = element_ids
-
-    return mesh
 
 
 def calc_refn_square(lx, ly, wavelen, step_per_wavelen=5, maxrefn=20):

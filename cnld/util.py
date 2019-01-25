@@ -13,6 +13,7 @@ from contextlib import closing
 from itertools import repeat
 import sqlite3 as sql
 import argparse
+from copy import deepcopy
 from cnld import abstract
 
 
@@ -462,19 +463,24 @@ def memoize(func):
     
     def make_hashable(obj):
         if not ishashable(obj):
+            # use tostring on ndarray since str returns truncated output
             if isinstance(obj, np.ndarray):
                 return obj.tostring()
             return str(obj)
+        # round float arguments to avoid round-off error affecting cache
         if isinstance(obj, float):
             return round(obj, 18)
         return obj
 
     memo = {}
-    def decorator(*args):
-        key = tuple(make_hashable(a) for a in args)
+    def decorator(*args, **kwargs):
+        # key = tuple(make_hashable(a) for a in args)
+        key = (tuple(make_hashable(a) for a in args), 
+            tuple((k, make_hashable(v)) for k, v in sorted(kwargs.items())))
         if key not in memo:
-            memo[key] = func(*args)
-        return memo[key]
+            memo[key] = func(*args, **kwargs)
+        # return a deep copy to avoid issues with mutable return objects
+        return deepcopy(memo[key]) 
     return decorator
 
 

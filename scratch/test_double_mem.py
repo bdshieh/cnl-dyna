@@ -9,20 +9,20 @@ from tqdm import tqdm
 
 from cnld import util, bem, fem, mesh, abstract
 from cnld.arrays import matrix
-# from cnld.compressed_formats2 import MbkSparseMatrix, MbkFullMatrix
+from cnld.compressed_formats2 import MbkSparseMatrix, MbkFullMatrix
 
 
 refn = 5
 c = 1500.
 freqs = np.arange(1e6, 50e6 + 1e6, 1e6)
-f = 1e6
+f = 8e6
 
 matkwargs = {}
 matkwargs['density'] = [2040.,]
 matkwargs['thickness'] = [2e-6,]
 matkwargs['y_modulus'] = [110e9,]
 matkwargs['p_ratio'] = [0.22,]
-matkwargs['nelem'] = [1, 2]
+matkwargs['nelem'] = [2, 2]
 
 hmkwargs = {}
 hmkwargs['basis'] = 'linear'
@@ -53,15 +53,19 @@ k = omg / c
 
 Gfe, _ = fem.mbk_from_abstract(array, f, refn)
 Gfe = np.array(Gfe.todense())
-Z = bem.z_from_abstract(array, k, refn, format='FullFormat', **hmkwargs).data
+# Z = bem.z_from_abstract(array, k, refn, format='FullFormat', **hmkwargs).data
+Z = bem.z_from_abstract(array, k, refn, format='HFormat', **hmkwargs)
 Gbe = -omg**2 * 1000 * 2 * Z
-G = Gfe + Gbe
+# G = Gfe + Gbe
+G = MbkSparseMatrix(Gfe) + Gbe
 
-lu, piv = sp.linalg.lu_factor(G)
-# b = F[:,4]
-b = np.ones(len(array_mesh.vertices))
+# lu, piv = sp.linalg.lu_factor(G)
+lu = G.lu()
+b = F[:,:9].sum(1)
+# b = np.ones(len(array_mesh.vertices))
 b[ob] = 0
-x = sp.linalg.lu_solve((lu, piv), b)
+# x = sp.linalg.lu_solve((lu, piv), b)
+x = lu.lusolve(b)
 # x = np.linalg.solve(G, b)
 x[ob] = 0
 # x[:,i] = _x
@@ -74,7 +78,7 @@ for elem in array.elements:
         cx, cy, cz = mem.position
         lx = mem.length_x
         ly = mem.length_y
-        gridx, gridy = np.mgrid[(cx - lx / 2):(cx + lx / 2):21j, (cy - ly / 2):(cy + ly / 2):21j]
+        gridx, gridy = np.mgrid[(cx - lx / 2):(cx + lx / 2):101j, (cy - ly / 2):(cy + ly / 2):101j]
         xi = fi(gridx, gridy)
 
         fig, ax = plt.subplots(figsize=(7,7))

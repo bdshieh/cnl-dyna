@@ -1,6 +1,5 @@
 ## avector_cy.pyx ##
 
-
 from . cimport _avector
 from . basic cimport *
 import numpy as np
@@ -18,13 +17,12 @@ cdef class AVector:
     
     @classmethod
     def from_array(cls, v):
-
         v = v.squeeze()
         assert v.ndim == 1
 
+        # create avector and copy data
         obj = cls(v.size)
         # obj.v[:] = v.astype(np.complex128, order='C')
-        # wrapper = np.array(obj.v, copy=False)
         np.copyto(obj.v, v.astype(np.complex128))
         return obj
 

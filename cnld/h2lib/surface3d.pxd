@@ -11,12 +11,12 @@ ctypedef _surface3d.pcsurface3d pcsurface3d
 cdef class Surface3d:
     cdef psurface3d ptr
     cdef bint owner
-    cdef public real [:,:] x
-    cdef public uint [:,:] e
-    cdef public uint [:,:] t
-    cdef public uint [:,:] s
-    cdef public real [:,:] n
-    cdef public real [:] g
+    cdef real [:,:] _x
+    cdef uint [:,:] _e
+    cdef uint [:,:] _t
+    cdef uint [:,:] _s
+    cdef real [:,:] _n
+    cdef real [:] _g
     cdef _setup(self, psurface3d ptr, bint owner)
     @staticmethod
     cdef wrap(psurface3d ptr, bint owner=*)

@@ -1,9 +1,9 @@
-## macrosurface3d_cy.pyx ##
-
+## macrosurface3d.pyx ##
 
 from . cimport _macrosurface3d
 from . basic cimport *
 from . surface3d cimport *
+import numpy as np
 
 
 cdef class Macrosurface3d():
@@ -23,10 +23,10 @@ cdef class Macrosurface3d():
     cdef _setup(self, pmacrosurface3d ptr, bint owner):
         self.ptr = ptr
         self.owner = owner
-        self.x = <real [:ptr.vertices,:3]> (<real *> ptr.x)
-        self.e = <uint [:ptr.edges,:2]> (<uint *> ptr.e)
-        self.t = <uint [:ptr.triangles,:3]> (<uint *> ptr.t)
-        self.s = <uint [:ptr.triangles,:3]> (<uint *> ptr.s)
+        self._x = <real [:ptr.vertices,:3]> (<real *> ptr.x)
+        self._e = <uint [:ptr.edges,:2]> (<uint *> ptr.e)
+        self._t = <uint [:ptr.triangles,:3]> (<uint *> ptr.t)
+        self._s = <uint [:ptr.triangles,:3]> (<uint *> ptr.s)
         ptr.phi = cube_parametrization
         ptr.phidata = ptr
     
@@ -43,7 +43,7 @@ cdef class Macrosurface3d():
         elif type.lower() in ['cylinder']:
             self.ptr.phi = cylinder_parametrization
         else:
-            raise TypeError
+            raise ValueError
 
     @property
     def vertices(self):
@@ -56,7 +56,23 @@ cdef class Macrosurface3d():
     @property
     def triangles(self):
         return self.ptr.triangles
-    
+
+    @property
+    def x(self):
+        return np.asarray(self._x)
+
+    @property
+    def e(self):
+        return np.asarray(self._e)
+
+    @property
+    def t(self):
+        return np.asarray(self._t)
+
+    @property
+    def s(self):
+        return np.asarray(self._s)
+
     @staticmethod
     cdef wrap(pmacrosurface3d ptr, bint owner=False):
         cdef Macrosurface3d obj = Macrosurface3d.__new__(Macrosurface3d)
@@ -154,11 +170,9 @@ cdef void cylinder_parametrization(uint i, real xr1, real xr2, void * data, real
 
 
 cpdef build_from_macrosurface3d_surface3d(Macrosurface3d ms, uint refn):
-
     cdef psurface3d surf = _macrosurface3d.build_from_macrosurface3d_surface3d(<pcmacrosurface3d> ms.ptr, refn)
     return Surface3d.wrap(surf, True)
 
 cpdef Macrosurface3d new_sphere_macrosurface3d():
-
     cdef pmacrosurface3d ms = _macrosurface3d.new_sphere_macrosurface3d()
     return Macrosurface3d.wrap(ms, True)
