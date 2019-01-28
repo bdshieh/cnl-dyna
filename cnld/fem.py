@@ -172,6 +172,11 @@ def mem_cm_matrix(mesh, rho, h):
         Mt = np.array([[1, 1 / 2, 1 / 2], [1 / 2, 1, 1 / 2], [1 / 2, 1 / 2, 1]]) / 12
         M[np.ix_(tri, tri)] += Mt * mass * da
 
+    ob = mesh.on_boundary
+    M[ob,:] = 0
+    M[:, ob] = 0
+    M[ob, ob] = 1
+
     return M
 
 
@@ -424,6 +429,48 @@ def mbk_linear_operators(array, f, refn):
     linop_inv = sps.linalg.LinearOperator((nnodes, nnodes), dtype=np.complex128, matvec=inv_mv)
 
     return linop, linop_inv
+
+
+# @util.memoize
+# def mem_collapse_voltage(K, e_mask, h_eff, tol=1e-10, maxdc=100):
+#     '''
+#     '''
+#     for i in range(1, maxdc):
+#         _, is_collapsed = mem_static_disp(K, e_mask, i, h_eff, tol)
+        
+#         if is_collapsed:
+#             return i
+#     raise('Could not find collapse voltage')
+
+
+# @util.memoize
+# def mem_static_disp(K, e_mask, dc_bias, h_eff, tol=1e-10, maxiter=100):
+#     '''
+#     '''
+#     def p_es(u, e_mask):
+#         p = -e_0 * dc_bias ** 2 / (2 * (h_eff + u) ** 2)
+#         p[~e_mask] = 0
+#         return p
+
+#     if sps.issparse(K):
+#         Kinv = linalg.inv(K.todense())
+#     else:
+#         Kinv = linalg.inv(K)
+
+#     nnodes = K.shape[0]
+#     u0 = np.zeros(nnodes)
+
+#     for i in range(maxiter):
+#         u0new = Kinv.dot(p_es(u0, e_mask)).squeeze()
+        
+#         if np.max(np.abs(u0new - u0)) < tol:
+#             is_collapsed = False
+#             return u0new, is_collapsed
+        
+#         u0 = u0new
+
+#     is_collapsed = True
+#     return u0, is_collapsed
 
 
 if __name__ == '__main__':

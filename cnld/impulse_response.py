@@ -4,8 +4,10 @@ import numpy as np
 import os
 import sqlite3 as sql
 import pandas as pd
+from scipy.fftpack import fft, ifft, fftshift, ifftshift, fftfreq
 
-from . import util
+from cnld import util
+
 
 # register adapters for sqlite to convert numpy types
 sql.register_adapter(np.float64, float)
@@ -118,9 +120,62 @@ def read_freq_resp_db(con):
     nfreq = len(freqs)
     assert nsource == ndest
 
-    disp = np.array(table['displacement_real'] + 1j * table['displacement_imag']).reshape((nsource, ndest, nfreq), 
-        order='F')
-    return disp, freqs
+    disp = np.array(table['displacement_real'] + 1j * table['displacement_imag']).reshape((nsource, ndest, nfreq))
+    return freqs, disp
+
+
+def one_to_two(f, s, axis=-1):
+    '''
+    '''
+    s = np.atleast_2d(s)
+
+    nf = s.shape[axis]
+    nfft = (nf - 1) * 2
+
+    newshape = list(s.shape)
+    newshape[axis] = nfft
+
+    s2s = np.zeros(newshape, dtype=np.complex128)
+
+    idx1 = [slice(None)] * s.ndim
+    idx1[axis] = slice(None, nfft // 2)
+    idx2 = [slice(None)] * s.ndim
+    idx2[axis] = slice(None, -1, None)
+    s2s[tuple(idx1)] = s[tuple(idx2)]
+    # s2s[:, :nfft / 2] = s[:, :-1]
+
+    idx1 = [slice(None)] * s.ndim
+    idx1[axis] = slice(nfft // 2, None, None)
+    idx2 = [slice(None)] * s.ndim
+    idx2[axis] = slice(-1, 0, -1)
+    s2s[tuple(idx1)] = np.conj(s[tuple(idx2)])
+    # s2s[:, nfft / 2:] = np.conj(s[:, -1:0:-1])
+
+    df = f[1] - f[0]
+    fs = df * nfft
+    f2s = fftfreq(nfft, 1 / fs)
+
+    return f2s, s2s
+
+
+def two_to_one(f, s):
+    '''
+    '''
+    s = np.atleast_2d(s)
+
+    npos, nf = s.shape
+    nfft = (nf + 1) / 2
+
+    s1s = s[:, :nfft] * 2
+
+    df = f[1] - f[0]
+    fs = df * nfft
+    f1s = fftfreq(nfft, 1 / fs)
+
+    return f1s, s1s
+
+
+
 
 
 if __name__ == '__main__':

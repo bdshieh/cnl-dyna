@@ -42,7 +42,7 @@ def process(job):
     # create boundary element matrix
     hmkwrds = ['aprx', 'basis', 'admis', 'eta', 'eps', 'm', 'clf', 'eps_aca', 'rk', 'q_reg', 'q_sing', 'strict']
     hmargs = { k:getattr(cfg, k) for k in hmkwrds }
-    Z = bem.z_from_abstract(array, k, refn, format='FullFormat', **hmargs)
+    Z = bem.z_from_abstract(array, k, refn, format='HFormat', **hmargs)
     omg = 2 * np.pi * f
     Gbe = -omg**2 * 2 * rho * Z
 
@@ -64,6 +64,7 @@ def process(job):
     for sid in source_patch:
         # get RHS
         b = np.array(F[:, sid].todense())
+        # b[ob] = 0
 
         # solve
         start = timer()

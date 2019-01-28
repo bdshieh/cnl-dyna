@@ -416,10 +416,10 @@ def square(xl, yl, refn=1, type=1, center=(0,0,0)):
     mesh = Mesh.from_geometry(v, e, t, s)
 
     # check and flag boundary vertices
-    mask1 = np.abs(mesh.vertices[:,0] + xl / 2) <= eps
-    mask2 = np.abs(mesh.vertices[:,0] - xl / 2) <= eps
-    mask3 = np.abs(mesh.vertices[:,1] + yl / 2) <= eps
-    mask4 = np.abs(mesh.vertices[:,1] - yl / 2) <= eps
+    mask1 = np.abs(mesh.vertices[:,0] - center[0] + xl / 2) <= eps
+    mask2 = np.abs(mesh.vertices[:,0] - center[0] - xl / 2) <= eps
+    mask3 = np.abs(mesh.vertices[:,1] - center[1] + yl / 2) <= eps
+    mask4 = np.abs(mesh.vertices[:,1] - center[1] - yl / 2) <= eps
     mesh.on_boundary = np.any(np.c_[mask1, mask2, mask3, mask4], axis=1)
 
     return mesh

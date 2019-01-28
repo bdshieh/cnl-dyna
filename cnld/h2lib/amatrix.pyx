@@ -24,7 +24,7 @@ cdef class AMatrix():
         # create amatrix and copy data 
         obj = cls(a.shape[0], a.shape[1])
         # obj._a[:] = a.astype(np.complex128)
-        np.copyto(obj._a, a.astype(np.complex128))
+        np.copyto(obj.a, a.astype(np.complex128))
         return obj
 
     def __dealloc__(self):

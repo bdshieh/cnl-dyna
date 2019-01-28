@@ -2,34 +2,34 @@
 import numpy as np
 from matplotlib import pyplot as plt
 import pandas as pd
-# from cnld.impulse_response import read_freq_resp_db
+from cnld.impulse_response import read_freq_resp_db
 from cnld import util
 
 
-@util.open_db
-def read_freq_resp_db(con):
-    with con:
-        query = '''
-                SELECT source_patch, dest_patch, frequency, displacement_real, displacement_imag FROM displacements
-                ORDER BY source_patch, dest_patch, frequency
-                '''
-        table = pd.read_sql(query, con)
+# @util.open_db
+# def read_freq_resp_db(con):
+#     with con:
+#         query = '''
+#                 SELECT source_patch, dest_patch, frequency, displacement_real, displacement_imag FROM displacements
+#                 ORDER BY source_patch, dest_patch, frequency
+#                 '''
+#         table = pd.read_sql(query, con)
         
-    source_patch = np.unique(table['source_patch'].values)
-    dest_patch = np.unique(table['dest_patch'].values)
-    freqs = np.unique(table['frequency'].values)
-    nsource = len(source_patch)
-    ndest = len(dest_patch)
-    nfreq = len(freqs)
-    assert nsource == ndest
+#     source_patch = np.unique(table['source_patch'].values)
+#     dest_patch = np.unique(table['dest_patch'].values)
+#     freqs = np.unique(table['frequency'].values)
+#     nsource = len(source_patch)
+#     ndest = len(dest_patch)
+#     nfreq = len(freqs)
+#     assert nsource == ndest
 
-    disp = np.array(table['displacement_real'] + 1j * table['displacement_imag']).reshape((nsource, ndest, nfreq))
-    return disp, freqs
+#     disp = np.array(table['displacement_real'] + 1j * table['displacement_imag']).reshape((nsource, ndest, nfreq))
+#     return disp, freqs
 
 
 if __name__ == '__main__':
 
-    db, freqs = read_freq_resp_db('freq-resp.db')
+    freqs, db = read_freq_resp_db('freq_resp.db')
 
     plt.figure()
     plt.imshow(20 * np.log10(np.abs(db[...,15])), cmap='RdBu_r')
