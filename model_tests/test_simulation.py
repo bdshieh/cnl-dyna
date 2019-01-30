@@ -157,7 +157,7 @@ freqs, ginv = impulse_response.read_freq_resp_db('freq_resp.db')
 # ginv[...,0] = 0
 freqs2, ginv2 = one_to_two(freqs, ginv)
 fs = (freqs2[1] - freqs2[0]) * len(freqs2)
-fir = np.real(ifft(np.conj(ginv), axis=-1)) * fs
+fir = np.real(ifft(np.conj(ginv2), axis=-1)) * fs
 # fir = ifftshift(fftshift(fir, axes=-1) * np.hanning(fir.shape[2]), axes=-1)
 fir = fir * np.hanning(fir.shape[2] * 2 + 1)[fir.shape[2]:-1]
 # fir = np.real(ifft(ginv, axis=-1)) * fs
@@ -167,7 +167,7 @@ tstart = 0
 tstop = 10e-6
 hmin = 1 / fs
 t = np.arange(tstart, tstop, hmin)
-vdc = 10 / (1 + np.exp(-25e6 * (t - 0.5e-6)))
+vdc = 10 / (1 + np.exp(-5e6 * (t - 1e-6)))
 # vdc = 20 * np.ones(len(t))
 # vac = -20 * gausspulse(4e6, 1.2, fs, tpr=-80, retquad=True)
 # vac = np.roll(np.pad(vac, ((0, len(vdc) - len(vac))), mode='constant'), 300)
@@ -197,7 +197,7 @@ tax.plot(t, v, '--', color='orange')
 fig.show()
 
 fig, ax = plt.subplots()
-ax.plot(t[:-1], solver.f[4,:-1] / 1e-9)
+ax.plot(t[:-1], solver.f[4,:-1])
 tax = ax.twinx()
 tax.plot(t, v, '--', color='orange')
 # plt.plot(t, solver.x[13,:])
