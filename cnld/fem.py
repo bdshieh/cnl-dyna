@@ -382,7 +382,8 @@ def mbk_from_abstract(array, f, refn):
             B = mem_b_matrix_eig(mesh, M, K, mem.damping_mode_a, mem.damping_mode_b, 
                 mem.damping_ratio_a, mem.damping_ratio_b)
 
-            block = -(omg**2) * M + 1j * omg * B + K
+            # block = -(omg**2) * M + 1j * omg * B + K
+            block = -(omg**2) * M - 1j * omg * B + K
             # block = -(omg**2) * M + K
             block_inv = inv_block(block)
             blocks.append(block)

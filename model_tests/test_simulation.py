@@ -106,9 +106,9 @@ class Solver:
 
         fs = 1 / hmin
 
-        g_eff = 100e-9
+        g_eff = 50e-9
         p_es = pressure_es(v[ti], x[:,ti], g_eff)
-        # f[:,ti] = p_es
+        f[:,ti] = p_es
 
         x_new = convolve_fir(fir, f[:,:(ti + 1)], fs)
         # x_new = matrix_convolve(fir, f[:,:(ti + 1)], fs)[..., -1]
@@ -167,7 +167,7 @@ tstart = 0
 tstop = 10e-6
 hmin = 1 / fs
 t = np.arange(tstart, tstop, hmin)
-vdc = 20 / (1 + np.exp(-15e6 * (t - 0.5e-6)))
+vdc = 10 / (1 + np.exp(-25e6 * (t - 0.5e-6)))
 # vdc = 20 * np.ones(len(t))
 # vac = -20 * gausspulse(4e6, 1.2, fs, tpr=-80, retquad=True)
 # vac = np.roll(np.pad(vac, ((0, len(vdc) - len(vac))), mode='constant'), 300)
@@ -182,7 +182,7 @@ x0 = np.zeros(npatch)
 hmin = 1 / fs
 
 solver = Solver(fir, v, x0, tstart, tstop, hmin)
-solver.f[:,:] = vdc
+# solver.f[:,:] = vdc
 
 for i in tqdm(range(len(v) - 1)):
     solver.step()
