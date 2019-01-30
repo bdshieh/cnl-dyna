@@ -5,7 +5,7 @@ import scipy as sp
 import scipy.signal
 from scipy.constants import epsilon_0 as e_0
 
-from cnld import util
+from cnld import util, fem, mesh
 
 
 
@@ -15,6 +15,43 @@ def pressure_es(v, x, g_eff):
     '''
     return -e_0 / 2 * v**2 / (x + g_eff)**2
     
+
+@util.memoize
+def mem_collapse_voltage(mem, , maxdc=100, atol=1e-10,  maxiter=100):
+    '''
+    '''
+    for i in range(1, maxdc):
+        _, is_collapsed = mem_static_disp(K, e_mask, i, h_eff, tol)
+        
+        if is_collapsed:
+            return i
+    raise('Could not find collapse voltage')
+
+
+@util.memoize
+def mem_static_disp(mem, vdc, refn=7, atol=1e-10, maxiter=100):
+    '''
+    '''
+    mem_mesh = mesh.square(mem.length_x, mem.length_y, refn)
+    K = fem.mem_k_matrix(mem_mesh, mem.y_modulus, m.thickness, m.p_ratio)
+    g_eff = mem.gap + mem.isol / mem.permittivity
+    F = fem.mem_f_vector(mem_mesh, 1)
+
+    nnodes = K.shape[0]
+    x0 = np.zeros(nnodes)
+
+    for i in range(maxiter):
+        x0_new = Kinv.dot(F * pressure_es(vdc, x0, g_eff)).squeeze()
+        
+        if np.max(np.abs(x0_new - x0)) < atol:
+            is_collapsed = False
+            return x0_new, is_collapsed
+        
+        x0 = x0_new
+
+    is_collapsed = True
+    return x0, is_collapsed
+
 
 def convolve_fir(A, b, fs):
     '''
@@ -51,7 +88,7 @@ def gausspulse(fc, fbw, fs, tpr=-100, retquad=False):
 
 
 
-class Solver:
+class FixedStepSolver:
     
     def __init__(self, fir, v, x0, tstart, tstop, hmin):
         
@@ -88,6 +125,10 @@ class Solver:
         x[:,ti + 1] = x_new
 
         self.ti += 1
+    
+
+class VariableStepSolver:
+    pass
         
     
 
