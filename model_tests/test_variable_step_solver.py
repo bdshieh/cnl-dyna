@@ -84,18 +84,21 @@ def one_to_two(f, s, axis=-1):
 
 class Solver:
     
-    def __init__(self, v, v_t, x0, g_eff):
+    def __init__(self, v, v_t, x0, g_eff, delay):
         
         freqs, ginv = impulse_response.read_freq_resp_db('freq_resp.db')
         # win = np.hanning(ginv.shape[2] * 2 + 1)[ginv.shape[2]:-1]
-        win = sp.signal.tukey(ginv.shape[2] * 2 + 1, alpha=0.1)[ginv.shape[2]:-1]
-        ginv = ginv * win
-        freqs2, ginv2 = one_to_two(freqs, ginv)
+        # win = sp.signal.tukey(ginv.shape[2] * 2 + 1, alpha=0.1)[ginv.shape[2]:-1]
+        # ginv = ginv * win
+        freqs2, ginv2 = one_to_two(freqs, np.conj(ginv))
         fs = (freqs2[1] - freqs2[0]) * len(freqs2)
-        fir = np.real(ifft(np.conj(ginv2), axis=-1)) * fs
-        fir = np.roll(fir, 10, axis=-1)
-        win = np.hanning(fir.shape[2] * 2 + 1)[fir.shape[2]:-1]
-        fir = fir * win
+        ginv2_causal = np.real(ginv2) - 1j * np.imag(sp.signal.hilbert(np.real(ginv2), axis=-1))
+        fir = np.real(ifft(ginv2_causal, axis=-1)) * fs
+        # fir = np.real(ifft(np.conj(ginv2), axis=-1)) * fs
+        fir = np.roll(fir, delay, axis=-1)
+        fir[:,:,:delay] = 0
+        # win = np.hanning(fir.shape[2] * 2 + 1)[fir.shape[2]:-1]
+        # fir = fir * win
         fir_t = np.arange(fir.shape[2]) / fs
         # npatch = fir.shape[0]
 
@@ -120,21 +123,57 @@ class Solver:
 
     def step(self):
         
-        g_eff = 50e-9
         p = np.array(self.pressure)
         t = self.time[-1]
         fir = self.fir
         fs = 1  / self.step_min
+        x = self.displacement[-1]
 
         t_new = t + self.step_min
         x_new = convolve_fir(fir, p, fs, offset=1)
         v_new = self.voltage(t_new)
-        p_new = pressure_es(v_new, x_new, g_eff)
+        p_new = pressure_es(v_new, x_new, self.gap_eff)
+
+        x_check = convolve_fir(fir, p, fs, offset=0)
+
+        print(f'x[n] {x[4]}')
+        print(f'x[n+1]: {x_new[4]}')
+        print(f'xc[n]: {x_check[4]}')
 
         self.displacement.append(x_new)
         self.pressure.append(p_new)
         self.time.append(t_new)
-    
+
+    def step_check(self, x_adj=0, append=False):
+        
+        p = np.array(self.pressure).copy()
+        t = self.time[-1]
+        fir = self.fir
+        fs = 1  / self.step_min
+        x = self.displacement[-1]
+
+        t_new = t + self.step_min
+        x_new = convolve_fir(fir, p, fs, offset=1)
+        x_new += x_adj
+        v_new = self.voltage(t_new)
+        p_new = pressure_es(v_new, x_new, self.gap_eff)
+
+        p = np.append(p, np.atleast_2d(p_new), axis=0)
+
+        x_check = convolve_fir(fir, p, fs, offset=0)
+        x_adj = (x_new - x_check)
+        if not append:
+            self.step_check(x_adj, append=True)
+
+        print(f'delta: {np.max(x_adj)}')
+        # print(f'x[n+1]: {x_new[4]}')
+        # print(f'xc[n+1]: {x_check[4]}')
+
+        if append:
+            self.displacement.append(x_new)
+            self.pressure.append(p_new)
+            self.time.append(t_new)
+
     def variable_step(self, n):
 
         p = np.array(self.pressure)
@@ -161,30 +200,32 @@ class Solver:
 
 tstart = 0
 tstop = 10e-6
+g_eff = 100e-9
 v_t = np.arange(0, 10e-6, 5e-9)
-vdc = 10 / (1 + np.exp(-5e6 * (v_t - 1e-6)))
+vdc = 1 / (1 + np.exp(-25e6 * (v_t - 2e-6)))
 # v = np.zeros(len(v_t))
 # vdc = 20 * np.ones(len(t))
-t, vac = gausspulse(5e6, 0.8, 1 / (5e-9))
-vac = np.roll(np.pad(vac, ((0, len(vdc) - len(vac))), mode='constant'), 600)
+# t, vac = gausspulse(5e6, 0.8, 1 / (5e-9))
+# vac = np.roll(np.pad(vac, ((0, len(vdc) - len(vac))), mode='constant'), 600)
 # v = vdc + vac
-# v = 40 * np.sin(2 * np.pi * 1e6 * t)
+vac = np.sin(2 * np.pi * 1e6 * v_t)
 # v = 40 * gausspulse(7e6, 1, fs=fs)[:len(t)]
 # v = 20 * sp.signal.square(2 * np.pi * 1e6 * t)
 # v = np.pad(v, (20, 0), mode='constant')[:-20]
-# v = vdc + 5 * vac
-v = vdc
+# v = 20 * vdc + 5 * vac
+v = 5 * vac
+# v = vdc
 
 x0 = np.zeros(9)
 
-solver1 = Solver(v, v_t, x0, 50e-9)
-solver2 = Solver(v, v_t, x0, 50e-9)
+solver1 = Solver(v, v_t, x0, g_eff, delay=0)
+solver2 = Solver(v, v_t, x0, g_eff, delay=0)
 
 for i in range(600):
-    solver1.variable_step(1)
+    solver1.step()
 
-for i in range(600 // 10):
-    solver2.variable_step(10)
+for i in range(600):
+    solver2.step_check()
 
 
 
@@ -204,35 +245,35 @@ tax.plot(v_t, v, '--', color='orange')
 ax.set_title('Pressure')
 fig.show()
 
-fir = solver1.fir
-freqs = solver1.freqs
-ginv = solver1.ginv
+# fir = solver1.fir
+# freqs = solver1.freqs
+# ginv = solver1.ginv
 # for i in tqdm(range(len(v) - 1)):
 #     solver.step()
 
 
-freqs, ginv = impulse_response.read_freq_resp_db('freq_resp.db')
+# freqs, ginv = impulse_response.read_freq_resp_db('freq_resp.db')
 # win = np.hanning(ginv.shape[2] * 2 + 1)[ginv.shape[2]:-1]
 # win = sp.signal.tukey(ginv.shape[2] * 2 + 1, alpha=0.1)[ginv.shape[2]:-1]
 # ginv = ginv * win
-freqs2, ginv2 = one_to_two(freqs, np.conj(ginv))
-fs = (freqs2[1] - freqs2[0]) * len(freqs2)
+# freqs2, ginv2 = one_to_two(freqs, np.conj(ginv))
+# fs = (freqs2[1] - freqs2[0]) * len(freqs2)
 # fir = np.real(ifft(np.conj(ginv2), axis=-1)) * fs
 
-G = ginv2[4,4,:]
-C = np.real(G) - 1j * np.imag(sp.signal.hilbert(np.real(G)))
-nfft = len(freqs2)
-cfir = np.real(ifft(C)) * fs
-fir = np.real(ifft(G)) * fs
+# G = ginv2[4,4,:]
+# C = np.real(G) - 1j * np.imag(sp.signal.hilbert(np.real(G)))
+# nfft = len(freqs2)
+# cfir = np.real(ifft(C)) * fs
+# fir = np.real(ifft(G)) * fs
 
-plt.figure()
-plt.plot(freqs2[:nfft // 2], np.unwrap(np.angle(C[:nfft // 2])))
-plt.plot(freqs2[:nfft // 2], np.unwrap(np.angle(G[:nfft // 2])))
+# plt.figure()
+# plt.plot(freqs2[:nfft // 2], np.unwrap(np.angle(C[:nfft // 2])))
+# plt.plot(freqs2[:nfft // 2], np.unwrap(np.angle(G[:nfft // 2])))
 
-plt.figure()
-plt.plot(cfir)
-plt.plot(fir)
-plt.show()
+# plt.figure()
+# plt.plot(cfir)
+# plt.plot(fir)
+# plt.show()
 
 
 # fig, ax = plt.subplots()
