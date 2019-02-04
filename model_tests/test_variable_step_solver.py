@@ -10,7 +10,7 @@ from tqdm import tqdm
 from scipy.interpolate import interp1d
 
 # from cnld import simulation, impulse_response
-from cnld import impulse_response
+from cnld import impulse_response, frequency_response
 
 
 def pressure_es(v, x, g_eff):
@@ -86,11 +86,11 @@ class Solver:
     
     def __init__(self, v, v_t, x0, g_eff, delay):
         
-        freqs, ginv = impulse_response.read_freq_resp_db('freq_resp.db')
+        freqs, ginv = frequency_response.read_db('freq_resp.db')
         # win = np.hanning(ginv.shape[2] * 2 + 1)[ginv.shape[2]:-1]
         # win = sp.signal.tukey(ginv.shape[2] * 2 + 1, alpha=0.1)[ginv.shape[2]:-1]
         # ginv = ginv * win
-        freqs2, ginv2 = one_to_two(freqs, np.conj(ginv))
+        freqs2, ginv2 = one_to_two(freqs, ginv)
         fs = (freqs2[1] - freqs2[0]) * len(freqs2)
         ginv2_causal = np.real(ginv2) - 1j * np.imag(sp.signal.hilbert(np.real(ginv2), axis=-1))
         fir = np.real(ifft(ginv2_causal, axis=-1)) * fs

@@ -3,6 +3,7 @@
 import numpy as np
 import sqlite3 as sql
 import pandas as pd
+from scipy.signal import hilbert
 from scipy.fftpack import fft, ifft, fftshift, ifftshift, fftfreq
 
 from cnld import util
@@ -24,7 +25,7 @@ def create_db(con, **kwargs):
 
 @util.open_db
 def update_db(con, **kwargs):
-    '''''''
+    ''''''
     row_keys = ['source_patch', 'dest_patch', 'time', 'displacement']
     row_data = tuple([kwargs[k] for k in row_keys])
 
@@ -82,7 +83,7 @@ def one_to_two(f, s, axis=-1, odd=False):
 
     # determine two-sided signal length
     nf = s.shape[axis]
-    nfft = 2 * nf - 1 if odd else nfft = (nf - 1) * 2
+    nfft = 2 * nf - 1 if odd else (nf - 1) * 2
 
     # create empty spectrum
     newshape = list(s.shape)
@@ -113,7 +114,7 @@ def one_to_two(f, s, axis=-1, odd=False):
 
     # create vector of new frequency bins
     df = f[1] - f[0]
-    fs = df * (nfft // 2)
+    fs = df * nfft
     f2s = fftfreq(nfft, 1 / fs)
 
     return f2s, s2s
@@ -137,7 +138,7 @@ def two_to_one(f, s, axis=-1):
 
     # create vector of new frequency bins
     df = f[1] - f[0]
-    fs = df * nfft
+    fs = df * nfft * 2
     f1s = fftfreq(nfft, 1 / fs)
 
     return f1s, s1s
@@ -148,19 +149,21 @@ def kramers_kronig(s, axis=-1):
     Reconstructs spectrum with phase based on the Kramers-Kronig relations
     for a causal LTI system.
     '''
-    return np.real(s) - 1j * np.imag(sp.signal.hilbert(np.real(s), axis=axis))
+    return np.real(s) - 1j * np.imag(hilbert(np.real(s), axis=axis))
 
 
-def fft_to_fir(f, s, axis=-1)
+def fft_to_fir(f, s, axis=-1):
     '''
     Convert a one-sided FFT to an impulse response representing a causaul LTI system.
     '''
-    f2s, s2s = one_to_two(f, kramers_kronig(s, axis=axis), axis=axis)
+    f2s, s2s = one_to_two(f, s, axis=axis, odd=True)
+    s2s = kramers_kronig(s2s, axis=axis)
 
     df = f[1] - f[0]
+    nfft = len(f2s)
     fs = df * nfft
     t = np.arange(nfft) / fs
-    return t, np.real(ifft(s, axis=axis)) * fs
+    return t, np.real(ifft(s2s, axis=axis)) * fs
 
 
 if __name__ == '__main__':

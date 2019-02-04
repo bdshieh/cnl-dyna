@@ -64,7 +64,8 @@ def process(job):
 
         # solve
         start = timer()
-        x = Glu.lusolve(b)
+        # conjugate so phase is consistent with -iwt convention used by h2lib
+        x = np.conj(Glu.lusolve(b))
         time_solve = timer() - start
         x[ob] = 0
 

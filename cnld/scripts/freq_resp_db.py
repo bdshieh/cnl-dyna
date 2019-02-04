@@ -66,7 +66,8 @@ def process(job):
 
         # solve
         start = timer()
-        x = Glu.lusolve(b)
+        # conjugate so phase is consistent with -iwt convention used by h2lib
+        x = np.conj(Glu.lusolve(b)) 
         time_solve = timer() - start
         x[ob] = 0
 
@@ -84,7 +85,6 @@ def process(job):
         data['displacement_real'] = np.real(x_patch)
         data['displacement_imag'] = np.imag(x_patch)
         data['time_solve'] = repeat(time_solve)
-        data['iterations'] = repeat(0)
 
         with write_lock:
             update_db(file, **data)
@@ -122,7 +122,7 @@ def main(cfg, args):
     if os.path.isfile(file):
         if write_over:  # if file exists, write over
             os.remove(file)  # remove existing file
-            create_db(file, frequencies=freqs, wavenumbers=wavenums)  # create database
+            create_db(file)  # create database
             util.create_progress_table(file, njobs)
 
         else: # continue from current progress
@@ -135,7 +135,7 @@ def main(cfg, args):
             os.makedirs(file_dir)
 
         # create database
-        create_db(file, frequencies=freqs, wavenumbers=wavenums)  # create database
+        create_db(file)  # create database
         util.create_progress_table(file, njobs)
 
     # start multiprocessing pool and run process
@@ -145,7 +145,7 @@ def main(cfg, args):
             abstract.dumps(cfg), file), maxtasksperchild=1)
         jobs = util.create_jobs((freqs, 1), (wavenums, 1), mode='zip', is_complete=is_complete)
         result = pool.imap_unordered(run_process, jobs, chunksize=1)
-        for r in tqdm(result, desc='Calculating', total=njobs, initial=ijob):
+        for r in tqdm(result, desc='Running', total=njobs, initial=ijob):
             pass
     except Exception as e:
         print(e)
