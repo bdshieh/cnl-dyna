@@ -119,6 +119,7 @@ class Solver:
 
         self.step_min = 1 / fs
         self.gap_eff = g_eff
+        self.delta = []
         # self.time_index = 0
 
     def step(self):
@@ -135,16 +136,18 @@ class Solver:
         p_new = pressure_es(v_new, x_new, self.gap_eff)
 
         x_check = convolve_fir(fir, p, fs, offset=0)
-
-        print(f'x[n] {x[4]}')
-        print(f'x[n+1]: {x_new[4]}')
-        print(f'xc[n]: {x_check[4]}')
+        delta = np.max(np.abs(x_new - x_check)) / self.gap_eff #np.max(np.abs(x_check))
+        # print(f'x[n] {x[4]}')
+        # print(f'delta: {delta}')
+        # print(f'x[n+1]: {x_new[4]}')
+        # print(f'xc[n]: {x_check[4]}')
 
         self.displacement.append(x_new)
         self.pressure.append(p_new)
         self.time.append(t_new)
+        self.delta.append(delta)
 
-    def step_check(self, x_adj=0, append=False):
+    def step_check(self, x_new=None, append=False):
         
         p = np.array(self.pressure).copy()
         t = self.time[-1]
@@ -153,19 +156,19 @@ class Solver:
         x = self.displacement[-1]
 
         t_new = t + self.step_min
-        x_new = convolve_fir(fir, p, fs, offset=1)
-        x_new += x_adj
+        if x_new is None:
+            x_new = convolve_fir(fir, p, fs, offset=1)
         v_new = self.voltage(t_new)
         p_new = pressure_es(v_new, x_new, self.gap_eff)
 
         p = np.append(p, np.atleast_2d(p_new), axis=0)
 
         x_check = convolve_fir(fir, p, fs, offset=0)
-        x_adj = (x_new - x_check)
+        delta = np.max(np.abs(x_new - x_check)) / self.gap_eff #np.max(np.abs(x_check))
         if not append:
-            self.step_check(x_adj, append=True)
+            self.step_check(x_new=x_check, append=True)
 
-        print(f'delta: {np.max(x_adj)}')
+        # print(f'delta: {np.max(x_check)}')
         # print(f'x[n+1]: {x_new[4]}')
         # print(f'xc[n+1]: {x_check[4]}')
 
@@ -173,6 +176,7 @@ class Solver:
             self.displacement.append(x_new)
             self.pressure.append(p_new)
             self.time.append(t_new)
+            self.delta.append(delta)
 
     def variable_step(self, n):
 
@@ -213,8 +217,8 @@ vac = np.sin(2 * np.pi * 1e6 * v_t)
 # v = 20 * sp.signal.square(2 * np.pi * 1e6 * t)
 # v = np.pad(v, (20, 0), mode='constant')[:-20]
 # v = 20 * vdc + 5 * vac
-v = 5 * vac
-# v = vdc
+# v = 5 * vac
+v = 30 * vdc
 
 x0 = np.zeros(9)
 
@@ -243,6 +247,11 @@ ax.plot(solver2.time, np.array(solver2.pressure)[:,4] / 1e-9, '.-')
 tax = ax.twinx()
 tax.plot(v_t, v, '--', color='orange')
 ax.set_title('Pressure')
+fig.show()
+
+fig, ax = plt.subplots()
+ax.plot(np.array(solver1.delta), '.-')
+ax.plot(np.array(solver2.delta), '.-')
 fig.show()
 
 # fir = solver1.fir

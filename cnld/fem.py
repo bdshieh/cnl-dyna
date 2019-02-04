@@ -7,7 +7,7 @@ from scipy.integrate import dblquad
 from scipy.constants import epsilon_0
 
 from cnld import util
-from cnld.compressed_formats2 import ZHMatrix, ZFullMatrix, MbkSparseMatrix, MbkFullMatrix
+from cnld.compressed_formats import ZHMatrix, ZFullMatrix, MbkSparseMatrix, MbkFullMatrix
 from . mesh import square, Mesh
 
 

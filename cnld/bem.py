@@ -6,7 +6,7 @@ from matplotlib import pyplot as plt
 from scipy import sparse as sps, linalg
 from scipy.io import loadmat
 
-from . compressed_formats2 import ZHMatrix, ZFullMatrix, MbkSparseMatrix, MbkFullMatrix
+from . compressed_formats import ZHMatrix, ZFullMatrix, MbkSparseMatrix, MbkFullMatrix
 from . mesh import Mesh, square, circle
 from . import util
 

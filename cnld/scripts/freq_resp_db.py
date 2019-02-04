@@ -10,11 +10,9 @@ from scipy.sparse.linalg import lgmres
 from timeit import default_timer as timer
 
 from cnld import abstract, util, bem, fem
-from cnld.compressed_formats2 import MbkSparseMatrix
+from cnld.compressed_formats import MbkSparseMatrix
 from cnld.mesh import Mesh
-from cnld.impulse_response import create_database, update_database
-
-import numpy.linalg
+from cnld.frequency_response import create_db, update_db
 
 
 ''' PROCESS FUNCTIONS '''
@@ -89,7 +87,7 @@ def process(job):
         data['iterations'] = repeat(0)
 
         with write_lock:
-            update_database(file, **data)
+            update_db(file, **data)
     
     with write_lock:
         util.update_progress(file, job_id)
@@ -124,7 +122,7 @@ def main(cfg, args):
     if os.path.isfile(file):
         if write_over:  # if file exists, write over
             os.remove(file)  # remove existing file
-            create_database(file, frequencies=freqs, wavenumbers=wavenums)  # create database
+            create_db(file, frequencies=freqs, wavenumbers=wavenums)  # create database
             util.create_progress_table(file, njobs)
 
         else: # continue from current progress
@@ -137,7 +135,7 @@ def main(cfg, args):
             os.makedirs(file_dir)
 
         # create database
-        create_database(file, frequencies=freqs, wavenumbers=wavenums)  # create database
+        create_db(file, frequencies=freqs, wavenumbers=wavenums)  # create database
         util.create_progress_table(file, njobs)
 
     # start multiprocessing pool and run process

@@ -1,5 +1,5 @@
 ''' 
-Generates patch-to-patch impulse responses (in frequency domain) database for an array of CMUT membranes.
+Generates patch-to-patch impulse responses (in time domain) database for an array of CMUT membranes.
 '''
 import numpy as np
 import multiprocessing
@@ -9,10 +9,9 @@ import os, sys, traceback
 from scipy.sparse.linalg import lgmres
 from timeit import default_timer as timer
 
-from cnld import abstract, util, bem, fem
-from cnld.impulse_response import create_db, update_db
-
-import numpy.linalg
+from cnld import abstract, util, bem, fem, frequency_response, impulse_response
+from cnld.compressed_formats import MbkSparseMatrix
+from cnld.mesh import Mesh
 
 
 ''' PROCESS FUNCTIONS '''
@@ -34,72 +33,57 @@ def process(job):
     array = abstract.load(cfg.array_config)
     refn = cfg.mesh_refn
 
-    # create finite element linear operators
-    Gfe, Gfe_inv = fem.mbk_linear_operators(array, f, refn)
+    # create finite element matrix
+    Gfe, _ = fem.mbk_from_abstract(array, f, refn)
 
-
-    # create boundary element linear operators
+    # create boundary element matrix
     hmkwrds = ['aprx', 'basis', 'admis', 'eta', 'eps', 'm', 'clf', 'eps_aca', 'rk', 'q_reg', 'q_sing', 'strict']
     hmargs = { k:getattr(cfg, k) for k in hmkwrds }
-    Gbe, Gbe_inv = bem.z_linear_operators(array, f, c, refn, rho, **hmargs)
+    Z = bem.z_from_abstract(array, k, refn, format='HFormat', **hmargs)
+    omg = 2 * np.pi * f
+    Gbe = -omg**2 * 2 * rho * Z
 
-    # define total linear system and preconditioner
-    G = Gfe + Gbe
-    P = Gfe_inv
-    # P = Gbe_inv * Gfe_inv
-    # P = Gfe_inv * Gbe_inv
-    # g = np.trace(MBK_inv.todense())
-    # mem_array = array.copy()
-    # mem_array.elements = [array.elements[0],]
-    # Bfe, Bfe_inv = fem.mbk_from_abstract(mem_array, f, refn)
-    # Bfe = Bfe.todense()
-    # Bfe_inv = np.linalg.inv(Bfe)
-    # Bbe = bem.z_from_abstract(mem_array, k, refn=refn, format='FullFormat').data
-    # Bbe_inv = np.linalg.inv(Bbe)
+    # define total linear system and find its LU decomposition
+    G = MbkSparseMatrix(Gfe) + Gbe
+    Glu = G.lu()
 
-    # g = np.trace(Bfe.dot(Bbe_inv)) * len(array.elements)
-    # P = Gbe_inv - (1 / (1 + g)) * Gbe_inv * Gfe * Gbe_inv 
-    # g = np.trace(Bbe.dot(Bfe_inv)) * len(array.elements)
-    # P = Gfe_inv - (1 / (1 + g)) * Gfe_inv * Gbe * Gfe_inv
-
-    # create patch pressure load
+    # create patch pressure loads
     F = fem.f_from_abstract(array, refn)
+    mesh = Mesh.from_abstract(array, refn)
+    ob = mesh.on_boundary
 
     # solve for each source patch
     npatch = abstract.get_patch_count(array)
     source_patch = np.arange(npatch)
     dest_patch = np.arange(npatch)
+    patches = abstract.get_patches_from_array(array)
+
     for sid in source_patch:
         # get RHS
-        b = P.dot(F[:, sid].todense())
+        b = np.array(F[:, sid].todense())
 
         # solve
-        counter = util.Counter()
         start = timer()
-        x, ecode = lgmres(G, b, tol=1e-6, maxiter=40, M=P, callback=counter.increment)
+        x = Glu.lusolve(b)
         time_solve = timer() - start
+        x[ob] = 0
 
         # average displacement over patches
-        x_patch = (F.T).dot(x) # / patch area?
+        area = patches[sid].length_x * patches[sid].length_y
+        x_patch = (F.T).dot(x) / area
 
-        # write results to database
+        # write results to frequency response database
         data = {}
         data['frequency'] = repeat(f)
         data['wavenumber'] = repeat(k)
         data['source_patch'] = repeat(sid)
         data['dest_patch'] = dest_patch
-        # data['source_membrane_id'] = repeat(mesh.membrane_ids[smask][0])
-        # data['dest_membrane_id'] = dest_membrane_ids
-        # data['source_element_id'] = repeat(mesh.element_ids[smask][0])
-        # data['dest_element_id'] = dest_element_ids
         data['displacement_real'] = np.real(x_patch)
         data['displacement_imag'] = np.imag(x_patch)
         data['time_solve'] = repeat(time_solve)
-        data['iterations'] = repeat(counter.count)
 
         with write_lock:
-            update_database(file, **data)
-            # add saving of metrics (solve time, lgmres steps etc.)
+            frequency_response.update_database(file, **data)
     
     with write_lock:
         util.update_progress(file, job_id)
@@ -129,36 +113,57 @@ def main(cfg, args):
     is_complete = None
     njobs = len(freqs)
     ijob = 0
+    file_freqresp = os.path.splitext(file)[0] + '.freqresp' + os.path.splitext(file)[1]
 
     # check for existing file
     if os.path.isfile(file):
         if write_over:  # if file exists, write over
-            os.remove(file)  # remove existing file
-            create_database(file, frequencies=freqs, wavenumbers=wavenums)  # create database
-            util.create_progress_table(file, njobs)
+            # remove existing files
+            os.remove(file)  
+            if os.path.isfile(file_freqresp): os.remove(file_freqresp)
+            # create databases
+            impulse_response.create_db(file)
+            frequency_response.create_db(file_freqresp)
+            util.create_progress_table(file_freqresp, njobs)
 
         else: # continue from current progress
-            is_complete, ijob = util.get_progress(file)
+            is_complete, ijob = util.get_progress(file_freqresp)
             if np.all(is_complete): return
     else:
-        # Make directories if they do not exist
+        # make directories if they do not exist
         file_dir = os.path.dirname(os.path.abspath(file))
         if not os.path.exists(file_dir):
             os.makedirs(file_dir)
 
-        # create database
-        create_database(file, frequencies=freqs, wavenumbers=wavenums)  # create database
-        util.create_progress_table(file, njobs)
+        # create databases
+        impulse_response.create_db(file)
+        frequency_response.create_db(file_freqresp)
+        util.create_progress_table(file_freqresp, njobs)
 
     # start multiprocessing pool and run process
     try:
         write_lock = multiprocessing.Lock()
         pool = multiprocessing.Pool(threads, initializer=init_process, initargs=(write_lock, 
-            abstract.dumps(cfg), file), maxtasksperchild=1)
+            abstract.dumps(cfg), file_freqresp), maxtasksperchild=1)
         jobs = util.create_jobs((freqs, 1), (wavenums, 1), mode='zip', is_complete=is_complete)
         result = pool.imap_unordered(run_process, jobs, chunksize=1)
-        for r in tqdm(result, desc='Calculating', total=njobs, initial=ijob):
+        for r in tqdm(result, desc='Running', total=njobs, initial=ijob):
             pass
+
+        # postprocess and convert frequency response to impulse response
+        freqs, fr = frequency_response.read_db(file_freqresp)
+        t, fir = impulse_response.fft_to_fir(freqs, fr, axis=-1)
+        source_patches, dest_patches, times = np.meshgrid(np.arange(fir.shape[0]), 
+            np.arange(fir.shape[1]), t, indexing='ij')
+
+        impulse_response.create_db(file)
+        data = {}
+        data['source_patch'] = source_patches.ravel()
+        data['dest_patch'] = dest_patches.ravel()
+        data['time'] = times.ravel()
+        data['displacement'] = fir.ravel()
+        impulse_response.update_db(file, **data)
+
     except Exception as e:
         print(e)
     finally:
