@@ -2,49 +2,13 @@
 '''
 import numpy as np
 import scipy as sp
-import scipy.signal
+from matplotlib import pyplot as plt
+from tqdm import tqdm
 from scipy.constants import epsilon_0 as e_0
 from scipy.interpolate import interp1d
 import warnings
 
-from cnld import util, fem, mesh, impulse_response
-
-
-# @util.memoize
-# def mem_collapse_voltage(mem, maxdc=100, atol=1e-10,  maxiter=100):
-#     '''
-#     '''
-#     for i in range(1, maxdc):
-#         _, is_collapsed = mem_static_disp(K, e_mask, i, h_eff, tol)
-        
-#         if is_collapsed:
-#             return i
-#     raise('Could not find collapse voltage')
-
-
-# @util.memoize
-# def mem_static_disp(mem, vdc, refn=7, atol=1e-10, maxiter=100):
-#     '''
-#     '''
-#     mem_mesh = mesh.square(mem.length_x, mem.length_y, refn)
-#     K = fem.mem_k_matrix(mem_mesh, mem.y_modulus, m.thickness, m.p_ratio)
-#     g_eff = mem.gap + mem.isol / mem.permittivity
-#     F = fem.mem_f_vector(mem_mesh, 1)
-
-#     nnodes = K.shape[0]
-#     x0 = np.zeros(nnodes)
-
-#     for i in range(maxiter):
-#         x0_new = Kinv.dot(F * pressure_es(vdc, x0, g_eff)).squeeze()
-        
-#         if np.max(np.abs(x0_new - x0)) < atol:
-#             is_collapsed = False
-#             return x0_new, is_collapsed
-        
-#         x0 = x0_new
-
-#     is_collapsed = True
-#     return x0, is_collapsed
+from cnld import abstract, impulse_response
 
 
 def pressure_es(v, x, g_eff):
@@ -77,27 +41,7 @@ def firconvolve(fir, p, fs, offset):
     return x
 
 
-def gausspulse(fc, fbw, fs, tpr=-100, retquad=False):
-    '''
-    '''
-    cutoff = sp.signal
-        # create other variablespr, bwr=-3)
-    adj_cutoff = np.ce
-        # create other variables
-
-    t = np.arange(-adj
-        # create other variables
-    pulse, quad = sp.s
-        # create other variables=True, bwr=-3)
-    
-    if retquad:
-        return quad
-    
-    return pulse
-
-
 class FixedStepSolver:
-        # create other variables
     
     def __init__(self, fir_t, fir, v_t, v, gaps, gaps_eff, t_start, t_stop, 
         atol=1e-3, maxiter=5):
@@ -107,16 +51,12 @@ class FixedStepSolver:
         self.atol = atol
         self.npatch = fir.shape[0]
 
-        # create voltage lo
-        # create other variables
-        self._voltage = int
-        # create other variablesbounds_error=False)
+        # create voltage look up function
+        self._voltage = interp1d(v_t, v, axis=-1, fill_value=0, bounds_error=False)
 
         # create fir lookup
-        # create other variables
         self._fir = fir
         self._fir_t = fir_t
-        # create other variables
 
         # create gaps and gaps eff lookup
         self._gaps = np.array(gaps)
@@ -232,69 +172,50 @@ class FixedStepSolver:
         self._save_step(tn1, xn1, pn1)
 
     def reset(self):
-        # reset state
-        t_start = self._time[0]
-        self._time = [t_start,]
+
+        self._time = [self._time[0],]
         x0 = np.zeros(self.npatch)
         self._displacement = [x0,]
         p0 = pressure_es(self._voltage(t_start), x0, self._gaps_eff)
         self._pressure = [p0,]
-        # reset other variables
+
+        # create other variables
         self._error = []
         self._iters = []
-
-
-class VariableStepSolver(FixedStepSolver):
-
-    def _blind_stepk(self, k):
-
-        tn = self._time[-1]
-        pn = self.pressure
-        fs = 1 / self.min_step
-
-        tnk = tn + self.min_step * k
-        vnk = self._voltage(tnk)
-        xnk = firconvolve(self._fir, pn, fs, offset=k)
-        xnk = self._check_gaps(xnk)
-        pnk = pressure_es(vnk, xnk, self._gaps_eff)
-
-        return tnk, xnk, pnk
-
-    def _interpolate_states(self, tnk, xnk, pnk):
-
-        
-        pass
-
-
-    def stepk(self, k):
-
-        tn1, xn1, pn1 = self._blind_stepn(k)
-        vn1 = self._voltage(tn1)
-        xr1, err = self._check_accuracy_of_step(xn1, pn1)
-
-        for i in range(self.maxiter):
-
-            if err <= self.atol:
-                break
-
-            xn1 = xr1
-            pn1 = pressure_es(vn1, xn1, self._gaps_eff)
-            xr1, err = self._check_accuracy_of_step(xn1, pn1)
-
-
-        self._error.append(err)
-        self._iters.append(i)
-
-        if i == (self.maxiter):
-            warnings.warn(f'Max iterations reached with error={float(err)}')
-
-        xn1 = xr1
-        self._save_step(tn1, xn1, pn1)
-
-
-
-
-        
     
 
-    
+
+t_start = 0
+t_stop = 10e-6
+v_t = np.arange(0, 10e-6, 5e-9)
+vdc = 1 / (1 + np.exp(-25e6 * (v_t - 2e-6)))
+vac = np.sin(2 * np.pi * 1e6 * v_t)
+v = 22 * vdc
+atol = 1e-10
+array = abstract.load('matrix.json')
+dbfile = 'imp_resp.db'
+
+solver = FixedStepSolver.from_array_and_db(array, dbfile, v_t, v, t_start, t_stop, atol, maxiter=4)
+# solver2 = FixedStepSolver.from_array_and_db(array, dbfile, v_t, v, t_start, t_stop, atol, maxiter=0)
+
+for i in range(600):
+    solver.step()
+    # solver2.step()
+
+
+
+fig, ax = plt.subplots()
+ax.plot(solver.time / 1e-9, np.array(solver.displacement)[:,[0, 1, 4]] / 1e-9, 'o-', fillstyle='none', markersize=2)
+tax = ax.twinx()
+tax.plot(v_t / 1e-9, v, '--', color='orange')
+ax.set_ylabel('Displacement (nm)')
+ax.set_xlabel('Time (ns)')
+tax.set_ylabel('Voltage (V)')
+fig.show()
+
+# fig, ax = plt.subplots()
+# ax.plot(solver.time, np.array(solver.pressure)[:,4] / 1e-9, '.-')
+# tax = ax.twinx()
+# tax.plot(v_t, v, '--', color='orange')
+# ax.set_title('Pressure')
+# fig.show()

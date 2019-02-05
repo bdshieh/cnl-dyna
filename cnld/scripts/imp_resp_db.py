@@ -84,7 +84,7 @@ def process(job):
         data['time_solve'] = repeat(time_solve)
 
         with write_lock:
-            frequency_response.update_database(file, **data)
+            frequency_response.update_db(file, **data)
     
     with write_lock:
         util.update_progress(file, job_id)
@@ -157,7 +157,6 @@ def main(cfg, args):
         source_patches, dest_patches, times = np.meshgrid(np.arange(fir.shape[0]), 
             np.arange(fir.shape[1]), t, indexing='ij')
 
-        impulse_response.create_db(file)
         data = {}
         data['source_patch'] = source_patches.ravel()
         data['dest_patch'] = dest_patches.ravel()

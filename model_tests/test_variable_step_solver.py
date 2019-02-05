@@ -17,9 +17,9 @@ def pressure_es(v, x, g_eff):
     return -e_0 / 2 * v**2 / (x + g_eff)**2
     
 
-def convolve_fir(A, b, fs, offset):
-    nsrc, ndest, nfir = A.shape
-    nsample, _ = b.shape
+def firconvolve(fir, p, fs, offset):
+    nsrc, ndest, nfir = fir.shape
+    nsample, _ = p.shape
 
     x = np.zeros(ndest)
     for j in range(ndest):
@@ -38,48 +38,8 @@ def convolve_fir(A, b, fs, offset):
     return x
 
 
-def gausspulse(fc, fbw, fs, tpr=-100):
-    cutoff = sp.signal.gausspulse('cutoff', fc=fc, bw=fbw, tpr=tpr, bwr=-3)
-    adj_cutoff = np.ceil(cutoff * fs) / fs
-
-    t = np.arange(-adj_cutoff, adj_cutoff + 1 / fs, 1 / fs)
-    pulse, quad = sp.signal.gausspulse(t, fc=fc, bw=fbw, retquad=True, bwr=-3)
-
-    return t, pulse
 
 
-def one_to_two(f, s, axis=-1):
-    '''
-    '''
-    s = np.atleast_2d(s)
-
-    nf = s.shape[axis]
-    nfft = nf * 2 - 1
-
-    newshape = list(s.shape)
-    newshape[axis] = nfft
-
-    s2s = np.zeros(newshape, dtype=np.complex128)
-
-    idx1 = [slice(None)] * s.ndim
-    idx1[axis] = slice(None, nfft // 2 + 1)
-    idx2 = [slice(None)] * s.ndim
-    idx2[axis] = slice(None, None, None)
-    s2s[tuple(idx1)] = s[tuple(idx2)]
-    # s2s[:, :nfft / 2] = s[:, :-1]
-
-    idx1 = [slice(None)] * s.ndim
-    idx1[axis] = slice(nfft // 2 + 1, None, None)
-    idx2 = [slice(None)] * s.ndim
-    idx2[axis] = slice(-1, 0, -1)
-    s2s[tuple(idx1)] = np.conj(s[tuple(idx2)])
-    # s2s[:, nfft / 2:] = np.conj(s[:, -1:0:-1])
-
-    df = f[1] - f[0]
-    fs = df * nfft
-    f2s = fftfreq(nfft, 1 / fs)
-
-    return f2s, s2s
 
 
 class Solver:
@@ -200,6 +160,16 @@ class Solver:
             self.displacement.append(xi(tt))
             self.pressure.append(pi(tt))
             self.time.append(tt)
+
+
+def gausspulse(fc, fbw, fs, tpr=-100):
+    cutoff = sp.signal.gausspulse('cutoff', fc=fc, bw=fbw, tpr=tpr, bwr=-3)
+    adj_cutoff = np.ceil(cutoff * fs) / fs
+
+    t = np.arange(-adj_cutoff, adj_cutoff + 1 / fs, 1 / fs)
+    pulse, quad = sp.signal.gausspulse(t, fc=fc, bw=fbw, retquad=True, bwr=-3)
+
+    return t, pulse
 
 
 tstart = 0
