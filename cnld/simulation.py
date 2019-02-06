@@ -77,27 +77,7 @@ def firconvolve(fir, p, fs, offset):
     return x
 
 
-def gausspulse(fc, fbw, fs, tpr=-100, retquad=False):
-    '''
-    '''
-    cutoff = sp.signal
-        # create other variablespr, bwr=-3)
-    adj_cutoff = np.ce
-        # create other variables
-
-    t = np.arange(-adj
-        # create other variables
-    pulse, quad = sp.s
-        # create other variables=True, bwr=-3)
-    
-    if retquad:
-        return quad
-    
-    return pulse
-
-
 class FixedStepSolver:
-        # create other variables
     
     def __init__(self, fir_t, fir, v_t, v, gaps, gaps_eff, t_start, t_stop, 
         atol=1e-3, maxiter=5):
@@ -107,16 +87,12 @@ class FixedStepSolver:
         self.atol = atol
         self.npatch = fir.shape[0]
 
-        # create voltage lo
-        # create other variables
-        self._voltage = int
-        # create other variablesbounds_error=False)
+        # create voltage look up function
+        self._voltage = interp1d(v_t, v, axis=-1, fill_value=0, bounds_error=False)
 
         # create fir lookup
-        # create other variables
         self._fir = fir
         self._fir_t = fir_t
-        # create other variables
 
         # create gaps and gaps eff lookup
         self._gaps = np.array(gaps)
@@ -177,20 +153,17 @@ class FixedStepSolver:
 
         tn1 = tn + self.min_step
         vn1 = self._voltage(tn1)
-        xn1 = firconvolve(self._fir, pn, fs, offset=1)
-        xn1 = self._check_gaps(xn1)
+        xn1 = self._check_gaps(firconvolve(self._fir, pn, fs, offset=1))
         pn1 = pressure_es(vn1, xn1, self._gaps_eff)
 
         return tn1, xn1, pn1
         
     def _check_accuracy_of_step(self, x, p):
         
-        # xall = self._displacement + x
-        pall = np.array(self._pressure + p)
+        pall = np.array(self._pressure + [p,])
         fs = 1 / self.min_step
 
-        xref = firconvolve(self._fir, pall, fs, offset=0)
-        xref = self._check_gaps(xref)
+        xref = self._check_gaps(firconvolve(self._fir, pall, fs, offset=0))
         err = np.max(np.abs(x - xref))
 
         return xref, err
@@ -213,14 +186,12 @@ class FixedStepSolver:
         xr1, err = self._check_accuracy_of_step(xn1, pn1)
 
         for i in range(self.maxiter):
-
             if err <= self.atol:
                 break
 
             xn1 = xr1
             pn1 = pressure_es(vn1, xn1, self._gaps_eff)
             xr1, err = self._check_accuracy_of_step(xn1, pn1)
-
 
         self._error.append(err)
         self._iters.append(i)
@@ -232,14 +203,15 @@ class FixedStepSolver:
         self._save_step(tn1, xn1, pn1)
 
     def reset(self):
-        # reset state
+        
         t_start = self._time[0]
         self._time = [t_start,]
         x0 = np.zeros(self.npatch)
         self._displacement = [x0,]
         p0 = pressure_es(self._voltage(t_start), x0, self._gaps_eff)
         self._pressure = [p0,]
-        # reset other variables
+
+        # create other variables
         self._error = []
         self._iters = []
 
@@ -254,26 +226,57 @@ class VariableStepSolver(FixedStepSolver):
 
         tnk = tn + self.min_step * k
         vnk = self._voltage(tnk)
-        xnk = firconvolve(self._fir, pn, fs, offset=k)
-        xnk = self._check_gaps(xnk)
+        xnk = self._check_gaps(firconvolve(self._fir, pn, fs, offset=k))
         pnk = pressure_es(vnk, xnk, self._gaps_eff)
 
         return tnk, xnk, pnk
 
-    def _interpolate_states(self, tnk, xnk, pnk):
+    def _interpolate_states(self, k, tnk, xnk, pnk):
 
+        tn = self._time[-1]
+        xn = self._displacement[-1]
+        if len(self._time) < 2:
+            tn_1 = tn - self.min_step
+            xn_1 = xn
+        else:
+            tn_1 = self._time[-2]
+            xn_1 = self._displacement[-2]
         
-        pass
+        fxi = interp1d([tn_1, tn, tnk], [xn_1, xn, xnk], axis=0, kind='cubic')
+        
+        t = []
+        x = []
+        p = []
+        for i in range(k):
+            tt = tn + self.min_step * (i + 1)
 
+            xt = self._check_gaps(fxi(tt))
+            vt = self._voltage(tt)
+            pt = pressure_es(vt, xt, self._gaps_eff)
+
+            t.append(tt)
+            x.append(xt)
+            p.append(pt)
+            
+        return t, x, p
+
+    def _check_accuracy_of_step(self, x, p):
+        
+        pall = np.array(self._pressure + p)
+        fs = 1 / self.min_step
+
+        xref = self._check_gaps(firconvolve(self._fir, pall, fs, offset=0))
+        err = np.max(np.abs(x - xref))
+
+        return xref, err
 
     def stepk(self, k):
 
-        tn1, xn1, pn1 = self._blind_stepn(k)
-        vn1 = self._voltage(tn1)
-        xr1, err = self._check_accuracy_of_step(xn1, pn1)
+        tnk, xnk, pnk = self._blind_stepk(k)
+        vnk = self._voltage(tnk)
+        xr1, err = self._check_accuracy_of_step(xnk, pnk)
 
         for i in range(self.maxiter):
-
             if err <= self.atol:
                 break
 

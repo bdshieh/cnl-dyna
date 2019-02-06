@@ -125,8 +125,7 @@ class FixedStepSolver:
         
     def _check_accuracy_of_step(self, x, p):
         
-        # xall = self._displacement + x
-        pall = np.array(self._pressure + p)
+        pall = np.array(self._pressure + [p,])
         fs = 1 / self.min_step
 
         xref = firconvolve(self._fir, pall, fs, offset=0)
@@ -202,7 +201,10 @@ for i in range(600):
     solver.step()
     # solver2.step()
 
+from scipy.signal import fftconvolve
 
+pr = (solver.pressure).T[:,None,:]
+xr = np.sum(fftconvolve(solver._fir, pr, axes=-1) * solver.min_step, axis=0)
 
 fig, ax = plt.subplots()
 ax.plot(solver.time / 1e-9, np.array(solver.displacement)[:,[0, 1, 4]] / 1e-9, 'o-', fillstyle='none', markersize=2)
