@@ -262,7 +262,7 @@ class VariableStepSolver(FixedStepSolver):
 
     def _check_accuracy_of_step(self, x, p):
         
-        pall = np.array(self._pressure + p)
+        pall = np.array(self._pressure + [p,])
         fs = 1 / self.min_step
 
         xref = self._check_gaps(firconvolve(self._fir, pall, fs, offset=0))
@@ -270,20 +270,27 @@ class VariableStepSolver(FixedStepSolver):
 
         return xref, err
 
+    def _save_steps(self, ts, xs, ps):
+
+        self._time += tss
+        self._displacement += x
+        self._pressure.append(p) += ps
+
     def stepk(self, k):
 
         tnk, xnk, pnk = self._blind_stepk(k)
         vnk = self._voltage(tnk)
-        xr1, err = self._check_accuracy_of_step(xnk, pnk)
+        ts, xs, ps = self._interpolate_states(k, tnk, xnk, pnk)
+        xrk, err = self._check_accuracy_of_step(xs, ps)
 
         for i in range(self.maxiter):
             if err <= self.atol:
                 break
 
-            xn1 = xr1
-            pn1 = pressure_es(vn1, xn1, self._gaps_eff)
-            xr1, err = self._check_accuracy_of_step(xn1, pn1)
-
+            xnk = xrk
+            pnk = pressure_es(vnk, xnk, self._gaps_eff)
+            ts, xs, ps = self._interpolate_states(k, tnk, xnk, pnk)
+            xrk, err = self._check_accuracy_of_step(xs, ps)
 
         self._error.append(err)
         self._iters.append(i)
@@ -292,7 +299,7 @@ class VariableStepSolver(FixedStepSolver):
             warnings.warn(f'Max iterations reached with error={float(err)}')
 
         xn1 = xr1
-        self._save_step(tn1, xn1, pn1)
+        self._save_steps(ts, xs, ps)
 
 
 
