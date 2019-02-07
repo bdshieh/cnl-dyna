@@ -79,8 +79,7 @@ def firconvolve(fir, p, fs, offset):
 
 class FixedStepSolver:
     
-    def __init__(self, fir_t, fir, v_t, v, gaps, gaps_eff, t_start, t_stop, 
-        atol=1e-3, maxiter=5):
+    def __init__(self, fir_t, fir, v_t, v, gaps, gaps_eff, t_start, t_stop, atol=1e-10, maxiter=5):
         # define minimum step size
         self.min_step = fir_t[1] - fir_t[0]
         self.maxiter = maxiter
@@ -108,9 +107,10 @@ class FixedStepSolver:
         # create other variables
         self._error = []
         self._iters = []
+        self._t_stop = t_stop
         
     @classmethod
-    def from_array_and_db(cls, array, dbfile, v_t, v, t_start, t_stop, atol=1e-3, maxiter=5):
+    def from_array_and_db(cls, array, dbfile, v_t, v, t_start, t_stop, atol=1e-10, maxiter=5):
         # read fir database
         fir_t, fir = impulse_response.read_db(dbfile)
 
@@ -185,22 +185,30 @@ class FixedStepSolver:
         vn1 = self._voltage(tn1)
         xr1, err = self._check_accuracy_of_step(xn1, pn1)
 
-        for i in range(self.maxiter):
+        i = 1
+        for j in range(self.maxiter - 1):
             if err <= self.atol:
                 break
 
             xn1 = xr1
             pn1 = pressure_es(vn1, xn1, self._gaps_eff)
             xr1, err = self._check_accuracy_of_step(xn1, pn1)
+            i += 1
 
         self._error.append(err)
         self._iters.append(i)
 
-        if i == (self.maxiter):
-            warnings.warn(f'Max iterations reached with error={float(err)}')
-
         xn1 = xr1
+        pn1 = pressure_es(vn1, xn1, self._gaps_eff)
         self._save_step(tn1, xn1, pn1)
+
+    def solve(self):
+
+        t_stop = self._t_stop
+        while True:
+            self.step()
+            if self.time[-1] >= t_stop:
+                break
 
     def reset(self):
         
@@ -299,6 +307,76 @@ class VariableStepSolver(FixedStepSolver):
             warnings.warn(f'Max iterations reached with error={float(err)}')
 
         self._save_steps(ts, xs, ps)
+
+
+def gaussian_pulse(fc, fbw, fs, td=0, tpr=-60, antisym=True):
+    '''
+    Gaussian pulse.
+    '''
+    cutoff = scipy.signal.gausspulse('cutoff', fc=fc, bw=fbw, tpr=tpr, bwr=-3)
+    adj_cutoff = np.ceil(cutoff * fs) / fs
+
+    t = np.arange(-adj_cutoff, adj_cutoff + 1 / fs / 2, 1 / fs)
+    pulse, quad = sp.signal.gausspulse(t, fc=fc, bw=fbw, retquad=True, bwr=-3)
+
+    t += td
+    if antisym:
+        return t, quad / np.max(quad)
+    else:
+        return t, pulse / np.max(pulse)
+
+
+def logistic_ramp(tr, dt, td=0, tstop=None, tpr=-60):
+    '''
+    DC ramp defined by rise time using the logistic function.
+    '''
+    k = 2 * np.log(10**(-tpr / 20)) / tr
+    cutoff = np.ceil(tr / 2 / dt) * dt
+    if tstop is None:
+        t = np.arange(-cutoff, cutoff + dt / 2, dt)
+    else:
+        t = np.arange(-cutoff, tstop - td + dt / 2, dt)
+
+    v = 1 / (1 + np.exp(-k * t))
+    t += td
+    return t, v
+
+
+def winsin(f, ncycle, dt, td=0):
+    '''
+    Windowed sine.
+    '''
+    cutoff = round(ncycle * 1 / f / 2 / dt) * dt
+    t = np.arange(-cutoff, cutoff + dt / 2, dt)
+
+    v = np.sin(2 * np.pi * f * t)
+    v[0] = 0
+    v[-1] = 0
+    t += td
+    return t, v
+
+
+def sigadd(*args):
+    '''
+    Add multiple time signals together, zero-padding when necessary.
+    '''
+    t0 = [t[0] for t, v in args]
+    tmin = min(t0)
+
+    t = args[0][0]
+    dt = t[1] - t[0]
+
+    frontpad = [int(round((_t0 - tmin) / dt)) for _t0 in t0]
+    maxlen = max([fpad + len(v) for fpad, (_, v) in zip(frontpad, args)])
+    backpad = [maxlen - (fpad + len(v)) for fpad, (_, v) in zip(frontpad, args)]
+
+    tnew = np.arange(0, maxlen) * dt + tmin
+    vnew = np.zeros(len(tnew))
+    for fpad, bpad, (t, v) in zip(frontpad, backpad, args):
+        vnew += np.pad(v, ((fpad, bpad)), mode='edge')
+    
+    return tnew, vnew
+
 
 
 

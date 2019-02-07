@@ -71,6 +71,7 @@ class FixedStepSolver:
         # create other variables
         self._error = []
         self._iters = []
+        self._t_stop = t_stop
         
     @classmethod
     def from_array_and_db(cls, array, dbfile, v_t, v, t_start, t_stop, atol=1e-10, maxiter=5):
@@ -150,23 +151,29 @@ class FixedStepSolver:
         vn1 = self._voltage(tn1)
         xr1, err = self._check_accuracy_of_step(xn1, pn1)
 
-        for i in range(self.maxiter):
+        i = 1
+        for j in range(self.maxiter - 1):
             if err <= self.atol:
                 break
 
             xn1 = xr1
             pn1 = pressure_es(vn1, xn1, self._gaps_eff)
             xr1, err = self._check_accuracy_of_step(xn1, pn1)
-
+            i += 1
 
         self._error.append(err)
         self._iters.append(i)
 
-        if i == (self.maxiter):
-            warnings.warn(f'Max iterations reached with error={float(err)}')
-
         xn1 = xr1
         self._save_step(tn1, xn1, pn1)
+
+    def solve(self):
+
+        t_stop = self._t_stop
+        while True:
+            self.step()
+            if self.time[-1] >= t_stop:
+                break
 
     def reset(self):
 
@@ -180,8 +187,6 @@ class FixedStepSolver:
         self._error = []
         self._iters = []
     
-
-
 t_start = 0
 t_stop = 10e-6
 v_t = np.arange(0, 10e-6, 5e-9)
