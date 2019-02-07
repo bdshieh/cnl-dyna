@@ -43,8 +43,7 @@ def firconvolve(fir, p, fs, offset):
 
 class FixedStepSolver:
     
-    def __init__(self, fir_t, fir, v_t, v, gaps, gaps_eff, t_start, t_stop, 
-        atol=1e-3, maxiter=5):
+    def __init__(self, fir_t, fir, v_t, v, gaps, gaps_eff, t_start, t_stop, atol=1e-10, maxiter=5):
         # define minimum step size
         self.min_step = fir_t[1] - fir_t[0]
         self.maxiter = maxiter
@@ -74,7 +73,7 @@ class FixedStepSolver:
         self._iters = []
         
     @classmethod
-    def from_array_and_db(cls, array, dbfile, v_t, v, t_start, t_stop, atol=1e-3, maxiter=5):
+    def from_array_and_db(cls, array, dbfile, v_t, v, t_start, t_stop, atol=1e-10, maxiter=5):
         # read fir database
         fir_t, fir = impulse_response.read_db(dbfile)
 
@@ -152,7 +151,6 @@ class FixedStepSolver:
         xr1, err = self._check_accuracy_of_step(xn1, pn1)
 
         for i in range(self.maxiter):
-
             if err <= self.atol:
                 break
 

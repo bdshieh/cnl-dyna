@@ -7,7 +7,7 @@ from scipy.constants import epsilon_0 as e_0
 from scipy.interpolate import interp1d
 import warnings
 
-from cnld import util, fem, mesh, impulse_response
+from cnld import impulse_response
 
 
 # @util.memoize
@@ -272,9 +272,9 @@ class VariableStepSolver(FixedStepSolver):
 
     def _save_steps(self, ts, xs, ps):
 
-        self._time += tss
-        self._displacement += x
-        self._pressure.append(p) += ps
+        self._time += ts
+        self._displacement += xs
+        self._pressure += ps
 
     def stepk(self, k):
 
@@ -298,7 +298,6 @@ class VariableStepSolver(FixedStepSolver):
         if i == (self.maxiter):
             warnings.warn(f'Max iterations reached with error={float(err)}')
 
-        xn1 = xr1
         self._save_steps(ts, xs, ps)
 
 
