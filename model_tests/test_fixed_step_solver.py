@@ -224,3 +224,13 @@ fig.show()
 # tax.plot(v_t, v, '--', color='orange')
 # ax.set_title('Pressure')
 # fig.show()
+
+fir = solver._fir
+fir_t = solver._fir_t
+
+fig, ax = plt.subplots(figsize=(9,5))
+ax.plot(fir_t / 1e-6, fir[4,4,:] / 1e-9)
+ax.set_ylabel('Displacement (nm)')
+ax.set_xlabel(r'Time ($\mu s$)')
+plt.tight_layout()
+fig.show()
