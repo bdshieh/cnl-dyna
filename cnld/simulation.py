@@ -342,6 +342,28 @@ def logistic_ramp(tr, dt, td=0, tstop=None, tpr=-60):
     return t, v
 
 
+def linear_ramp(tr, dt, td=0, tstop=None):
+    '''
+    DC linear ramp.
+    '''
+    def f(t):
+        if t > tr:
+            return 1
+        else:
+            return 1 / tr * t
+    fv = np.vectorize(f)
+
+    cutoff = np.ceil(tr / dt) * dt
+    if tstop is None:
+        t = np.arange(0, cutoff, dt)
+    else:
+        t = np.arange(0, tstop - td + dt / 2, dt)
+
+    v = fv(t)
+    t += td
+    return t, v
+
+
 def winsin(f, ncycle, dt, td=0):
     '''
     Windowed sine.
