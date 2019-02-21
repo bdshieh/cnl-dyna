@@ -5,13 +5,15 @@ from matplotlib import pyplot as plt
 from scipy.interpolate import Rbf
 
 from cnld.h2lib import *
-from cnld import util
+from cnld import abstract, util
 
 
 eps = np.finfo(np.float64).eps
 
 class Mesh:
-    
+    '''
+    2D triangular mesh class using h2lib datastructures.
+    '''
     _surface = None
 
     def __init__(self):
@@ -186,7 +188,12 @@ def _from_abstract(cls, array, refn=1, **kwargs):
     for elem in array.elements:
         for mem in elem.membranes:
             # future: include type selector to choose between square and circle membranes
-            v, e, t, s = geometry_square(mem.length_x, mem.length_y, refn=refn)
+            if isinstance(mem, abstract.SquareCmutMembrane):
+                v, e, t, s = geometry_square(mem.length_x, mem.length_y, refn=refn)
+            elif isinstance(mem, abstract.CircularCmutMembrane):
+                v, e, t, s = geometry_circle(mem.radius, refn=refn)
+            else:
+                raise TypeError
 
             v += np.array(mem.position)
             e += vidx
@@ -238,25 +245,42 @@ def _from_abstract(cls, array, refn=1, **kwargs):
                 # membrane_ids[mask] = mem.id
                 # element_ids[mask] = elem.id
 
-            # determine vertices which belong to each membrane
-            mem_x, mem_y, mem_z = mem.position
-            length_x, length_y = mem.length_x, mem.length_y
-            xmin = mem_x - length_x / 2  - 2 * eps
-            xmax = mem_x + length_x / 2 + 2 * eps
-            ymin = mem_y - length_y / 2 - 2 * eps
-            ymax = mem_y + length_y / 2 + 2 * eps
-            mask_x = np.logical_and(x >= xmin, x <= xmax)
-            mask_y = np.logical_and(y >= ymin, y <= ymax)
-            mem_mask = np.logical_and(mask_x, mask_y)
-            membrane_ids[mem_mask] = mem.id
-            element_ids[mem_mask] = elem.id
+            if isinstance(mem, abstract.SquareCmutMembrane):
+                # determine vertices which belong to each membrane
+                mem_x, mem_y, mem_z = mem.position
+                length_x, length_y = mem.length_x, mem.length_y
+                xmin = mem_x - length_x / 2  - 2 * eps
+                xmax = mem_x + length_x / 2 + 2 * eps
+                ymin = mem_y - length_y / 2 - 2 * eps
+                ymax = mem_y + length_y / 2 + 2 * eps
+                mask_x = np.logical_and(x >= xmin, x <= xmax)
+                mask_y = np.logical_and(y >= ymin, y <= ymax)
+                mem_mask = np.logical_and(mask_x, mask_y)
+                membrane_ids[mem_mask] = mem.id
+                element_ids[mem_mask] = elem.id
 
-            # check and flag boundary vertices
-            mask1 = np.abs(x[mem_mask] - xmin) <= 2 * eps
-            mask2 = np.abs(x[mem_mask] - xmax) <= 2 * eps
-            mask3 = np.abs(y[mem_mask] - ymin) <= 2 * eps
-            mask4 = np.abs(y[mem_mask] - ymax) <= 2 * eps
-            mesh.on_boundary[mem_mask] = np.any(np.c_[mask1, mask2, mask3, mask4], axis=1)
+                # check and flag boundary vertices
+                mask1 = np.abs(x[mem_mask] - xmin) <= 2 * eps
+                mask2 = np.abs(x[mem_mask] - xmax) <= 2 * eps
+                mask3 = np.abs(y[mem_mask] - ymin) <= 2 * eps
+                mask4 = np.abs(y[mem_mask] - ymax) <= 2 * eps
+                mesh.on_boundary[mem_mask] = np.any(np.c_[mask1, mask2, mask3, mask4], axis=1)
+            elif isinstance(mem, abstract.CircularCmutMembrane):
+                # determine vertices which belong to each membrane
+                mem_x, mem_y, mem_z = mem.position
+                radius = mem.radius
+                rmax = radius + 2 * eps
+                r = np.sqrt((x - mem_x)**2 + (y - mem_y)**2)
+                mem_mask = r <= rmax
+                membrane_ids[mem_mask] = mem.id
+                element_ids[mem_mask] = elem.id
+
+                # check and flag boundary vertices
+                mask1 = r[mem_mask] <= radius + 2 * eps
+                mask2 = r[mem_mask] >= radius - 2 * eps
+                mesh.on_boundary[mem_mask] = np.logical_and(mask1, mask2)
+            else:
+                raise TypeError
 
     # check that no vertices were missed
     # assert ~np.any(np.isnan(patch_ids[:,0])) # check that each vertex is assigned to at least one patch
@@ -387,7 +411,7 @@ def geometry_circle(rl, refn=1):
     t[3, :] = 3, 0, 4  # top left
     s[3, :] = 4, 7, 3
 
-    # refine geomaskd -> surface3d procedure
+    # refine geometry using h2lib macrosurface3d -> surface3d procedure
     if refn > 1:
         msurf = Macrosurface3d(len(v), len(e), len(t))
         msurf.x[:] = v
@@ -398,10 +422,10 @@ def geometry_circle(rl, refn=1):
         surf = build_from_macrosurface3d_surface3d(msurf, refn)
 
         # copy arrays from surf
-        v = np.copy(surf.x)
-        e = np.copy(surf.e)
-        t = np.copy(surf.t)
-        s = np.copy(surf.s)
+        v = np.array(surf.x, copy=True)
+        e = np.array(surf.e, copy=True)
+        t = np.array(surf.t, copy=True)
+        s = np.array(surf.s, copy=True)
 
     # translate geometry
     # v += np.array(center)
