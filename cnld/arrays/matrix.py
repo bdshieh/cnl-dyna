@@ -65,7 +65,7 @@ def main(cfg, args):
         # patchpitch_r = radius / npatch_r
         # patchpitch_theta = 2 * np.pi / npatch_theta
         patch_r = np.linspace(0, radius, npatch_r + 1)
-        patch_theta = np.linspace(0, 2 * np.pi, npatch_theta + 1)
+        patch_theta = np.linspace(-np.pi, np.pi, npatch_theta + 1)
         patch_rmin = [patch_r[i] for i in range(npatch_r) for j in range(npatch_theta)]
         patch_rmax = [patch_r[i + 1] for i in range(npatch_r) for j in range(npatch_theta)]
         patch_thetamin = [patch_theta[j] for i in range(npatch_r) for j in range(npatch_theta)]
@@ -100,22 +100,31 @@ def main(cfg, args):
         for mpos in mem_pos:
             # construct patch list
             patches = []
-            for i, ppos in enumerate(patch_pos):
-                # construct patch
-                p = Patch()
-                p.id = patch_counter
-                p.position = (epos + mpos + ppos).tolist()
-                if square:
+            if square:
+                for i, ppos in enumerate(patch_pos):
+                    # construct patch
+                    p = Patch()
+                    p.id = patch_counter
+                    p.position = (epos + mpos + ppos).tolist()
                     p.length_x = patchpitch_x
                     p.length_y = patchpitch_y
-                else:
+                    p.area = p.length_x * p.length_y
+
+                    patches.append(p)
+                    patch_counter += 1
+            else:
+                for i in range(npatch_r * npatch_theta):
+                    p = Patch()
+                    p.id = patch_counter
+                    p.position = (epos + mpos + patch_pos).tolist()
                     p.radius_min = patch_rmin[i]
                     p.radius_max = patch_rmax[i]
                     p.theta_min = patch_thetamin[i]
                     p.theta_max = patch_thetamax[i]
+                    p.area = (p.radius_max**2 - p.radius_min**2) * (p.theta_max - p.theta_min) / 2
 
-                patches.append(p)
-                patch_counter += 1
+                    patches.append(p)
+                    patch_counter += 1
 
             # construct membrane
             if square:

@@ -210,6 +210,7 @@ _Patch['radius_min'] = None
 _Patch['radius_max'] = None
 _Patch['theta_min'] = None
 _Patch['theta_max'] = None
+_Patch['area'] = None
 Patch = register_type('Patch', _Patch)
 
 _Element = OrderedDict()

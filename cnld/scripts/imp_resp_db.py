@@ -70,8 +70,8 @@ def process(job):
         x[ob] = 0
 
         # average displacement over patches
-        area = patches[sid].length_x * patches[sid].length_y
-        x_patch = (F.T).dot(x) / area
+        # area = patches[sid].length_x * patches[sid].length_y
+        x_patch = (F.T).dot(x) / patches[sid].area
 
         # write results to frequency response database
         data = {}
