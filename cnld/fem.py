@@ -10,6 +10,9 @@ from cnld import util, abstract, mesh
 from cnld.compressed_formats import ZHMatrix, ZFullMatrix, MbkSparseMatrix, MbkFullMatrix
 
 
+eps = np.finfo(np.float64).eps
+
+
 @util.memoize
 def mem_k_matrix(amesh, E, h, eta):
     '''
@@ -346,12 +349,16 @@ def circular_patch_f_vector(nodes, triangles, on_boundary, mr, px, py, prmin, pr
     '''
     def load_func(x, y):
         r = np.sqrt((x - px)**2 + (y - py)**2)
-        th = np.arctan2((y - py), (x - px))
-        if r >= prmin:
-            if r <= prmax:
-                if th >= pthmin:
-                    if th <= pthmax:
+        th1 = np.arctan2((y - py) - eps, (x - px))
+        th2 = np.arctan2((y - py) + eps, (x - px))
+        if r - prmin >= -eps:
+            if r - prmax <= eps:
+                if th1 - pthmin >= 0 or th2 - pthmin >= 0:
+                    if th1 - pthmax <= 0 or th2 - pthmax <= 0:
                         return 1
+                # if th1 - pthmin >= -eps or th - pthmin >= 2 * np.pi - 2 * eps:
+                #     if th1 - pthmax <= eps or th - pthmax <= -2 * np.pi + 2 * eps:
+                #         return 1
         return 0
     
     f = np.zeros(len(nodes))

@@ -57,6 +57,7 @@ def process(job):
     source_patch = np.arange(npatch)
     dest_patch = np.arange(npatch)
     patches = abstract.get_patches_from_array(array)
+    patch_areas = np.array([p.area for p in patches])
 
     for sid in source_patch:
         # get RHS
@@ -71,7 +72,8 @@ def process(job):
 
         # average displacement over patches
         # area = patches[sid].length_x * patches[sid].length_y
-        x_patch = (F.T).dot(x) / patches[sid].area
+        # x_patch = (F.T).dot(x) / patches[sid].area
+        x_patch = (F.T).dot(x) / patch_areas
 
         # write results to frequency response database
         data = {}
