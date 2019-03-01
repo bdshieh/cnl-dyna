@@ -8,31 +8,27 @@ from cnld.simulation import FixedStepSolver
 
 eps = np.finfo(float).eps
 
-px = 0
-py = 0
+# px = 0
+# py = 0
+# def load_func(x, y, prmin, prmax, pthmin, pthmax):
+#     r = np.sqrt((x - px)**2 + (y - py)**2)
+#     th = np.arctan2((y - py), (x - px))
+#     th1 = th - 2 * eps
+#     if th1 < -np.pi: 
+#         th1 += 2 * np.pi
+#     th2 = th + 2 * eps
+#     if th2 > np.pi: 
+#         th2 -= 2 * np.pi
 
-
-def load_func(x, y, prmin, prmax, pthmin, pthmax):
-    r = np.sqrt((x - px)**2 + (y - py)**2)
-    th = np.arctan2((y - py), (x - px))
-    th1 = th - 2 * eps
-    if th1 < -np.pi: 
-        th1 += 2 * np.pi
-    th2 = th + 2 * eps
-    if th2 > np.pi: 
-        th2 -= 2 * np.pi
-
-    if r - prmin >= -2 * eps:
-        if r - prmax <= 2 * eps:
-            if th1 - pthmin >= 0:
-                if th1 - pthmax <= 0: 
-                    return 1, r, th1, th2
-            if th2 - pthmin >= 0:
-                if th2 - pthmax <= 0:
-                    return 1, r, th1, th2
-    return 0, r, th1, th2
-
-
+#     if r - prmin >= -2 * eps:
+#         if r - prmax <= 2 * eps:
+#             if th1 - pthmin >= 0:
+#                 if th1 - pthmax <= 0: 
+#                     return 1, r, th1, th2
+#             if th2 - pthmin >= 0:
+#                 if th2 - pthmax <= 0:
+#                     return 1, r, th1, th2
+#     return 0, r, th1, th2
 
 
 
@@ -53,50 +49,60 @@ amesh = mesh.Mesh.from_abstract(array, refn=7)
 v = amesh.vertices
 mask = f > 0
 
-for i in range(12):
+for i in range(4):
     plt.figure()
     plt.plot(v[mask[:,i], 0], v[mask[:,i], 1], '.')
     plt.gca().set_aspect('equal')
 
 plt.show()
 
-fload = np.vectorize(load_func, excluded=[2,3,4,5])
+# fload = np.vectorize(load_func, excluded=[2,3,4,5])
 
-x = v[:,0]
-y = v[:,1]
+# x = v[:,0]
+# y = v[:,1]
 
-p = patches[0]
-mask, r, th1, th2 = fload(x, y, p.radius_min, p.radius_max, p.theta_min, p.theta_max)
+# p = patches[0]
+# mask, r, th1, th2 = fload(x, y, p.radius_min, p.radius_max, p.theta_min, p.theta_max)
 
-rmin = p.radius_min
-rmax = p.radius_max
-thmin = p.theta_min
-thmax = p.theta_max
+# rmin = p.radius_min
+# rmax = p.radius_max
+# thmin = p.theta_min
+# thmax = p.theta_max
 
-rmask = np.logical_and(r >= rmin, r <= rmax)
-th1mask = np.logical_and(th1 >= thmin, th1 <= thmax) 
-th2mask = np.logical_and(th2 >= thmin, th2 <= thmax)
+# rmask = np.logical_and(r >= rmin, r <= rmax)
+# th1mask = np.logical_and(th1 >= thmin, th1 <= thmax) 
+# th2mask = np.logical_and(th2 >= thmin, th2 <= thmax)
 
-# v_t, v = simulation.linear_ramp(1e-6, 5e-9, tstop=t_stop)
-# v = 20 * v
+v_t, v = simulation.linear_ramp(1e-6, 5e-9, tstop=t_stop)
+v = 20 * v
 
-# solver = FixedStepSolver.from_array_and_db(array, db_file, v_t, v, t_start, t_stop, atol, maxiter=1)
+solver = FixedStepSolver.from_array_and_db(array, db_file, v_t, v, t_start, t_stop, atol, maxiter=1)
 
-# fir = solver._fir
-# fir_t = solver._fir_t
-
-
+fir = solver._fir
+fir_t = solver._fir_t
 
 
 
+fig, ax = plt.subplots(figsize=(11, 5))
+plt.tight_layout()
 
-# fig, ax = plt.subplots(figsize=(11, 5))
-# plt.tight_layout()
+ax.plot(fir_t, fir[0,0,:])
+ax.plot(fir_t, fir[1,1,:])
+ax.plot(fir_t, fir[2,2,:])
+ax.plot(fir_t, fir[3,3,:])
 
-# ax.plot(fir_t, fir[0,8,:])
-# ax.plot(fir_t, fir[8,0,:])
+ax.legend(range(4))
 
-# fig.show()
+# plt.figure()
+# plt.plot(fir_t, fir[4,:,:].T)
+# plt.figure()
+# plt.plot(fir_t, fir[5,:,:].T)
+# plt.figure()
+# plt.plot(fir_t, fir[6,:,:].T)
+# plt.figure()
+# plt.plot(fir_t, fir[7,:,:].T)
+
+plt.show()
 
 
 

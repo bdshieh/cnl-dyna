@@ -301,10 +301,11 @@ def square_patch_f_vector(nodes, triangles, on_boundary, mlx, mly, px, py, plx, 
     Load vector for a square patch.
     '''
     def load_func(x, y):
-        if x >= (px - plx / 2):
-            if x <= (px + plx / 2):
-                if y >= (py - ply / 2):
-                    if y <= (py + ply / 2):
+        # use 2 * eps to account for potential round-off error
+        if x -(px - plx / 2) >= -2 * eps:
+            if x - (px + plx / 2) <= 2 * eps:
+                if y - (py - ply / 2) >= -2 * eps :
+                    if y - (py + ply / 2) <= 2 * eps:
                         return 1
         return 0
     
@@ -350,21 +351,20 @@ def circular_patch_f_vector(nodes, triangles, on_boundary, mr, px, py, prmin, pr
     def load_func(x, y):
         r = np.sqrt((x - px)**2 + (y - py)**2)
         th = np.arctan2((y - py), (x - px))
+        # pertube theta by 2 * eps to account for potential round-off error
         th1 = th - 2 * eps
-        if th1 < -np.pi: th1 += 2 * np.pi
+        if th1 < -np.pi: th1 += 2 * np.pi  # account for [-pi, pi] wrap-around
         th2 = th + 2 * eps
-        if th2 > np.pi: th2 -= 2 * np.pi
+        if th2 > np.pi: th2 -= 2 * np.pi  # account for [-pi, pi] wrap-around
         if r - prmin >= -2 * eps:
             if r - prmax <= 2 * eps:
+                # for theta, check both perturbed values
                 if th1 - pthmin >= 0:
-                    if th1 - pthmax <= 0: 
+                    if th1 - pthmax <= 0:
                         return 1
                 if th2 - pthmin >= 0:
                     if th2 - pthmax <= 0:
                         return 1
-                # if th1 - pthmin >= -eps or th - pthmin >= 2 * np.pi - 2 * eps:
-                #     if th1 - pthmax <= eps or th - pthmax <= -2 * np.pi + 2 * eps:
-                #         return 1
         return 0
     
     f = np.zeros(len(nodes))
