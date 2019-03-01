@@ -349,12 +349,18 @@ def circular_patch_f_vector(nodes, triangles, on_boundary, mr, px, py, prmin, pr
     '''
     def load_func(x, y):
         r = np.sqrt((x - px)**2 + (y - py)**2)
-        th1 = np.arctan2((y - py) - eps, (x - px))
-        th2 = np.arctan2((y - py) + eps, (x - px))
-        if r - prmin >= -eps:
-            if r - prmax <= eps:
-                if th1 - pthmin >= 0 or th2 - pthmin >= 0:
-                    if th1 - pthmax <= 0 or th2 - pthmax <= 0:
+        th = np.arctan2((y - py), (x - px))
+        th1 = th - 2 * eps
+        if th1 < -np.pi: th1 += 2 * np.pi
+        th2 = th + 2 * eps
+        if th2 > np.pi: th2 -= 2 * np.pi
+        if r - prmin >= -2 * eps:
+            if r - prmax <= 2 * eps:
+                if th1 - pthmin >= 0:
+                    if th1 - pthmax <= 0: 
+                        return 1
+                if th2 - pthmin >= 0:
+                    if th2 - pthmax <= 0:
                         return 1
                 # if th1 - pthmin >= -eps or th - pthmin >= 2 * np.pi - 2 * eps:
                 #     if th1 - pthmax <= eps or th - pthmax <= -2 * np.pi + 2 * eps:
