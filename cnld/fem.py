@@ -379,11 +379,11 @@ def circular_patch_f_vector(nodes, triangles, on_boundary, mr, px, py, prmin, pr
         loadj = load_func(xj, yj)
         loadk = load_func(xk, yk)
         # if load covers entire triangle
-        if all([loadi, loadj, loadk]):
-            da = ((xj - xi) * (yk - yi) - (xk - xi) * (yj - yi))
-            f[tri] += 1 / 6 * da
+        # if all([loadi, loadj, loadk]):
+        #     da = ((xj - xi) * (yk - yi) - (xk - xi) * (yj - yi))
+        #     f[tri] += 1 / 6 * da
         # if load does not cover any part of triangle
-        elif not any([loadi, loadj, loadk]):
+        if not any([loadi, loadj, loadk]):
             continue
         # if load partially covers triangle
         else:
@@ -411,11 +411,9 @@ def f_from_abstract(array, refn):
             if isinstance(mem, abstract.SquareCmutMembrane):
                 square = True
                 amesh = mesh.square(mem.length_x, mem.length_y, refn=refn)
-                ob = amesh.on_boundary
             elif isinstance(mem, abstract.CircularCmutMembrane):
                 square = False
                 amesh = mesh.circle(mem.radius, refn=refn)
-                ob = amesh.on_boundary
             else:
                 raise ValueError
 
@@ -430,7 +428,7 @@ def f_from_abstract(array, refn):
                         mem.radius, pat.position[0] - mem.position[0], pat.position[1] - mem.position[1], 
                         pat.radius_min, pat.radius_max, pat.theta_min, pat.theta_max)
 
-                f[ob,i] = 0
+                f[amesh.on_boundary,i] = 0
             blocks.append(f)
     
     return sps.block_diag(blocks, format='csc')
