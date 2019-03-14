@@ -142,6 +142,138 @@ def mem_k_matrix(amesh, E, h, eta):
 
 
 @util.memoize
+def mem_k_matrix_simply_supported(amesh, E, h, eta):
+    '''
+    Stiffness matrix based on 3-dof (rotation-free) triangular plate elements.
+    Refer to E. Onate and F. Zarate, Int. J. Numer. Meth. Engng. 47, 557-603 (2000).
+    '''
+    def L(x1, y1, x2, y2):
+        # calculates edge length
+        return np.sqrt((x2 - x1)**2 + (y2 - y1)**2)
+    
+    def T_matrix(x1, y1, x2, y2):
+        # transformation matrix for an edge
+        z = [0, 0, 1]
+        r = [x2 - x1, y2 - y1]
+        n = np.cross(z, r)
+        norm = np.linalg.norm(n)
+        n = n / norm
+        nx, ny, _ = n
+        return np.array([[-nx, 0],[0, -ny],[-ny, -nx]])
+
+    # get mesh information
+    nodes = amesh.vertices
+    triangles = amesh.triangles
+    triangle_edges = amesh.triangle_edges
+    triangle_areas = amesh.g / 2
+    ntriangles = len(triangles)
+
+    # determine list of neighbors for each triangle
+    # None indicates neighbor doesn't exist for that edge (boundary edge)
+    triangle_neighbors = []
+    for tt in range(ntriangles):
+        neighbors = []
+        for te in triangle_edges[tt,:]:
+            mask = np.any(triangle_edges == te, axis=1)
+            args = np.nonzero(mask)[0]
+            if len(args) > 1:
+                neighbors.append(args[args != tt][0])
+            else:
+                neighbors.append(None)
+        triangle_neighbors.append(neighbors)
+    amesh.triangle_neighbors = triangle_neighbors
+
+    # construct constitutive matrix for material
+    h = h[0] # no support for composite membranes yet
+    E = E[0]
+    eta = eta[0]
+
+    D = np.zeros((3,3))
+    D[0,0] = 1
+    D[0,1] = eta
+    D[1,0] = eta
+    D[1,1] = 1
+    D[2,2] = (1 - eta) / 2
+    D = D * E * h**3 / (12 * (1 - eta**2))
+
+    # calculate Jacobian and gradient operator for each triangle
+    gradops = []
+    for tt in range(ntriangles):
+        tri = triangles[tt,:]
+        xi, yi = nodes[tri[0],:2]
+        xj, yj = nodes[tri[1],:2]
+        xk, yk = nodes[tri[2],:2]
+
+        J = np.array([[xj - xi, xk - xi], [yj - yi, yk - yi]])
+        gradop = np.linalg.inv(J.T).dot([[-1, 1, 0],[-1, 0, 1]])
+        # gradop = np.linalg.inv(J.T).dot([[1, 0, -1],[0, 1, -1]])
+
+        gradops.append(gradop)
+
+    # construct K matrix
+    K = np.zeros((len(nodes), len(nodes)))
+    for p in range(ntriangles):
+        trip = triangles[p,:]
+        ap = triangle_areas[p]
+
+        xi, yi = nodes[trip[0],:2]
+        xj, yj = nodes[trip[1],:2]
+        xk, yk = nodes[trip[2],:2]
+
+        neighbors = triangle_neighbors[p]
+        gradp = gradops[p]
+        # list triangle edges, ordered so that z cross-product will produce outward normal
+        edges = [(xk, yk, xj, yj), (xi, yi, xk, yk), (xj, yj, xi, yi)]
+        
+        # begin putting together indexes needed later for matrix assignment
+        ii, jj, kk = trip
+        Kidx = [ii, jj, kk]
+        Kpidx = [0, 1, 2]
+
+        # construct B matrix for control element
+        Bp = np.zeros((3, 6))
+        for j, n in enumerate(neighbors):
+            if n is None:
+                l = L(*edges[j])
+                T = T_matrix(*edges[j])
+
+                pterm = l / 2 * T.dot(gradp)
+                Bp[:,:3] += pterm
+            else:
+                # determine index of the node in the neighbor opposite edge
+                iin, jjn, kkn = triangles[n,:]
+                uidx = [x for x in np.unique([ii, jj, kk, iin, jjn, kkn]) if x not in [ii, jj, kk]][0]
+                # update indexes
+                Kidx.append(uidx)
+                Kpidx.append(3 + j)
+
+                l = L(*edges[j])
+                T = T_matrix(*edges[j])
+                gradn = gradops[n]
+
+                pterm = l / 2 * T.dot(gradp)
+                Bp[:,:3] += pterm
+
+                nterm = l / 2 * T.dot(gradn)
+                idx = [Kpidx[Kidx.index(x)] for x in [iin, jjn, kkn]]
+                Bp[:,idx] += nterm
+        Bp = Bp / ap
+
+        # construct local K matrix for control element
+        Kp = (Bp.T).dot(D).dot(Bp) * ap
+
+        # add matrix values to global K matrix
+        K[np.ix_(Kidx, Kidx)] += Kp[np.ix_(Kpidx, Kpidx)]
+    
+    ob = amesh.on_boundary
+    K[ob,:] = 0
+    K[:, ob] = 0
+    K[ob, ob] = 1
+
+    return K
+
+
+@util.memoize
 def mem_m_matrix(amesh, rho, h, mu=0.5):
     '''
     Mass matrix based on average of lumped and consistent mass matrix (lumped-consistent).
@@ -286,8 +418,10 @@ def mem_f_vector_arb_load(amesh, load_func):
             y = (yj - yi) * psi + (yk - yi) * eta + yi
             return load_func(x, y)
 
-        da, _ = dblquad(load_func_psi_eta, 0, 1, 0, lambda x: 1 - x, epsabs=1e-1, epsrel=1e-1)
-        f[tri] += 1 / 6 * da
+        integ, _ = dblquad(load_func_psi_eta, 0, 1, 0, lambda x: 1 - x, epsrel=1e-1, epsabs=1e-1)
+        frac = integ / (1 / 2)  # fraction of triangle covered by load
+        da = ((xj - xi) * (yk - yi) - (xk - xi) * (yj - yi)) / 2  # area of triangle
+        f[tri] += 1 / 3 * frac * da
 
     ob = amesh.on_boundary
     f[ob] = 0
@@ -322,8 +456,8 @@ def square_patch_f_vector(nodes, triangles, on_boundary, mlx, mly, px, py, plx, 
         loadk = load_func(xk, yk)
         # if load covers entire triangle
         if all([loadi, loadj, loadk]):
-            da = ((xj - xi) * (yk - yi) - (xk - xi) * (yj - yi))
-            f[tri] += 1 / 6 * da
+            da = ((xj - xi) * (yk - yi) - (xk - xi) * (yj - yi)) / 2
+            f[tri] += 1 / 3 * 1 * da
         # if load does not cover any part of triangle
         elif not any([loadi, loadj, loadk]):
             continue
@@ -334,9 +468,10 @@ def square_patch_f_vector(nodes, triangles, on_boundary, mlx, mly, px, py, plx, 
                 y = (yj - yi) * psi + (yk - yi) * eta + yi
                 return load_func(x, y)
 
-            frac, _ = dblquad(load_func_psi_eta, 0, 1, 0, lambda x: 1 - x, epsrel=1e-1, epsabs=1e-1)
-            da = ((xj - xi) * (yk - yi) - (xk - xi) * (yj - yi))
-            f[tri] += 1 / 6 * frac * da
+            integ, _ = dblquad(load_func_psi_eta, 0, 1, 0, lambda x: 1 - x, epsrel=1e-1, epsabs=1e-1)
+            frac = integ / (1 / 2)  # fraction of triangle covered by load
+            da = ((xj - xi) * (yk - yi) - (xk - xi) * (yj - yi)) / 2  # area of triangle
+            f[tri] += 1 / 3 * frac * da
 
     f[on_boundary] = 0
 
@@ -379,11 +514,11 @@ def circular_patch_f_vector(nodes, triangles, on_boundary, mr, px, py, prmin, pr
         loadj = load_func(xj, yj)
         loadk = load_func(xk, yk)
         # if load covers entire triangle
-        # if all([loadi, loadj, loadk]):
-        #     da = ((xj - xi) * (yk - yi) - (xk - xi) * (yj - yi))
-        #     f[tri] += 1 / 6 * da
+        if all([loadi, loadj, loadk]):
+            da = ((xj - xi) * (yk - yi) - (xk - xi) * (yj - yi)) / 2
+            f[tri] += 1 / 3 * 1 * da
         # if load does not cover any part of triangle
-        if not any([loadi, loadj, loadk]):
+        elif not any([loadi, loadj, loadk]):
             continue
         # if load partially covers triangle
         else:
@@ -392,9 +527,10 @@ def circular_patch_f_vector(nodes, triangles, on_boundary, mr, px, py, prmin, pr
                 y = (yj - yi) * psi + (yk - yi) * eta + yi
                 return load_func(x, y)
 
-            frac, _ = dblquad(load_func_psi_eta, 0, 1, 0, lambda x: 1 - x, epsrel=1e-1, epsabs=1e-1)
-            da = ((xj - xi) * (yk - yi) - (xk - xi) * (yj - yi))
-            f[tri] += 1 / 6 * frac * da
+            integ, _ = dblquad(load_func_psi_eta, 0, 1, 0, lambda x: 1 - x, epsrel=1e-1, epsabs=1e-1)
+            frac = integ / (1 / 2)  # fraction of triangle covered by load
+            da = ((xj - xi) * (yk - yi) - (xk - xi) * (yj - yi)) / 2  # area of triangle
+            f[tri] += 1 / 3 * frac * da
 
     f[on_boundary] = 0
 
@@ -454,6 +590,7 @@ def mbk_from_abstract(array, f, refn):
 
             M = mem_m_matrix(amesh, mem.density, mem.thickness)
             K = mem_k_matrix(amesh, mem.y_modulus, mem.thickness, mem.p_ratio)
+            # K = mem_k_matrix_simply_supported(amesh, mem.y_modulus, mem.thickness, mem.p_ratio)
             B = mem_b_matrix_eig(amesh, M, K, mem.damping_mode_a, mem.damping_mode_b, 
                 mem.damping_ratio_a, mem.damping_ratio_b)
 

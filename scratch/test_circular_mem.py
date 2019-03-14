@@ -67,8 +67,8 @@ def circular_patch_f_vector(nodes, triangles, on_boundary, px, py, prmin, prmax,
     return f
 
 
-array_file = 'circular_mem.json'
-db_file = 'circular_mem.db'
+array_file = 'circular_mem_54.json'
+db_file = 'circular_mem_54.db'
 t_start = 0
 t_stop = 6e-6
 atol = 1e-10
