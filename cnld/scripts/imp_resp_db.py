@@ -52,6 +52,9 @@ def process(job):
     mesh = Mesh.from_abstract(array, refn)
     ob = mesh.on_boundary
 
+    ## TEST 
+    # Fall = fem.mem_f_vector(mesh, 1)
+
     # solve for each source patch
     npatch = abstract.get_patch_count(array)
     source_patch = np.arange(npatch)
@@ -62,6 +65,7 @@ def process(job):
     for sid in source_patch:
         # get RHS
         b = np.array(F[:, sid].todense())
+        # b = Fall
 
         # solve
         start = timer()
@@ -75,7 +79,7 @@ def process(job):
         # x_patch = (F.T).dot(x) / patches[sid].area
         x_patch = (F.T).dot(x) / patch_areas
 
-        # write results to frequency response database
+        # write patch displacement results to frequency response database
         data = {}
         data['frequency'] = repeat(f)
         data['wavenumber'] = repeat(k)
@@ -86,7 +90,21 @@ def process(job):
         data['time_solve'] = repeat(time_solve)
 
         with write_lock:
-            frequency_response.update_db(file, **data)
+            frequency_response.update_displacements(file, **data)
+
+        # write node displacement results to frequency response database
+        data = {}
+        data['x'] = mesh.vertices[:,0]
+        data['y'] = mesh.vertices[:,1]
+        data['z'] = mesh.vertices[:,2]
+        data['frequency'] = repeat(f)
+        data['wavenumber'] = repeat(k)
+        data['source_patch'] = repeat(sid)
+        data['displacement_real'] = np.real(x)
+        data['displacement_imag'] = np.imag(x)
+
+        with write_lock:
+            frequency_response.update_node_displacements(file, **data)
     
     with write_lock:
         util.update_progress(file, job_id)
@@ -116,16 +134,19 @@ def main(cfg, args):
     is_complete = None
     njobs = len(freqs)
     ijob = 0
-    file_freqresp = os.path.splitext(file)[0] + '.freqresp' + os.path.splitext(file)[1]
+
+    # generate filenames
+    file_impresp = os.path.splitext(file)[0] + '.impresp.db'
+    file_freqresp = os.path.splitext(file)[0] + '.freqresp.db'
 
     # check for existing file
-    if os.path.isfile(file):
+    if os.path.isfile(file_impresp):
         if write_over:  # if file exists, write over
             # remove existing files
-            os.remove(file)  
+            os.remove(file_impresp)  
             if os.path.isfile(file_freqresp): os.remove(file_freqresp)
             # create databases
-            impulse_response.create_db(file)
+            impulse_response.create_db(file_impresp)
             frequency_response.create_db(file_freqresp)
             util.create_progress_table(file_freqresp, njobs)
 
@@ -139,7 +160,7 @@ def main(cfg, args):
             os.makedirs(file_dir)
 
         # create databases
-        impulse_response.create_db(file)
+        impulse_response.create_db(file_impresp)
         frequency_response.create_db(file_freqresp)
         util.create_progress_table(file_freqresp, njobs)
 
@@ -164,7 +185,7 @@ def main(cfg, args):
         data['dest_patch'] = dest_patches.ravel()
         data['time'] = times.ravel()
         data['displacement'] = fir.ravel()
-        impulse_response.update_db(file, **data)
+        impulse_response.update_db(file_impresp, **data)
 
     except Exception as e:
         print(e)
@@ -183,7 +204,7 @@ _Config['mesh_refn'] = 7
 _Config['aprx'] = 'paca'
 _Config['basis'] = 'linear'
 _Config['admis'] = '2'
-_Config['eta'] = 1.1
+_Config['eta'] = 0.9
 _Config['eps'] = 1e-12
 _Config['m'] = 4
 _Config['clf'] = 16
@@ -191,7 +212,7 @@ _Config['eps_aca'] = 1e-2
 _Config['rk'] = 0
 _Config['q_reg'] = 2
 _Config['q_sing'] = 4
-_Config['strict'] = False
+_Config['strict'] = True
 Config = abstract.register_type('Config', _Config)
 
 
