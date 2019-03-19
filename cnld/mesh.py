@@ -191,7 +191,7 @@ def _from_abstract(cls, array, refn=1, **kwargs):
             if isinstance(mem, abstract.SquareCmutMembrane):
                 v, e, t, s = geometry_square(mem.length_x, mem.length_y, refn=refn)
             elif isinstance(mem, abstract.CircularCmutMembrane):
-                v, e, t, s = geometry_circle(mem.radius, refn=refn)
+                v, e, t, s = geometry_circle(mem.radius, n=8, refn=refn)
             else:
                 raise TypeError
 
@@ -284,8 +284,8 @@ def _from_abstract(cls, array, refn=1, **kwargs):
 
     # check that no vertices were missed
     # assert ~np.any(np.isnan(patch_ids[:,0])) # check that each vertex is assigned to at least one patch
-    assert ~np.any(np.isnan(membrane_ids))
-    assert ~np.any(np.isnan(element_ids))
+    # assert ~np.any(np.isnan(membrane_ids))
+    # assert ~np.any(np.isnan(element_ids))
 
     # mesh.patch_ids = patch_ids
     mesh.membrane_ids = membrane_ids
@@ -376,40 +376,102 @@ def geometry_square(xl, yl, refn=1, type=1):
     return v, e, t, s
 
 
+# @util.memoize
+# def geometry_circle(rl, refn=1):
+#     '''
+#     Creates a circle mesh geometry (vertices, triangles etc.) which can be used to
+#     construct a mesh object.
+#     '''
+#     #  vertices 
+#     v = np.zeros((5, 3), dtype=np.float64)
+#     v[0,:] = -rl, 0.0, 0.0 # left 
+#     v[1,:] = 0.0, -rl, 0.0 # bottom 
+#     v[2,:] = rl, 0.0, 0.0  # right 
+#     v[3,:] = 0.0, rl, 0.0 # top 
+#     v[4,:] = 0.0, 0.0, 0.0 # center
+#     #  edges 
+#     e = np.zeros((8, 2), dtype=np.uint32)
+#     e[0,:] = 0, 1  # bottom left
+#     e[1,:] = 1, 2  # bottom right
+#     e[2,:] = 2, 3  # top right
+#     e[3,:] = 3, 0  # top left
+#     e[4,:] = 0, 4  # left horizontal
+#     e[5,:] = 1, 4  # bottom vertical
+#     e[6,:] = 2, 4  # right horizontal
+#     e[7,:] = 3, 4  # right vertical
+#     #  triangles and triangle edges 
+#     t = np.zeros((4, 3), dtype=np.uint32)
+#     s = np.zeros((4, 3), dtype=np.uint32)
+#     t[0, :] = 0, 1, 4  # bottom left
+#     s[0, :] = 5, 4, 0
+#     t[1, :] = 1, 2, 4  # bottom right
+#     s[1, :] = 6, 5, 1
+#     t[2, :] = 2, 3, 4  # top right
+#     s[2, :] = 7, 6, 2
+#     t[3, :] = 3, 0, 4  # top left
+#     s[3, :] = 4, 7, 3
+
+#     # refine geometry using h2lib macrosurface3d -> surface3d procedure
+#     if refn > 1:
+#         msurf = Macrosurface3d(len(v), len(e), len(t))
+#         msurf.x[:] = v
+#         msurf.e[:] = e
+#         msurf.t[:] = t
+#         msurf.s[:] = s
+#         msurf.set_parametrization('circle')
+#         surf = build_from_macrosurface3d_surface3d(msurf, refn)
+
+#         # copy arrays from surf
+#         v = np.array(surf.x, copy=True)
+#         e = np.array(surf.e, copy=True)
+#         t = np.array(surf.t, copy=True)
+#         s = np.array(surf.s, copy=True)
+
+#     # translate geometry
+#     # v += np.array(center)
+#     return v, e, t, s
+
+
 @util.memoize
-def geometry_circle(rl, refn=1):
+def geometry_circle(rl, n=4, refn=1):
     '''
     Creates a circle mesh geometry (vertices, triangles etc.) which can be used to
     construct a mesh object.
     '''
     #  vertices 
-    v = np.zeros((5, 3), dtype=np.float64)
-    v[0,:] = -rl, 0.0, 0.0 # left 
-    v[1,:] = 0.0, -rl, 0.0 # bottom 
-    v[2,:] = rl, 0.0, 0.0  # right 
-    v[3,:] = 0.0, rl, 0.0 # top 
-    v[4,:] = 0.0, 0.0, 0.0 # center
+    v = np.zeros((n + 1, 3), dtype=np.float64)
+
+    for i in range(n):
+        theta = 2 * np.pi / n * i - np.pi
+        # p = rl / (np.abs(np.sin(theta)) + np.abs(np.cos(theta)))
+        x = rl * np.cos(theta)
+        y = rl * np.sin(theta)
+        
+        v[i,:] = x, y, 0.0
+
+    v[n,:] = 0.0, 0.0, 0.0
+    v[np.isclose(v, 0)] = 0.0
+
     #  edges 
-    e = np.zeros((8, 2), dtype=np.uint32)
-    e[0,:] = 0, 1  # bottom left
-    e[1,:] = 1, 2  # bototm right
-    e[2,:] = 2, 3  # top right
-    e[3,:] = 3, 0  # top left
-    e[4,:] = 0, 4  # left horizontal
-    e[5,:] = 1, 4  # bottom vertical
-    e[6,:] = 2, 4  # right horizontal
-    e[7,:] = 3, 4  # right vertical
+    e = np.zeros((2 * n, 2), dtype=np.uint32)
+
+    for i in range(n):
+        e[i,:] = i, np.mod(i + 1, n)
+
+    for i in range(n):
+        e[n + i,:] = i, n
+
     #  triangles and triangle edges 
-    t = np.zeros((4, 3), dtype=np.uint32)
-    s = np.zeros((4, 3), dtype=np.uint32)
-    t[0, :] = 0, 1, 4  # bottom left
-    s[0, :] = 5, 4, 0
-    t[1, :] = 1, 2, 4  # bottom right
-    s[1, :] = 6, 5, 1
-    t[2, :] = 2, 3, 4  # top right
-    s[2, :] = 7, 6, 2
-    t[3, :] = 3, 0, 4  # top left
-    s[3, :] = 4, 7, 3
+    t = np.zeros((n, 3), dtype=np.uint32)
+    s = np.zeros((n, 3), dtype=np.uint32)
+
+    first = list(np.mod(np.arange(0, n) + 1, n) + n)
+    second = list(np.mod(np.arange(0, n), n) + n)
+    third = list(np.arange(0, n))
+
+    for i in range(n):
+        t[i,:] = i, np.mod(i + 1, n), n
+        s[i,:] = first[i], second[i], third[i]
 
     # refine geometry using h2lib macrosurface3d -> surface3d procedure
     if refn > 1:
@@ -452,7 +514,7 @@ def square(xl, yl, refn=1, type=1, center=(0,0,0)):
 def circle(rl, refn=1, center=(0,0,0)):
     '''
     '''
-    v, e, t, s = geometry_circle(rl, refn=refn)
+    v, e, t, s = geometry_circle(rl, n=8, refn=refn)
     v += np.array(center)
     mesh = Mesh.from_geometry(v, e, t, s)
 
