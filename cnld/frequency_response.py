@@ -146,11 +146,12 @@ def read_nodes_db(con):
         table = pd.read_sql(query, con)
         
     source_patch_ids = np.unique(table['source_patch'].values)
-    nodes = table[['x', 'y', 'z']][table['source_patch'] == 0]
     freqs = np.unique(table['frequency'].values)
+    nodes = np.array(table[table['source_patch'] == 0][table['frequency'] == freqs[0]][['x', 'y', 'z']])
+    
     nsource = len(source_patch_ids)
+    nnodes = len(nodes)
     nfreq = len(freqs)
 
-
-    disp = np.array(table['displacement_real'] + 1j * table['displacement_imag']).reshape((nsource, -1, nfreq))
-    return freqs, disp
+    disp = np.array(table['displacement_real'] + 1j * table['displacement_imag']).reshape((nsource, nnodes, nfreq))
+    return freqs, disp, nodes

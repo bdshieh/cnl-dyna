@@ -118,6 +118,8 @@ cdef void sphere_parametrization(uint i, real xr1, real xr2, void * data, real x
     xt[2] /= norm
 
 
+eps = np.finfo(np.float64).eps
+
 cdef void circle_parametrization(uint i, real xr1, real xr2, void * data, real xt[3]):
 
     cdef pcmacrosurface3d mg = <pcmacrosurface3d> data
@@ -137,6 +139,7 @@ cdef void circle_parametrization(uint i, real xr1, real xr2, void * data, real x
     normL1 = _macrosurface3d.REAL_ABS(xt[0]) + _macrosurface3d.REAL_ABS(xt[1])
     normL2 = _macrosurface3d.REAL_NORM2(xt[0], xt[1])
     if (normL2 > 0.0):
+        # if _macrosurface3d.REAL_ABS(xt[0]) - _macrosurface3d.REAL_ABS(xt[1]) > eps:
         xt[0] = xt[0] * normL1 / normL2
         xt[1] = xt[1] * normL1 / normL2
 

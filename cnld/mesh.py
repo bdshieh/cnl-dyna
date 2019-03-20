@@ -191,7 +191,7 @@ def _from_abstract(cls, array, refn=1, **kwargs):
             if isinstance(mem, abstract.SquareCmutMembrane):
                 v, e, t, s = geometry_square(mem.length_x, mem.length_y, refn=refn)
             elif isinstance(mem, abstract.CircularCmutMembrane):
-                v, e, t, s = geometry_circle(mem.radius, n=8, refn=refn)
+                v, e, t, s = geometry_circle(mem.radius, n=4, refn=refn)
             else:
                 raise TypeError
 
@@ -514,7 +514,7 @@ def square(xl, yl, refn=1, type=1, center=(0,0,0)):
 def circle(rl, refn=1, center=(0,0,0)):
     '''
     '''
-    v, e, t, s = geometry_circle(rl, n=8, refn=refn)
+    v, e, t, s = geometry_circle(rl, n=4, refn=refn)
     v += np.array(center)
     mesh = Mesh.from_geometry(v, e, t, s)
 
