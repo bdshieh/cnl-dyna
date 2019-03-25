@@ -6,8 +6,9 @@ import scipy.signal
 from scipy.constants import epsilon_0 as e_0
 from scipy.interpolate import interp1d
 import warnings
+import numpy.linalg
 
-from cnld import impulse_response
+from cnld import abstract, fem, mesh, impulse_response
 
 
 # @util.memoize
@@ -47,6 +48,55 @@ from cnld import impulse_response
 #     return x0, is_collapsed
 
 
+def calc_es_correction(array, refn):
+
+    fcorr = []
+
+    for elem in array.elements:
+        for mem in elem.membranes:
+            if isinstance(mem, abstract.SquareCmutMembrane):
+                square = True
+                amesh = mesh.square(mem.length_x, mem.length_y, refn=refn)
+            elif isinstance(mem, abstract.CircularCmutMembrane):
+                square = False
+                amesh = mesh.circle(mem.radius, refn=refn)
+
+            K = fem.mem_k_matrix(amesh, mem.y_modulus, mem.thickness, mem.p_ratio)
+            Kinv = np.linalg.inv(K)
+            g = mem.gap
+            g_eff = mem.gap + mem.isolation / mem.permittivity
+
+            for pat in mem.patches:
+                if square:
+                    f = fem.square_patch_f_vector(amesh.vertices, amesh.triangles, amesh.on_boundary,
+                        mem.length_x, mem.length_y, pat.position[0] - mem.position[0], 
+                        pat.position[1] - mem.position[1], pat.length_x, pat.length_y)
+                else:
+                    f = fem.circular_patch_f_vector(amesh.vertices, amesh.triangles, amesh.on_boundary,
+                        mem.radius, pat.position[0] - mem.position[0], pat.position[1] - mem.position[1], 
+                        pat.radius_min, pat.radius_max, pat.theta_min, pat.theta_max)
+                
+                u = Kinv.dot(-f)
+                unorm = u / np.max(np.abs(u))
+
+                d = np.linspace(0, 1, 11)
+                fc = []
+                uavg = []
+                for di in d:
+                    fc.append((-e_0 / 2 / (unorm * g * di + g_eff)**2).dot(f) / pat.area)
+                    uavg.append((unorm * g * di).dot(f) / pat.area)
+                
+                # fcorr.append((d, uavg, fc, fpp))
+                fcorr.append(interp1d(uavg, fc, kind='cubic', bounds_error=False, fill_value=(fc[-1], fc[0])))
+
+    return fcorr
+
+
+def pressure_es2(v, x, fc):
+    '''
+    '''
+    return [f(xi) * v**2 for f, xi in zip(fc, x)]
+
 def pressure_es(v, x, g_eff):
     '''
     '''
@@ -79,7 +129,7 @@ def firconvolve(fir, p, fs, offset):
 
 class FixedStepSolver:
     
-    def __init__(self, fir_t, fir, v_t, v, gaps, gaps_eff, t_start, t_stop, atol=1e-10, maxiter=5):
+    def __init__(self, fir_t, fir, v_t, v, gaps, gaps_eff, t_start, t_stop, fcorr, atol=1e-10, maxiter=5):
         # define minimum step size
         self.min_step = fir_t[1] - fir_t[0]
         self.maxiter = maxiter
@@ -96,12 +146,14 @@ class FixedStepSolver:
         # create gaps and gaps eff lookup
         self._gaps = np.array(gaps)
         self._gaps_eff = np.array(gaps_eff)
+        self._fcorr = fcorr
 
         # create state variables and set initial state
         self._time = [t_start,]
         x0 = np.zeros(self.npatch)
         self._displacement = [x0,]
-        p0 = pressure_es(self._voltage(t_start), x0, gaps_eff)
+        p0 = pressure_es2(self._voltage(t_start), x0, fcorr)
+        # p0 = pressure_es(self._voltage(t_start), x0, gaps_eff)
         self._pressure = [p0,]
 
         # create other variables
@@ -110,7 +162,7 @@ class FixedStepSolver:
         self._t_stop = t_stop
         
     @classmethod
-    def from_array_and_db(cls, array, dbfile, v_t, v, t_start, t_stop, atol=1e-10, maxiter=5):
+    def from_array_and_db(cls, array, refn, dbfile, v_t, v, t_start, t_stop, atol=1e-10, maxiter=5):
         # read fir database
         fir_t, fir = impulse_response.read_db(dbfile)
 
@@ -122,8 +174,9 @@ class FixedStepSolver:
                 for pat in mem.patches:
                     gaps.append(mem.gap)
                     gaps_eff.append(mem.gap + mem.isolation / mem.permittivity)
-                    
-        return cls(fir_t, fir, v_t, v, gaps, gaps_eff, t_start, t_stop, atol, maxiter)
+        
+        fcorr = calc_es_correction(array, refn)
+        return cls(fir_t, fir, v_t, v, gaps, gaps_eff, t_start, t_stop, fcorr, atol, maxiter)
 
     @property
     def time(self):
@@ -154,7 +207,8 @@ class FixedStepSolver:
         tn1 = tn + self.min_step
         vn1 = self._voltage(tn1)
         xn1 = self._check_gaps(firconvolve(self._fir, pn, fs, offset=1))
-        pn1 = pressure_es(vn1, xn1, self._gaps_eff)
+        # pn1 = pressure_es(vn1, xn1, self._gaps_eff)
+        pn1 = pressure_es2(vn1, xn1, self._fcorr)
 
         return tn1, xn1, pn1
         
@@ -191,7 +245,8 @@ class FixedStepSolver:
                 break
 
             xn1 = xr1
-            pn1 = pressure_es(vn1, xn1, self._gaps_eff)
+            # pn1 = pressure_es(vn1, xn1, self._gaps_eff)
+            pn1 = pressure_es2(vn1, xn1, self._fcorr)
             xr1, err = self._check_accuracy_of_step(xn1, pn1)
             i += 1
 
@@ -199,7 +254,8 @@ class FixedStepSolver:
         self._iters.append(i)
 
         xn1 = xr1
-        pn1 = pressure_es(vn1, xn1, self._gaps_eff)
+        # pn1 = pressure_es(vn1, xn1, self._gaps_eff)
+        pn1 = pressure_es2(vn1, xn1, self._fcorr)
         self._save_step(tn1, xn1, pn1)
 
     def solve(self):
@@ -216,7 +272,8 @@ class FixedStepSolver:
         self._time = [t_start,]
         x0 = np.zeros(self.npatch)
         self._displacement = [x0,]
-        p0 = pressure_es(self._voltage(t_start), x0, self._gaps_eff)
+        # p0 = pressure_es(self._voltage(t_start), x0, self._gaps_eff)
+        p0 = pressure_es2(self._voltage(t_start), x0, fcorr)
         self._pressure = [p0,]
 
         # create other variables
