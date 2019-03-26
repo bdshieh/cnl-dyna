@@ -399,6 +399,29 @@ def mem_f_vector(amesh, p):
     return f
 
 
+@util.memoize    
+def mem_f_vector2(amesh, p):
+    '''
+    Pressure load vector based on equal distribution of pressure to element nodes.
+    '''
+    nodes = amesh.vertices
+    triangles = amesh.triangles
+    triangle_areas = amesh.g / 2
+    ob = amesh.on_boundary
+
+    f = np.zeros(len(nodes))
+    for tt in range(len(triangles)):
+        tri = triangles[tt,:]
+        ap = triangle_areas[tt]
+        bfac = 1 * np.sum(~ob[tri])
+        f[tri] += 1 / bfac * p * ap
+
+    ob = amesh.on_boundary
+    f[ob] = 0
+
+    return f
+
+
 def mem_f_vector_arb_load(amesh, load_func):
     '''
     Pressure load vector based on an arbitrary load.
@@ -457,6 +480,122 @@ def square_patch_f_vector(nodes, triangles, on_boundary, mlx, mly, px, py, plx, 
         # if load covers entire triangle
         if all([loadi, loadj, loadk]):
             da = ((xj - xi) * (yk - yi) - (xk - xi) * (yj - yi)) / 2
+            bfac = 1 * np.sum(~on_boundary[tri])
+            # f[tri] += 1 / 3 * 1 * da
+            f[tri] += 1 / bfac * 1 * da
+        # if load does not cover any part of triangle
+        elif not any([loadi, loadj, loadk]):
+            continue
+        # if load partially covers triangle
+        else:
+            def load_func_psi_eta(psi, eta):
+                x = (xj - xi) * psi + (xk - xi) * eta + xi
+                y = (yj - yi) * psi + (yk - yi) * eta + yi
+                return load_func(x, y)
+
+            integ, _ = dblquad(load_func_psi_eta, 0, 1, 0, lambda x: 1 - x, epsrel=1e-1, epsabs=1e-1)
+            frac = integ / (1 / 2)  # fraction of triangle covered by load
+            da = ((xj - xi) * (yk - yi) - (xk - xi) * (yj - yi)) / 2  # area of triangle
+            bfac = 1 * np.sum(~on_boundary[tri])
+            # f[tri] += 1 / 3 * frac * da
+            f[tri] += 1 / bfac * frac * da
+
+    f[on_boundary] = 0
+
+    return f
+
+
+@util.memoize
+def circular_patch_f_vector(nodes, triangles, on_boundary, mr, px, py, prmin, prmax, pthmin, pthmax):
+    '''
+    Load vector for a circular (polar) patch.
+    '''
+    def load_func(x, y):
+        r = np.sqrt((x - px)**2 + (y - py)**2)
+        th = np.arctan2((y - py), (x - px))
+        # pertube theta by 2 * eps to account for potential round-off error
+        th1 = th - 2 * eps
+        if th1 < -np.pi: th1 += 2 * np.pi  # account for [-pi, pi] wrap-around
+        th2 = th + 2 * eps
+        if th2 > np.pi: th2 -= 2 * np.pi  # account for [-pi, pi] wrap-around
+        if r - prmin >= -2 * eps:
+            if r - prmax <= 2 * eps:
+                # for theta, check both perturbed values
+                if th1 - pthmin >= 0:
+                    if th1 - pthmax <= 0:
+                        return 1
+                if th2 - pthmin >= 0:
+                    if th2 - pthmax <= 0:
+                        return 1
+        return 0
+    
+    f = np.zeros(len(nodes))
+    for tt in range(len(triangles)):
+        tri = triangles[tt,:]
+        xi, yi = nodes[tri[0],:2]
+        xj, yj = nodes[tri[1],:2]
+        xk, yk = nodes[tri[2],:2]
+
+        # check if triangle vertices are inside or outside load
+        loadi = load_func(xi, yi)
+        loadj = load_func(xj, yj)
+        loadk = load_func(xk, yk)
+        # if load covers entire triangle
+        if all([loadi, loadj, loadk]):
+            da = ((xj - xi) * (yk - yi) - (xk - xi) * (yj - yi)) / 2
+            bfac = 1 * np.sum(~on_boundary[tri])
+            # f[tri] += 1 / 3 * 1 * da
+            f[tri] += 1 / bfac * 1 * da
+        # if load does not cover any part of triangle
+        elif not any([loadi, loadj, loadk]):
+            continue
+        # if load partially covers triangle
+        else:
+            def load_func_psi_eta(psi, eta):
+                x = (xj - xi) * psi + (xk - xi) * eta + xi
+                y = (yj - yi) * psi + (yk - yi) * eta + yi
+                return load_func(x, y)
+
+            integ, _ = dblquad(load_func_psi_eta, 0, 1, 0, lambda x: 1 - x, epsrel=1e-1, epsabs=1e-1)
+            frac = integ / (1 / 2)  # fraction of triangle covered by load
+            da = ((xj - xi) * (yk - yi) - (xk - xi) * (yj - yi)) / 2  # area of triangle
+            bfac = 1 * np.sum(~on_boundary[tri])
+            # f[tri] += 1 / 3 * frac * da
+            f[tri] += 1 / bfac * frac * da
+
+    f[on_boundary] = 0
+
+    return f
+
+
+@util.memoize
+def square_patch_avg_vector(nodes, triangles, on_boundary, mlx, mly, px, py, plx, ply):
+    '''
+    Load vector for a square patch.
+    '''
+    def load_func(x, y):
+        # use 2 * eps to account for potential round-off error
+        if x -(px - plx / 2) >= -2 * eps:
+            if x - (px + plx / 2) <= 2 * eps:
+                if y - (py - ply / 2) >= -2 * eps :
+                    if y - (py + ply / 2) <= 2 * eps:
+                        return 1
+        return 0
+    
+    f = np.zeros(len(nodes))
+    for tt in range(len(triangles)):
+        tri = triangles[tt,:]
+        xi, yi = nodes[tri[0],:2]
+        xj, yj = nodes[tri[1],:2]
+        xk, yk = nodes[tri[2],:2]
+
+        # check if triangle vertices are inside or outside load
+        loadi = load_func(xi, yi)
+        loadj = load_func(xj, yj)
+        loadk = load_func(xk, yk)
+        # if load covers entire triangle
+        if all([loadi, loadj, loadk]):
+            da = ((xj - xi) * (yk - yi) - (xk - xi) * (yj - yi)) / 2
             f[tri] += 1 / 3 * 1 * da
         # if load does not cover any part of triangle
         elif not any([loadi, loadj, loadk]):
@@ -473,13 +612,12 @@ def square_patch_f_vector(nodes, triangles, on_boundary, mlx, mly, px, py, plx, 
             da = ((xj - xi) * (yk - yi) - (xk - xi) * (yj - yi)) / 2  # area of triangle
             f[tri] += 1 / 3 * frac * da
 
-    f[on_boundary] = 0
-
+    # f[on_boundary] = 0
     return f
 
 
 @util.memoize
-def circular_patch_f_vector(nodes, triangles, on_boundary, mr, px, py, prmin, prmax, pthmin, pthmax):
+def circular_patch_avg_vector(nodes, triangles, on_boundary, mr, px, py, prmin, prmax, pthmin, pthmax):
     '''
     Load vector for a circular (polar) patch.
     '''
@@ -532,8 +670,7 @@ def circular_patch_f_vector(nodes, triangles, on_boundary, mr, px, py, prmin, pr
             da = ((xj - xi) * (yk - yi) - (xk - xi) * (yj - yi)) / 2  # area of triangle
             f[tri] += 1 / 3 * frac * da
 
-    f[on_boundary] = 0
-
+    # f[on_boundary] = 0
     return f
 
 
@@ -565,6 +702,38 @@ def f_from_abstract(array, refn):
                         pat.radius_min, pat.radius_max, pat.theta_min, pat.theta_max)
 
                 f[amesh.on_boundary,i] = 0
+            blocks.append(f)
+    
+    return sps.block_diag(blocks, format='csc')
+
+
+def avg_from_abstract(array, refn):
+    '''
+    Construct load vector based on patches of abstract array.
+    '''
+    blocks = []
+    for elem in array.elements:
+        for mem in elem.membranes:
+            if isinstance(mem, abstract.SquareCmutMembrane):
+                square = True
+                amesh = mesh.square(mem.length_x, mem.length_y, refn=refn)
+            elif isinstance(mem, abstract.CircularCmutMembrane):
+                square = False
+                amesh = mesh.circle(mem.radius, refn=refn)
+            else:
+                raise ValueError
+
+            f = np.zeros((len(amesh.vertices), len(mem.patches)))
+            for i, pat in enumerate(mem.patches):
+                if square:
+                    f[:,i] = square_patch_avg_vector(amesh.vertices, amesh.triangles, amesh.on_boundary,
+                        mem.length_x, mem.length_y, pat.position[0] - mem.position[0], 
+                        pat.position[1] - mem.position[1], pat.length_x, pat.length_y)
+                else:
+                    f[:,i] = circular_patch_avg_vector(amesh.vertices, amesh.triangles, amesh.on_boundary,
+                        mem.radius, pat.position[0] - mem.position[0], pat.position[1] - mem.position[1], 
+                        pat.radius_min, pat.radius_max, pat.theta_min, pat.theta_max)
+
             blocks.append(f)
     
     return sps.block_diag(blocks, format='csc')

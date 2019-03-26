@@ -49,6 +49,7 @@ def process(job):
 
     # create patch pressure loads
     F = fem.f_from_abstract(array, refn)
+    AVG = fem.avg_from_abstract(array, refn)
     mesh = Mesh.from_abstract(array, refn)
     ob = mesh.on_boundary
 
@@ -77,7 +78,8 @@ def process(job):
         # average displacement over patches
         # area = patches[sid].length_x * patches[sid].length_y
         # x_patch = (F.T).dot(x) / patches[sid].area
-        x_patch = (F.T).dot(x) / patch_areas
+        # x_patch = (F.T).dot(x) / patch_areas
+        x_patch = (AVG.T).dot(x) / patch_areas
 
         # write patch displacement results to frequency response database
         data = {}

@@ -27,31 +27,57 @@ def calc_es_correction(array, refn):
             g = mem.gap
             g_eff = mem.gap + mem.isolation / mem.permittivity
 
-            for pat in mem.patches:
+            # F = fem.mem_f_vector(amesh, 1)
+            F = np.array(fem.f_from_abstract(array, refn).todense())
+            # u = Kinv.dot(-F)
+            # unorm = u / np.max(np.abs(u))
+
+            for i, pat in enumerate(mem.patches):
                 if square:
-                    f = fem.square_patch_f_vector(amesh.vertices, amesh.triangles, amesh.on_boundary,
+                    avg = fem.square_patch_avg_vector(amesh.vertices, amesh.triangles, amesh.on_boundary,
                         mem.length_x, mem.length_y, pat.position[0] - mem.position[0], 
                         pat.position[1] - mem.position[1], pat.length_x, pat.length_y)
                 else:
-                    f = fem.circular_patch_f_vector(amesh.vertices, amesh.triangles, amesh.on_boundary,
+                    avg = fem.circular_patch_avg_vector(amesh.vertices, amesh.triangles, amesh.on_boundary,
                         mem.radius, pat.position[0] - mem.position[0], pat.position[1] - mem.position[1], 
                         pat.radius_min, pat.radius_max, pat.theta_min, pat.theta_max)
-                
-                u = Kinv.dot(-f)
+
+                u = Kinv.dot(-F[:,i])
                 unorm = u / np.max(np.abs(u))
 
                 d = np.linspace(0, 1, 11)
                 fc = []
                 uavg = []
+                fpp = []
                 for di in d:
-                    fc.append((-e_0 / 2 / (unorm * g * di + g_eff)**2).dot(f) / pat.area)
-                    uavg.append((unorm * g * di).dot(f) / pat.area)
-                
-                # fcorr.append((d, uavg, fc, fpp))
-                fcorr.append(interp1d(uavg, fc, kind='cubic', bounds_error=False, fill_value=(fc[-1], fc[0])))
+                    ubar = (unorm * g * di).dot(avg) / pat.area
+                    uavg.append(ubar)
+
+                    fc.append((-e_0 / 2 / (unorm * g * di + g_eff)**2).dot(avg) / pat.area)
+                    fpp.append(-e_0 / 2 / (ubar + g_eff)**2)
+
+                fcorr.append((d, unorm, uavg, fc, fpp))
+                # fcorr.append(interp1d(uavg, fc, kind='cubic', bounds_error=False, fill_value=(fc[-1], fc[0])))
 
     return fcorr
 
 
-array = abstract.load('square_membrane.json')
+array = abstract.load('circular_membrane.json')
 fcorr = calc_es_correction(array, refn=9)
+
+
+
+from matplotlib import pyplot as plt
+
+for i in [0, 4, 8]:
+
+    d, unorm, uavg, fc, fpp = fcorr[i]
+
+    fig, ax = plt.subplots()
+    ax.plot(uavg, fc)
+    ax.plot(uavg, fpp, '--')
+    fig.show()
+
+# amesh = mesh.Mesh.from_abstract(array, 9)
+# f1 = fem.mem_f_vector(amesh, 1)
+# f2 = fem.mem_f_vector2(amesh, 1)
