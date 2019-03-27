@@ -385,7 +385,7 @@ def mem_f_vector(amesh, p):
     nodes = amesh.vertices
     triangles = amesh.triangles
     triangle_areas = amesh.g / 2
-    # ob = amesh.on_boundary
+    ob = amesh.on_boundary
 
     f = np.zeros(len(nodes))
     for tt in range(len(triangles)):

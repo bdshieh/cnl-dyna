@@ -33,7 +33,7 @@ def fcomp_from_abstract(array, refn):
 
             # f = fem.mem_f_vector(amesh, 1)
             # u = Kinv.dot(-f)
-            # unorm = u / np.max(np.abs(u))
+            # unorm = (u / np.max(np.abs(u))).squeeze()
 
             for pat in mem.patches:
                 Kinvs.append(Kinv)
@@ -62,30 +62,31 @@ def fcomp_from_abstract(array, refn):
             fc.append((-e_0 / 2 / (x + g_eff)**2).dot(avg) / pat.area)
             fpp.append(-e_0 / 2 / (ubar * g * d + g_eff)**2)
 
-        for d in np.linspace(1.2, 3, 10):
-            x = unorm * g * d
-            x[x < -g] = -g
-            xbar = x.dot(avg) / pat.area
-            uavg.append(x.dot(avg) / pat.area)
-            fc.append((-e_0 / 2 / (x + g_eff)**2).dot(avg) / pat.area)
-            fpp.append(-e_0 / 2 / (xbar + g_eff)**2)
+        # for d in np.linspace(1.2, 3, 10):
+        #     x = unorm * g * d
+        #     x[x < -g] = -g
+        #     xbar = x.dot(avg) / pat.area
+        #     uavg.append(x.dot(avg) / pat.area)
+        #     fc.append((-e_0 / 2 / (x + g_eff)**2).dot(avg) / pat.area)
+        #     fpp.append(-e_0 / 2 / (xbar + g_eff)**2)
             
         # fcomp = interp1d(uavg, fc, kind='cubic', bounds_error=False, fill_value=(fc[-1], fc[0]))
-        fcomp = uavg, fc, fpp
+        fcomp = np.array(uavg).squeeze(), np.array(fc).squeeze(), np.array(fpp).squeeze()
         fcomps.append(fcomp)
 
     return fcomps
 
-# array = abstract.load('square_membrane.json')
-array = abstract.load('circular_membrane.json')
+array = abstract.load('square_membrane.json')
+# array = abstract.load('circular_membrane.json')
 fcorr = fcomp_from_abstract(array, refn=9)
 
 
 
 from matplotlib import pyplot as plt
+from scipy.interpolate import CubicSpline
 
-# for i in [4, 5, 8]:
-for i in [0, 4, 8]:
+for i in [4, 5, 8]:
+# for i in [0, 4, 8]:
 
     uavg, fc, fpp = fcorr[i]
 
@@ -93,3 +94,20 @@ for i in [0, 4, 8]:
     ax.plot(uavg, fc,'.-')
     ax.plot(uavg, fpp, '--')
     fig.show()
+
+uavg, fc, fpp = fcorr[4]
+
+uavg = np.append(uavg, -50e-9)
+mem = array.elements[0].membranes[0]
+g_eff = mem.gap + mem.isolation / mem.permittivity
+fc = np.append(fc, -e_0 / 2 / (-50e-9 + g_eff)**2)
+# fcomp = interp1d(uavg, fc, kind='cubic')
+fcomp = CubicSpline(uavg[::-1], fc[::-1], bc_type=((1, 0),'not-a-knot'))
+# fcomp = interp1d(uavg, fc, kind='cubic', bounds_error=False, fill_value='extrapolate')
+
+ui = np.linspace(-50e-9, 0, 100)
+
+fig, ax = plt.subplots()
+ax.plot(ui, fcomp(ui), '-')
+ax.plot(uavg, fc, '.')
+fig.show()
