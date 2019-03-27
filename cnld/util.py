@@ -14,6 +14,7 @@ from itertools import repeat
 import sqlite3 as sql
 import argparse
 from copy import deepcopy
+import functools
 from cnld import abstract
 
 
@@ -473,6 +474,7 @@ def memoize(func):
         return obj
 
     memo = {}
+    @functools.wraps(func)
     def decorator(*args, **kwargs):
         # key = tuple(make_hashable(a) for a in args)
         key = (tuple(make_hashable(a) for a in args), 

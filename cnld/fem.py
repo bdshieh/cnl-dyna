@@ -391,30 +391,9 @@ def mem_f_vector(amesh, p):
     for tt in range(len(triangles)):
         tri = triangles[tt,:]
         ap = triangle_areas[tt]
-        f[tri] += 1 / 3 * p * ap
-
-    ob = amesh.on_boundary
-    f[ob] = 0
-
-    return f
-
-
-@util.memoize    
-def mem_f_vector2(amesh, p):
-    '''
-    Pressure load vector based on equal distribution of pressure to element nodes.
-    '''
-    nodes = amesh.vertices
-    triangles = amesh.triangles
-    triangle_areas = amesh.g / 2
-    ob = amesh.on_boundary
-
-    f = np.zeros(len(nodes))
-    for tt in range(len(triangles)):
-        tri = triangles[tt,:]
-        ap = triangle_areas[tt]
         bfac = 1 * np.sum(~ob[tri])
         f[tri] += 1 / bfac * p * ap
+        # f[tri] += 1 / 3 * p * ap
 
     ob = amesh.on_boundary
     f[ob] = 0
