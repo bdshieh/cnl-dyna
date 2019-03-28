@@ -152,12 +152,14 @@ def kramers_kronig(s, axis=-1):
     return np.real(s) - 1j * np.imag(hilbert(np.real(s), axis=axis))
 
 
-def fft_to_fir(f, s, axis=-1):
+def fft_to_fir(f, s, use_kkr=True, axis=-1):
     '''
     Convert a one-sided FFT to an impulse response representing a causaul LTI system.
     '''
     f2s, s2s = one_to_two(f, s, axis=axis, odd=True)
-    s2s = kramers_kronig(s2s, axis=axis)
+
+    if use_kkr:
+        s2s = kramers_kronig(s2s, axis=axis)
 
     df = f[1] - f[0]
     nfft = len(f2s)
