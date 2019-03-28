@@ -56,11 +56,11 @@ def z_linear_operators(array, f, c, refn, rho=1000., *args, **kwargs):
     return linop, linop_inv
 
 
-def pressurefd(amesh, disp, r, k, c, gn=2):
+def pressurefd(amesh, disp, r, k, c, rho, gn=2):
     '''
     '''
     kernel = helmholtz_kernel
-    nodes = amesh.nodes
+    nodes = amesh.vertices
     triangles = amesh.triangles
     triangle_areas = amesh.triangle_areas
 
@@ -99,7 +99,7 @@ def pressurefd(amesh, disp, r, k, c, gn=2):
 
 def calc_patch_sir(array, refn, dbfile, r, c):
 
-    freqs, disp_from_patches = frequency_response.read_db(dbfile)
+    freqs, disp_from_patches = database.read_db(dbfile)
     amesh = mesh.Mesh.from_abstract(array, refn)
     patches = abstract.get_patches_from_array(array)
 
@@ -127,12 +127,6 @@ def pressure_from_abstract_and_db(array, refn, dbfile, time, ppres, r):
     patches = abstract.get_patches_from_array(array)
     amesh = mesh.Mesh.from_abstract(array, refn)
 
-    ff
-    
-
-
-
-    pass
 
 
 
@@ -150,9 +144,9 @@ def gauss_quadrature(n, type=1):
         return [[1/3, 1/3]], [1,]
     elif n == 2:
         if type == 1:
-            return = [[1/6, 1/6], [2/3, 1/6], [1/6, 2/3]], [1/3, 1/3, 1/3]
+            return [[1/6, 1/6], [2/3, 1/6], [1/6, 2/3]], [1/3, 1/3, 1/3]
         elif type == 2:
-            return = [[0, 1/2], [1/2, 0], [1/2, 1/2]], [1/3, 1/3, 1/3]
+            return [[0, 1/2], [1/2, 0], [1/2, 1/2]], [1/3, 1/3, 1/3]
     elif n == 3:
         if type == 1:
             return [[1/3, 1/3], [1/5, 3/5], [1/5, 1/5], [3/5, 1/5]] ,[-27/48, 25/48, 25/48, 25/48]

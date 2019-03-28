@@ -8,6 +8,7 @@ scripts = {}
 scripts['matrix'] = 'cnld.arrays.matrix'
 scripts['freq-resp-db'] = 'cnld.scripts.freq_resp_db'
 scripts['imp-resp-db'] = 'cnld.scripts.imp_resp_db'
+scripts['gen-db'] = 'cnld.scripts.gen_db'
 
 # define parser
 parser = argparse.ArgumentParser()
