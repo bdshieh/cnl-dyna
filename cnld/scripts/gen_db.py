@@ -118,7 +118,7 @@ def postprocess(file):
 
     # postprocess and convert frequency response to impulse response
     freqs, ppfr = database.read_patch_to_patch_freq_resp(file)
-    t, ppir = impulse_response.fft_to_fir(freqs, ppfr, axis=-1)
+    t, ppir = impulse_response.fft_to_fir(freqs, ppfr, axis=-1, use_kkr=False)
     source_patches, dest_patches, times = np.meshgrid(np.arange(ppir.shape[0]), 
         np.arange(ppir.shape[1]), t, indexing='ij')
 

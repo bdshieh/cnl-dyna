@@ -8,7 +8,7 @@ from scipy.interpolate import interp1d
 import warnings
 import numpy.linalg
 
-from cnld import abstract, fem, mesh, impulse_response, compensation
+from cnld import abstract, fem, mesh, impulse_response, compensation, database
 
 
 # @util.memoize
@@ -123,7 +123,8 @@ class CompensatingFixedStepSolver:
     def from_array_and_db(cls, array, refn, dbfile, v_t, v, t_start, t_stop, atol=1e-10, maxiter=5):
 
         # read fir database
-        fir_t, fir = impulse_response.read_db(dbfile)
+        # fir_t, fir = impulse_response.read_db(dbfile)
+        fir_t, fir = database.read_patch_to_patch_imp_resp(dbfile)
 
         # create gaps and gaps eff
         gaps = []
@@ -275,7 +276,8 @@ class FixedStepSolver:
     def from_array_and_db(cls, array, dbfile, v_t, v, t_start, t_stop, atol=1e-10, maxiter=5):
     # def from_array_and_db(cls, array, refn, dbfile, v_t, v, t_start, t_stop, atol=1e-10, maxiter=5):
         # read fir database
-        fir_t, fir = impulse_response.read_db(dbfile)
+        # fir_t, fir = impulse_response.read_db(dbfile)
+        fir_t, fir = database.read_patch_to_patch_imp_resp(dbfile)
 
         # create gaps and gaps eff
         gaps = []

@@ -134,7 +134,7 @@ def helmholtz_kernel(k, x1, y1, z1, x2, y2, z2):
     '''
     '''
     r = np.sqrt((x2 - x1)**2 + (y2 - y1)**2 + (z2 - z1)**2)
-    return np.exp(1j * k * r) / r
+    return np.exp(-1j * k * r) / r
 
 
 def gauss_quadrature(n, type=1):
