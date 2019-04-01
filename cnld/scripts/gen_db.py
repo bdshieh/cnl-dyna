@@ -114,11 +114,11 @@ def run_process(*args, **kwargs):
         raise Exception("".join(traceback.format_exception(*sys.exc_info())))
 
 
-def postprocess(file):
+def postprocess(file, mult):
 
     # postprocess and convert frequency response to impulse response
     freqs, ppfr = database.read_patch_to_patch_freq_resp(file)
-    t, ppir = impulse_response.fft_to_fir(freqs, ppfr, axis=-1, use_kkr=False)
+    t, ppir = impulse_response.fft_to_fir(freqs, ppfr, mult=mult, axis=-1, use_kkr=True)
     source_patches, dest_patches, times = np.meshgrid(np.arange(ppir.shape[0]), 
         np.arange(ppir.shape[1]), t, indexing='ij')
 
@@ -196,7 +196,7 @@ def main(cfg, args):
         for r in tqdm(result, desc='Running', total=njobs, initial=ijob):
             pass
 
-        postprocess(file)
+        postprocess(file, cfg.interpolation_multiplier)
 
     except Exception as e:
         print(e)
@@ -207,7 +207,7 @@ def main(cfg, args):
 
 # define default configuration for this script
 _Config = {}
-_Config['freqs'] = 500e3, 10e6, 500e3
+_Config['freqs'] = 0, 10e6, 500e3
 _Config['sound_speed'] = 1500.
 _Config['fluid_rho'] = 1000.
 _Config['array_config'] = ''
@@ -224,6 +224,7 @@ _Config['rk'] = 0
 _Config['q_reg'] = 2
 _Config['q_sing'] = 4
 _Config['strict'] = True
+_Config['interpolation_multiplier'] = 5
 Config = abstract.register_type('Config', _Config)
 
 

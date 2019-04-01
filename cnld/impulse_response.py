@@ -5,6 +5,7 @@ import sqlite3 as sql
 import pandas as pd
 from scipy.signal import hilbert
 from scipy.fftpack import fft, ifft, fftshift, ifftshift, fftfreq
+from scipy.interpolate import interp1d
 
 from cnld import util
 
@@ -72,11 +73,6 @@ from cnld import util
 #         con.execute('CREATE INDEX time_index ON displacements (time)')
 #         con.execute('CREATE INDEX source_patch_index ON displacements (source_patch)')
 #         con.execute('CREATE INDEX dest_patch_index ON displacements (dest_patch)')
-
-
-
-
-
 
 
 def one_to_two(f, s, axis=-1, odd=False):
@@ -147,8 +143,7 @@ def kramers_kronig(f, s, axis=-1):
     for a causal LTI system.
     '''
     def func1d(s):
-        
-        mag = np.abs(s)
+        # mag = np.abs(s)
         phase = np.angle(s)
 
         # unwrap phase and estimate front delay
@@ -158,13 +153,20 @@ def kramers_kronig(f, s, axis=-1):
         
         # remove front delay
         h = s * np.exp(-1j * omg * tmin)
+        mag = np.abs(h)
 
         # calculate phase from log magnitude
-        a = -np.log(mag[1:])
-        phi = -np.imag(hilbert(a))
-        kkr = np.exp(-a - 1j * phi)
-        kkr = np.insert(kkr, 0, s[0]) * np.exp(1j * omg * tmin)
-        
+        if mag[0] == 0:
+            a = -np.log(mag[1:])
+            phi = -np.imag(hilbert(a))
+            kkr = np.exp(-a - 1j * phi)
+            kkr = np.insert(kkr, 0, h[0])
+        else:
+            a = -np.log(mag)
+            phi = -np.imag(hilbert(a))
+            kkr = np.exp(-a - 1j * phi)
+
+        kkr *= np.exp(1j * omg * tmin)
         return kkr
 
     omg = 2 * np.pi * f
@@ -179,6 +181,9 @@ def kramers_kronig(f, s, axis=-1):
 
 def interp_fft(f, s, mult, axis=-1):
 
+    if mult == 1:
+        return f, s
+
     fi = np.linspace(f[0], f[-1], (len(f) - 1) * mult + 1)
 
     mag = np.abs(s)
@@ -189,12 +194,12 @@ def interp_fft(f, s, mult, axis=-1):
     return fi, imag(fi) * np.exp(1j * iphase(fi))
 
 
-def fft_to_fir(f, s, use_kkr=True, axis=-1):
+def fft_to_fir(f, s, mult=1, use_kkr=True, axis=-1):
     '''
-    Convert a one-sided FFT to an impulse response representing a causaul LTI system.
+    Convert a one-sided FFT to an impulse response representing a delay causal LTI system.
     '''
-    
-    f2s, s2s = one_to_two(f, s, axis=axis, odd=True)
+    fi, si = interp_fft(f, s, mult=mult, axis=axis)
+    f2s, s2s = one_to_two(fi, si, axis=axis, odd=True)
 
     if use_kkr:
         s2s = kramers_kronig(f2s, s2s, axis=axis)

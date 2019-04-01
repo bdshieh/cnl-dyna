@@ -16,6 +16,7 @@ import argparse
 from copy import deepcopy
 import functools
 from cnld import abstract
+import os
 
 
 ''' GEOMETRY-RELATED FUNCTIONS '''
@@ -354,9 +355,11 @@ def open_db(f):
         if isinstance(firstarg, sql.Connection):
             return f(firstarg, *args, **kwargs)
         else:
-            with closing(sql.connect(firstarg)) as con:
-                return f(con, *args, **kwargs)
-
+            if os.path.isfile(firstarg):
+                with closing(sql.connect(firstarg)) as con:
+                    return f(con, *args, **kwargs)
+            else:
+                raise IOError
     return decorator
 
 

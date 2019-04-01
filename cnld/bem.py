@@ -9,6 +9,7 @@ from scipy.io import loadmat
 from . compressed_formats import ZHMatrix, ZFullMatrix, MbkSparseMatrix, MbkFullMatrix
 from . mesh import Mesh, square, circle
 from . import util
+from cnld import impulse_response, database, abstract
 
 
 @util.memoize
@@ -56,14 +57,28 @@ def z_linear_operators(array, f, c, refn, rho=1000., *args, **kwargs):
     return linop, linop_inv
 
 
-def pressure_from_abstract_and_db(array, refn, dbfile, time, ppres, r):
+def pressure_from_abstract_and_db(array, refn, db_file, r, c, rho, mult=5):
     '''
     '''
     # read database
-    freqs, disp_from_patches = impulse_response.read_db(dbfile)
+    freqs, pnfr, nodes = database.read_patch_to_node_freq_resp(db_file)
 
     patches = abstract.get_patches_from_array(array)
-    amesh = mesh.Mesh.from_abstract(array, refn)
+    amesh = Mesh.from_abstract(array, refn)
+
+    sfr = np.zeros((len(patches), len(freqs)), dtype=np.complex128)
+
+    for i, f in enumerate(freqs):
+        omg = 2 *np.pi * f
+        k = omg / c
+
+        for j in range(len(patches)):
+            disp = pnfr[j,:,i]
+            sfr[j,i] = pressurefd(amesh, disp, r, k, c, rho)
+
+    sir_t, sir = impulse_response.fft_to_fir(freqs, sfr, mult=mult, axis=1, use_kkr=False)
+
+    return sir_t, sir
 
 
 def gauss_quadrature(n, type=1):
