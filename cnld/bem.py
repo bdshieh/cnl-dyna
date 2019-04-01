@@ -56,8 +56,37 @@ def z_linear_operators(array, f, c, refn, rho=1000., *args, **kwargs):
     return linop, linop_inv
 
 
+def pressure_from_abstract_and_db(array, refn, dbfile, time, ppres, r):
+    '''
+    '''
+    # read database
+    freqs, disp_from_patches = impulse_response.read_db(dbfile)
+
+    patches = abstract.get_patches_from_array(array)
+    amesh = mesh.Mesh.from_abstract(array, refn)
+
+
+def gauss_quadrature(n, type=1):
+    '''
+    Gaussian quadrature rules for triangular element surface integrals.
+    '''
+    if n == 1:
+        return [[1/3, 1/3]], [1,]
+    elif n == 2:
+        if type == 1:
+            return [[1/6, 1/6], [2/3, 1/6], [1/6, 2/3]], [1/3, 1/3, 1/3]
+        elif type == 2:
+            return [[0, 1/2], [1/2, 0], [1/2, 1/2]], [1/3, 1/3, 1/3]
+    elif n == 3:
+        if type == 1:
+            return [[1/3, 1/3], [1/5, 3/5], [1/5, 1/5], [3/5, 1/5]] ,[-27/48, 25/48, 25/48, 25/48]
+        elif type == 2:
+            return [[1/3, 1/3], [2/15, 11/15], [2/15, 2/15], [11/15, 2/15]] ,[-27/48, 25/48, 25/48, 25/48]
+
+
 def pressurefd(amesh, disp, r, k, c, rho, gn=2):
     '''
+    Frequency-domain pressure calculation from surface mesh.
     '''
     kernel = helmholtz_kernel
     nodes = amesh.vertices
@@ -95,61 +124,12 @@ def pressurefd(amesh, disp, r, k, c, rho, gn=2):
         p *= da
 
     return -(k * c)**2 * rho * 2 * p
-    
-
-def calc_patch_sir(array, refn, dbfile, r, c):
-
-    freqs, disp_from_patches = database.read_db(dbfile)
-    amesh = mesh.Mesh.from_abstract(array, refn)
-    patches = abstract.get_patches_from_array(array)
-
-    sfr = np.zeros((len(freqs), len(patches)), dtype=np.complex128)
-
-    for i, f in enumerate(freqs):
-        omg = 2 *np.pi * f
-        k = omg / c
-
-        for j in range(len(patches)):
-            disp = disp_from_patches[j]
-            sfr[i, j] = pressurefd(amesh, disp, r, k, c)
-    
-    sir_t, sir = impulse_response.fft_to_fir(freqs, sfr, axis=0)
-
-    return sir_t, sir
-
-
-def pressure_from_abstract_and_db(array, refn, dbfile, time, ppres, r):
-    '''
-    '''
-    # read database
-    freqs, disp_from_patches = impulse_response.read_db(dbfile)
-
-    patches = abstract.get_patches_from_array(array)
-    amesh = mesh.Mesh.from_abstract(array, refn)
-
-
 
 
 def helmholtz_kernel(k, x1, y1, z1, x2, y2, z2):
     '''
+    Helmholtz kernel for acoustic waves.
     '''
     r = np.sqrt((x2 - x1)**2 + (y2 - y1)**2 + (z2 - z1)**2)
     return np.exp(-1j * k * r) / r
-
-
-def gauss_quadrature(n, type=1):
-    '''
-    '''
-    if n == 1:
-        return [[1/3, 1/3]], [1,]
-    elif n == 2:
-        if type == 1:
-            return [[1/6, 1/6], [2/3, 1/6], [1/6, 2/3]], [1/3, 1/3, 1/3]
-        elif type == 2:
-            return [[0, 1/2], [1/2, 0], [1/2, 1/2]], [1/3, 1/3, 1/3]
-    elif n == 3:
-        if type == 1:
-            return [[1/3, 1/3], [1/5, 3/5], [1/5, 1/5], [3/5, 1/5]] ,[-27/48, 25/48, 25/48, 25/48]
-        elif type == 2:
-            return [[1/3, 1/3], [2/15, 11/15], [2/15, 2/15], [11/15, 2/15]] ,[-27/48, 25/48, 25/48, 25/48]
 

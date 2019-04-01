@@ -223,7 +223,9 @@ def read_patch_to_node_freq_resp(con):
         
     source_patch_ids = np.unique(table['source_patch'].values)
     freqs = np.unique(table['frequency'].values)
-    nodes = np.array(table[table['source_patch'] == 0][table['frequency'] == freqs[0]][['x', 'y', 'z']])
+    select1 = table[table['source_patch'] == 0]
+    select2 = select1[select1['frequency'] == freqs[0]]
+    nodes = np.array(select2[['x', 'y', 'z']])
     
     nsource = len(source_patch_ids)
     nnodes = len(nodes)
