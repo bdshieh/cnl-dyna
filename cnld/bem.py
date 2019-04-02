@@ -57,7 +57,7 @@ def z_linear_operators(array, f, c, refn, rho=1000., *args, **kwargs):
     return linop, linop_inv
 
 
-def pressure_from_abstract_and_db(array, refn, db_file, r, c, rho, mult=5):
+def pressure_from_abstract_and_db(array, refn, db_file, r, c, rho, use_kkr=True, mult=5):
     '''
     '''
     # read database
@@ -76,7 +76,7 @@ def pressure_from_abstract_and_db(array, refn, db_file, r, c, rho, mult=5):
             disp = pnfr[j,:,i]
             sfr[j,i] = pressurefd(amesh, disp, r, k, c, rho)
 
-    sir_t, sir = impulse_response.fft_to_fir(freqs, sfr, mult=mult, axis=1, use_kkr=False)
+    sir_t, sir = impulse_response.fft_to_fir(freqs, sfr, mult=mult, axis=1, use_kkr=use_kkr)
 
     return sir_t, sir
 

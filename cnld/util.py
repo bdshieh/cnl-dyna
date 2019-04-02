@@ -355,11 +355,11 @@ def open_db(f):
         if isinstance(firstarg, sql.Connection):
             return f(firstarg, *args, **kwargs)
         else:
-            if os.path.isfile(firstarg):
-                with closing(sql.connect(firstarg)) as con:
-                    return f(con, *args, **kwargs)
-            else:
-                raise IOError
+            # if os.path.isfile(firstarg):
+            with closing(sql.connect(firstarg)) as con:
+                return f(con, *args, **kwargs)
+            # else:
+            #     raise IOError
     return decorator
 
 

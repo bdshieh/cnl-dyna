@@ -249,12 +249,12 @@ def _from_abstract(cls, array, refn=1, **kwargs):
                 # determine vertices which belong to each membrane
                 mem_x, mem_y, mem_z = mem.position
                 length_x, length_y = mem.length_x, mem.length_y
-                xmin = mem_x - length_x / 2  - 2 * eps
-                xmax = mem_x + length_x / 2 + 2 * eps
-                ymin = mem_y - length_y / 2 - 2 * eps
-                ymax = mem_y + length_y / 2 + 2 * eps
-                mask_x = np.logical_and(x >= xmin, x <= xmax)
-                mask_y = np.logical_and(y >= ymin, y <= ymax)
+                xmin = mem_x - length_x / 2  # - 2 * eps
+                xmax = mem_x + length_x / 2  # + 2 * eps
+                ymin = mem_y - length_y / 2  # - 2 * eps
+                ymax = mem_y + length_y / 2  # + 2 * eps
+                mask_x = np.logical_and(x >= xmin - 2 * eps, x <= xmax + 2 * eps)
+                mask_y = np.logical_and(y >= ymin - 2 * eps, y <= ymax + 2 * eps)
                 mem_mask = np.logical_and(mask_x, mask_y)
                 membrane_ids[mem_mask] = mem.id
                 element_ids[mem_mask] = elem.id
@@ -265,6 +265,7 @@ def _from_abstract(cls, array, refn=1, **kwargs):
                 mask3 = np.abs(y[mem_mask] - ymin) <= 2 * eps
                 mask4 = np.abs(y[mem_mask] - ymax) <= 2 * eps
                 mesh.on_boundary[mem_mask] = np.any(np.c_[mask1, mask2, mask3, mask4], axis=1)
+
             elif isinstance(mem, abstract.CircularCmutMembrane):
                 # determine vertices which belong to each membrane
                 mem_x, mem_y, mem_z = mem.position
@@ -279,6 +280,7 @@ def _from_abstract(cls, array, refn=1, **kwargs):
                 mask1 = r[mem_mask] <= radius + 2 * eps
                 mask2 = r[mem_mask] >= radius - 2 * eps
                 mesh.on_boundary[mem_mask] = np.logical_and(mask1, mask2)
+
             else:
                 raise TypeError
 
@@ -502,10 +504,10 @@ def square(xl, yl, refn=1, type=1, center=(0,0,0)):
     mesh = Mesh.from_geometry(v, e, t, s)
 
     # check and flag boundary vertices
-    mask1 = np.abs(mesh.vertices[:,0] - center[0] + xl / 2) <= eps
-    mask2 = np.abs(mesh.vertices[:,0] - center[0] - xl / 2) <= eps
-    mask3 = np.abs(mesh.vertices[:,1] - center[1] + yl / 2) <= eps
-    mask4 = np.abs(mesh.vertices[:,1] - center[1] - yl / 2) <= eps
+    mask1 = np.abs(mesh.vertices[:,0] - center[0] + xl / 2) <= 2 * eps
+    mask2 = np.abs(mesh.vertices[:,0] - center[0] - xl / 2) <= 2 * eps
+    mask3 = np.abs(mesh.vertices[:,1] - center[1] + yl / 2) <= 2 * eps
+    mask4 = np.abs(mesh.vertices[:,1] - center[1] - yl / 2) <= 2 * eps
     mesh.on_boundary = np.any(np.c_[mask1, mask2, mask3, mask4], axis=1)
 
     return mesh
@@ -520,7 +522,7 @@ def circle(rl, refn=1, center=(0,0,0)):
 
     x, y, z = (mesh.vertices).T
     r = np.sqrt((x - center[0])**2 + (y - center[1])**2 + (z - center[2])**2)
-    mask = np.abs(r - rl) <= eps
+    mask = np.abs(r - rl) <= 2 * eps
     mesh.on_boundary = mask
     
     return mesh
