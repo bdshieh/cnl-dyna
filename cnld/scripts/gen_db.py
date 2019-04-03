@@ -37,9 +37,11 @@ def process(job):
     Gfe, _ = fem.mbk_from_abstract(array, f, refn)
 
     # create boundary element matrix
-    hmkwrds = ['aprx', 'basis', 'admis', 'eta', 'eps', 'm', 'clf', 'eps_aca', 'rk', 'q_reg', 'q_sing', 'strict']
+    hmkwrds = ['format', 'aprx', 'basis', 'admis', 'eta', 'eps', 'm', 'clf', 
+        'eps_aca', 'rk', 'q_reg', 'q_sing', 'strict']
     hmargs = { k:getattr(cfg, k) for k in hmkwrds }
-    Z = bem.z_from_abstract(array, k, refn, format='HFormat', **hmargs)
+    # Z = bem.z_from_abstract(array, k, refn, format='HFormat', **hmargs)
+    Z = bem.z_from_abstract(array, k, refn, **hmargs)
     omg = 2 * np.pi * f
     Gbe = -omg**2 * 2 * rho * Z
 
@@ -212,6 +214,7 @@ _Config['sound_speed'] = 1500.
 _Config['fluid_rho'] = 1000.
 _Config['array_config'] = ''
 _Config['mesh_refn'] = 9
+_Config['format'] = 'HFormat'
 _Config['aprx'] = 'paca'
 _Config['basis'] = 'linear'
 _Config['admis'] = '2'
@@ -222,7 +225,7 @@ _Config['clf'] = 16
 _Config['eps_aca'] = 1e-2
 _Config['rk'] = 0
 _Config['q_reg'] = 2
-_Config['q_sing'] = 4
+_Config['q_sing'] = 8
 _Config['strict'] = True
 _Config['interpolation_multiplier'] = 5
 Config = abstract.register_type('Config', _Config)

@@ -126,6 +126,7 @@ def pressurefd(amesh, disp, r, k, c, rho, gn=2):
 
         da = triangle_areas[tt]
 
+        ptri = 0j
         for (xi, eta), w in zip(gr, gw):
             
             xs = x1 * (1 - xi - eta) + x2 * xi + x3 * eta
@@ -134,9 +135,10 @@ def pressurefd(amesh, disp, r, k, c, rho, gn=2):
 
             u = u1 * (1 - xi - eta) + u2 * xi + u3 * eta
 
-            p += w * u * kernel(k, xs, ys, zs, x, y, z)
+            ptri += w * u * kernel(k, xs, ys, zs, x, y, z)
             
-        p *= da
+        ptri *= da
+        p += ptri
 
     return -(k * c)**2 * rho * 2 * p
 
@@ -146,5 +148,5 @@ def helmholtz_kernel(k, x1, y1, z1, x2, y2, z2):
     Helmholtz kernel for acoustic waves.
     '''
     r = np.sqrt((x2 - x1)**2 + (y2 - y1)**2 + (z2 - z1)**2)
-    return np.exp(-1j * k * r) / r
+    return np.exp(-1j * k * r) / (4 * np.pi * r)
 

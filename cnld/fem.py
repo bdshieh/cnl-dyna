@@ -37,7 +37,7 @@ def mem_k_matrix(amesh, E, h, eta):
     nodes = amesh.vertices
     triangles = amesh.triangles
     triangle_edges = amesh.triangle_edges
-    triangle_areas = amesh.g / 2
+    triangle_areas = amesh.triangle_areas
     ntriangles = len(triangles)
 
     # determine list of neighbors for each triangle
@@ -292,6 +292,7 @@ def mem_cm_matrix(amesh, rho, h):
     # get mesh information
     nodes = amesh.vertices
     triangles = amesh.triangles
+    triangle_areas = amesh.triangle_areas
 
     mass = sum([x * y for x, y in zip(rho, h)])
 
@@ -303,7 +304,8 @@ def mem_cm_matrix(amesh, rho, h):
         xj, yj = nodes[tri[1],:2]
         xk, yk = nodes[tri[2],:2]
 
-        da = ((xj - xi) * (yk - yi) - (xk - xi) * (yj - yi))
+        # da = ((xj - xi) * (yk - yi) - (xk - xi) * (yj - yi))
+        da = triangle_areas[tt]
         Mt = np.array([[1, 1 / 2, 1 / 2], [1 / 2, 1, 1 / 2], [1 / 2, 1 / 2, 1]]) / 12
         M[np.ix_(tri, tri)] += Mt * mass * da
 
@@ -407,6 +409,7 @@ def mem_f_vector_arb_load(amesh, load_func):
     '''
     nodes = amesh.vertices
     triangles = amesh.triangles
+    triangle_areas = amesh.triangle_areas
 
     f = np.zeros(len(nodes))
     for tt in range(len(triangles)):
@@ -422,7 +425,8 @@ def mem_f_vector_arb_load(amesh, load_func):
 
         integ, _ = dblquad(load_func_psi_eta, 0, 1, 0, lambda x: 1 - x, epsrel=1e-1, epsabs=1e-1)
         frac = integ / (1 / 2)  # fraction of triangle covered by load
-        da = ((xj - xi) * (yk - yi) - (xk - xi) * (yj - yi)) / 2  # area of triangle
+        # da = ((xj - xi) * (yk - yi) - (xk - xi) * (yj - yi)) / 2  # area of triangle
+        da = triangle_areas[tt]
         f[tri] += 1 / 3 * frac * da
 
     ob = amesh.on_boundary
