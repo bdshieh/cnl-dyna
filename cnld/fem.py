@@ -307,7 +307,7 @@ def mem_cm_matrix(amesh, rho, h):
         # da = ((xj - xi) * (yk - yi) - (xk - xi) * (yj - yi))
         da = triangle_areas[tt]
         Mt = np.array([[1, 1 / 2, 1 / 2], [1 / 2, 1, 1 / 2], [1 / 2, 1 / 2, 1]]) / 12
-        M[np.ix_(tri, tri)] += Mt * mass * da
+        M[np.ix_(tri, tri)] += 2 * Mt * mass * da
 
     ob = amesh.on_boundary
     M[ob,:] = 0
