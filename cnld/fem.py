@@ -4,13 +4,40 @@ import numpy as np
 from numpy.linalg import inv, eig
 from scipy import sparse as sps, linalg
 from scipy.integrate import dblquad
-from scipy.constants import epsilon_0
+from scipy.constants import epsilon_0 as e_0
 
 from cnld import util, abstract, mesh
 from cnld.compressed_formats import ZHMatrix, ZFullMatrix, MbkSparseMatrix, MbkFullMatrix
 
 
 eps = np.finfo(np.float64).eps
+
+
+@util.memoize
+def mem_static_disp(amesh, mem, vdc, atol=1e-10, maxiter=100):
+    '''
+    '''
+    def pes(v, x, g_eff):
+        return -e_0 / 2 * v ** 2 / (g_eff + x) ** 2
+
+    K = mem_k_matrix(amesh, mem.y_modulus, mem.thickness, mem.p_ratio)
+    g_eff = mem.gap + mem.isolation / mem.permittivity
+    F = mem_f_vector(amesh, 1)
+    Kinv = inv(K)
+    nnodes = K.shape[0]
+    x0 = np.zeros(nnodes)
+
+    for i in range(maxiter):
+        x0_new = Kinv.dot(F * pes(vdc, x0, g_eff))
+        
+        if np.max(np.abs(x0_new - x0)) < atol:
+            is_collapsed = False
+            return x0_new, is_collapsed
+        
+        x0 = x0_new
+
+    is_collapsed = True
+    return x0, is_collapsed
 
 
 @util.memoize
@@ -740,7 +767,7 @@ def mbk_from_abstract(array, f, refn):
             elif isinstance(mem, abstract.CircularCmutMembrane):
                 amesh = mesh.circle(mem.radius, refn=refn)
 
-            M = mem_m_matrix(amesh, mem.density, mem.thickness)
+            M = mem_m_matrix(amesh, mem.density, mem.thickness, mu=0.5)
             K = mem_k_matrix(amesh, mem.y_modulus, mem.thickness, mem.p_ratio)
             # K = mem_k_matrix_simply_supported(amesh, mem.y_modulus, mem.thickness, mem.p_ratio)
             B = mem_b_matrix_eig(amesh, M, K, mem.damping_mode_a, mem.damping_mode_b, 
