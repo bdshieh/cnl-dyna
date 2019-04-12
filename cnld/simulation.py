@@ -96,7 +96,7 @@ class CompensatingFixedStepSolver:
         self.npatch = fir.shape[0]
 
         # create voltage look up function
-        self._voltage = interp1d(v_t, v, axis=-1, fill_value=0, bounds_error=False)
+        self._voltagef = interp1d(v_t, v, axis=-1, fill_value=0, bounds_error=False)
 
         # create fir lookup
         self._fir = fir
@@ -111,7 +111,9 @@ class CompensatingFixedStepSolver:
         self._time = [t_start,]
         x0 = np.zeros(self.npatch)
         self._displacement = [x0,]
-        p0 = pressure_es2(self._voltage(t_start), x0, fcomp)
+        v0 = self._voltagef(t_start)
+        self._voltage = [v0,]
+        p0 = pressure_es2(self._voltagef(t_start), x0, fcomp)
         self._pressure = [p0,]
 
         # create other variables
@@ -149,6 +151,10 @@ class CompensatingFixedStepSolver:
     @property
     def pressure(self):
         return np.array(self._pressure)
+
+    @property
+    def voltage(self):
+        return np.array(self._voltage)
     
     @property
     def error(self):
@@ -165,7 +171,7 @@ class CompensatingFixedStepSolver:
         fs = 1 / self.min_step
 
         tn1 = tn + self.min_step
-        vn1 = self._voltage(tn1)
+        vn1 = self._voltagef(tn1)
         xn1 = self._check_gaps(firconvolve(self._fir, pn, fs, offset=1))
         pn1 = pressure_es2(vn1, xn1, self._fcomp)
 
@@ -181,11 +187,12 @@ class CompensatingFixedStepSolver:
 
         return xref, err
         
-    def _save_step(self, t, x, p):
+    def _save_step(self, t, x, p, v):
 
         self._time.append(t)
         self._displacement.append(x)
         self._pressure.append(p)
+        self._voltage.append(v)
     
     def _check_gaps(self, x):
         mask = x < -1 * self._gaps
@@ -195,7 +202,7 @@ class CompensatingFixedStepSolver:
     def step(self):
         
         tn1, xn1, pn1 = self._blind_step()
-        vn1 = self._voltage(tn1)
+        vn1 = self._voltagef(tn1)
         xr1, err = self._check_accuracy_of_step(xn1, pn1)
 
         i = 1
@@ -213,7 +220,7 @@ class CompensatingFixedStepSolver:
 
         xn1 = xr1
         pn1 = pressure_es2(vn1, xn1, self._fcomp)
-        self._save_step(tn1, xn1, pn1)
+        self._save_step(tn1, xn1, pn1, vn1)
 
     def solve(self):
 
@@ -229,7 +236,7 @@ class CompensatingFixedStepSolver:
         self._time = [t_start,]
         x0 = np.zeros(self.npatch)
         self._displacement = [x0,]
-        p0 = pressure_es2(self._voltage(t_start), x0, fcomp)
+        p0 = pressure_es2(self._voltagef(t_start), x0, fcomp)
         self._pressure = [p0,]
 
         # create other variables
@@ -248,7 +255,7 @@ class FixedStepSolver:
         self.npatch = fir.shape[0]
 
         # create voltage look up function
-        self._voltage = interp1d(v_t, v, axis=-1, fill_value=0, bounds_error=False)
+        self._voltagef = interp1d(v_t, v, axis=-1, fill_value=0, bounds_error=False)
 
         # create fir lookup
         self._fir = fir
@@ -263,8 +270,10 @@ class FixedStepSolver:
         self._time = [t_start,]
         x0 = np.zeros(self.npatch)
         self._displacement = [x0,]
-        # p0 = pressure_es2(self._voltage(t_start), x0, fcomp)
-        p0 = pressure_es(self._voltage(t_start), x0, gaps_eff)
+        v0 = self._voltagef(t_start)
+        self._voltage = [v0,]
+        # p0 = pressure_es2(self._voltagef(t_start), x0, fcomp)
+        p0 = pressure_es(self._voltagef(t_start), x0, gaps_eff)
         self._pressure = [p0,]
 
         # create other variables
@@ -274,9 +283,7 @@ class FixedStepSolver:
         
     @classmethod
     def from_array_and_db(cls, array, dbfile, v_t, v, t_start, t_stop, atol=1e-10, maxiter=5):
-    # def from_array_and_db(cls, array, refn, dbfile, v_t, v, t_start, t_stop, atol=1e-10, maxiter=5):
         # read fir database
-        # fir_t, fir = impulse_response.read_db(dbfile)
         fir_t, fir = database.read_patch_to_patch_imp_resp(dbfile)
 
         # create gaps and gaps eff
@@ -288,13 +295,15 @@ class FixedStepSolver:
                     gaps.append(mem.gap)
                     gaps_eff.append(mem.gap + mem.isolation / mem.permittivity)
         
-        # fcomp = calc_es_correction(array, refn)
-        # return cls(fir_t, fir, v_t, v, gaps, gaps_eff, t_start, t_stop, fcomp, atol, maxiter)
         return cls(fir_t, fir, v_t, v, gaps, gaps_eff, t_start, t_stop, atol, maxiter)
 
     @property
     def time(self):
         return np.array(self._time)
+
+    @property
+    def voltage(self):
+        return np.array(self._voltage)
     
     @property
     def displacement(self):
@@ -319,10 +328,9 @@ class FixedStepSolver:
         fs = 1 / self.min_step
 
         tn1 = tn + self.min_step
-        vn1 = self._voltage(tn1)
+        vn1 = self._voltagef(tn1)
         xn1 = self._check_gaps(firconvolve(self._fir, pn, fs, offset=1))
         pn1 = pressure_es(vn1, xn1, self._gaps_eff)
-        # pn1 = pressure_es2(vn1, xn1, self._fcomp)
 
         return tn1, xn1, pn1
         
@@ -336,11 +344,12 @@ class FixedStepSolver:
 
         return xref, err
         
-    def _save_step(self, t, x, p):
+    def _save_step(self, t, x, p, v):
 
         self._time.append(t)
         self._displacement.append(x)
         self._pressure.append(p)
+        self._voltage.append(v)
     
     def _check_gaps(self, x):
         mask = x < -1 * self._gaps
@@ -350,7 +359,7 @@ class FixedStepSolver:
     def step(self):
         
         tn1, xn1, pn1 = self._blind_step()
-        vn1 = self._voltage(tn1)
+        vn1 = self._voltagef(tn1)
         xr1, err = self._check_accuracy_of_step(xn1, pn1)
 
         i = 1
@@ -360,7 +369,6 @@ class FixedStepSolver:
 
             xn1 = xr1
             pn1 = pressure_es(vn1, xn1, self._gaps_eff)
-            # pn1 = pressure_es2(vn1, xn1, self._fcomp)
             xr1, err = self._check_accuracy_of_step(xn1, pn1)
             i += 1
 
@@ -369,8 +377,7 @@ class FixedStepSolver:
 
         xn1 = xr1
         pn1 = pressure_es(vn1, xn1, self._gaps_eff)
-        # pn1 = pressure_es2(vn1, xn1, self._fcomp)
-        self._save_step(tn1, xn1, pn1)
+        self._save_step(tn1, xn1, pn1, vn1)
 
     def solve(self):
 
@@ -386,8 +393,8 @@ class FixedStepSolver:
         self._time = [t_start,]
         x0 = np.zeros(self.npatch)
         self._displacement = [x0,]
-        p0 = pressure_es(self._voltage(t_start), x0, self._gaps_eff)
-        # p0 = pressure_es2(self._voltage(t_start), x0, fcomp)
+        p0 = pressure_es(self._voltagef(t_start), x0, self._gaps_eff)
+        # p0 = pressure_es2(self._voltagef(t_start), x0, fcomp)
         self._pressure = [p0,]
 
         # create other variables
@@ -404,7 +411,7 @@ class VariableStepSolver(FixedStepSolver):
         fs = 1 / self.min_step
 
         tnk = tn + self.min_step * k
-        vnk = self._voltage(tnk)
+        vnk = self._voltagef(tnk)
         xnk = self._check_gaps(firconvolve(self._fir, pn, fs, offset=k))
         pnk = pressure_es(vnk, xnk, self._gaps_eff)
 
@@ -430,7 +437,7 @@ class VariableStepSolver(FixedStepSolver):
             tt = tn + self.min_step * (i + 1)
 
             xt = self._check_gaps(fxi(tt))
-            vt = self._voltage(tt)
+            vt = self._voltagef(tt)
             pt = pressure_es(vt, xt, self._gaps_eff)
 
             t.append(tt)
@@ -458,7 +465,7 @@ class VariableStepSolver(FixedStepSolver):
     def stepk(self, k):
 
         tnk, xnk, pnk = self._blind_stepk(k)
-        vnk = self._voltage(tnk)
+        vnk = self._voltagef(tnk)
         ts, xs, ps = self._interpolate_states(k, tnk, xnk, pnk)
         xrk, err = self._check_accuracy_of_step(xs, ps)
 

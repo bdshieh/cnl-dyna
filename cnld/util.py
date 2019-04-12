@@ -489,6 +489,45 @@ def memoize(func):
     return decorator
 
 
+def memoize2(func, maxsize=20):
+    '''
+    Simple memoizer to cache repeated function calls.
+    '''
+    def ishashable(obj):
+        try:
+            hash(obj)
+        except TypeError:
+            return False
+        return True
+    
+    def make_hashable(obj):
+        if hasattr(obj, 'memoize'):
+            return obj.memoize()
+        if not ishashable(obj):
+            # use tostring on ndarray since str returns truncated output
+            if isinstance(obj, np.ndarray):
+                return obj.tostring()
+            return str(obj)
+        # round float arguments to avoid round-off error affecting cache
+        if isinstance(obj, float):
+            return round(obj, 18)
+        return obj
+
+    func.memo = {}
+    func.memosize = 0
+    @functools.wraps(func)
+    def decorator(*args, **kwargs):
+        # key = tuple(make_hashable(a) for a in args)
+        key = (tuple(make_hashable(a) for a in args), 
+            tuple((k, make_hashable(v)) for k, v in sorted(kwargs.items())))
+        if key not in func.memo:
+            func.memo[key] = func(*args, **kwargs)
+            func.memosize += 1
+        # return a deep copy to avoid issues with mutable return objects
+        return deepcopy(memo[key]) 
+    return decorator
+
+
 class Counter:
 
     def __init__(self):
