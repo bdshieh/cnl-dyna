@@ -174,6 +174,10 @@ class Mesh:
         plt.axis('equal')
         plt.show()
 
+    def _memoize():
+        return self.nvertices, self.triangles.tostring(), self.edges.tostring(), 
+            self.triangle_edges.tostring()
+
 
 def _from_abstract(cls, array, refn=1, **kwargs):
     '''

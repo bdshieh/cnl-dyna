@@ -501,8 +501,8 @@ def memoize2(func, maxsize=20):
         return True
     
     def make_hashable(obj):
-        if hasattr(obj, 'memoize'):
-            return obj.memoize()
+        if hasattr(obj, '_memoize'):
+            return obj._memoize()
         if not ishashable(obj):
             # use tostring on ndarray since str returns truncated output
             if isinstance(obj, np.ndarray):
@@ -521,8 +521,11 @@ def memoize2(func, maxsize=20):
         key = (tuple(make_hashable(a) for a in args), 
             tuple((k, make_hashable(v)) for k, v in sorted(kwargs.items())))
         if key not in func.memo:
-            func.memo[key] = func(*args, **kwargs)
-            func.memosize += 1
+            if len(func.memosize > maxsize):
+                return func(*args, **kwargs)
+            else:
+                func.memo[key] = func(*args, **kwargs)
+                func.memosize += 1
         # return a deep copy to avoid issues with mutable return objects
         return deepcopy(memo[key]) 
     return decorator
