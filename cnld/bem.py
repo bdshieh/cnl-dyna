@@ -1,44 +1,50 @@
-## bem.py ##
-
+'''
+'''
 import numpy as np
 import scipy as sp
-from matplotlib import pyplot as plt
 from scipy import sparse as sps, linalg
 from scipy.io import loadmat
+import cmath
 
-from . compressed_formats import ZHMatrix, ZFullMatrix, MbkSparseMatrix, MbkFullMatrix
-from . mesh import Mesh, square, circle
-from . import util
-from cnld import impulse_response, database, abstract
+from cnld.compressed_formats import ZHMatrix, ZFullMatrix
+from cnld import util, mesh, impulse_response, database, abstract
 
 
 @util.memoize
-def mem_z_matrix(mesh, k, *args, **kwargs):
-    return ZFullMatrix(mesh, k, *args, **kwargs).data
-
-
-def z_from_abstract(array, k, refn, format='HFormat', *args, **kwargs):
-    mesh = Mesh.from_abstract(array, refn)
-    return z_from_mesh(mesh, k, format, *args, **kwargs)
-
-
-def z_from_mesh(mesh, k, format='HFormat', *args, **kwargs):
-    if format.lower() in ['hformat', 'h']:
-        return ZHMatrix(mesh, k, *args, **kwargs)
+def mem_z_matrix(mem, refn, k, *args, **kwargs):
+    '''
+    '''
+    if isinstance(mem, abstract.SquareCmutMembrane):
+        amesh = mesh.square(mem.length_x, mem.length_y, refn)
     else:
-        return ZFullMatrix(mesh, k, *args, **kwargs)
+        amesh = mesh.circle(mem.radius, refn)
+
+    return np.array(ZFullMatrix(amesh, k, *args, **kwargs).data)
 
 
-def z_linear_operators(array, f, c, refn, rho=1000., *args, **kwargs):
+def array_z_matrix(array, refn, k, format='HFormat', *args, **kwargs):
+    '''
+    '''
+    amesh = mesh.Mesh.from_abstract(array, refn)
 
+    if format.lower() in ['hformat', 'h']:
+        return ZHMatrix(amesh, k, *args, **kwargs)
+    else:
+        return ZFullMatrix(amesh, k, *args, **kwargs)
+
+
+def z_linear_operators(array, refn, f, c, rho, *args, **kwargs):
+    '''
+    '''
     k = 2 * np.pi * f / c
     omg = 2 * np.pi * f
 
-    Z = z_from_abstract(array, k, refn, *args, **kwargs)
+    Z = array_z_matrix(array, refn, k, *args, **kwargs)
     Z_LU = Z.lu()
-    mesh = Mesh.from_abstract(array, refn=refn)
-    ob = mesh.on_boundary
-    nnodes = len(mesh.vertices)
+
+    amesh = mesh.Mesh.from_abstract(array, refn)
+    ob = amesh.on_boundary
+    nnodes = len(amesh.vertices)
 
     def mv(x):
         x[ob] = 0
@@ -55,31 +61,7 @@ def z_linear_operators(array, f, c, refn, rho=1000., *args, **kwargs):
     linop_inv = sps.linalg.LinearOperator((nnodes, nnodes), dtype=np.complex128, matvec=inv_mv)
     
     return linop, linop_inv
-
-
-def pressure_from_abstract_and_db(array, refn, db_file, r, c, rho, use_kkr=True, mult=5):
-    '''
-    '''
-    # read database
-    freqs, pnfr, nodes = database.read_patch_to_node_freq_resp(db_file)
-
-    patches = abstract.get_patches_from_array(array)
-    amesh = Mesh.from_abstract(array, refn)
-
-    sfr = np.zeros((len(patches), len(freqs)), dtype=np.complex128)
-
-    for i, f in enumerate(freqs):
-        omg = 2 *np.pi * f
-        k = omg / c
-
-        for j in range(len(patches)):
-            disp = pnfr[j,:,i]
-            sfr[j,i] = pressurefd(amesh, disp, r, k, c, rho)
-
-    sir_t, sir = impulse_response.fft_to_fir(freqs, sfr, mult=mult, axis=1, use_kkr=use_kkr)
-
-    return sir_t, sir
-
+    
 
 def gauss_quadrature(n, type=1):
     '''
@@ -99,12 +81,21 @@ def gauss_quadrature(n, type=1):
             return [[1/3, 1/3], [2/15, 11/15], [2/15, 2/15], [11/15, 2/15]] ,[-27/48, 25/48, 25/48, 25/48]
 
 
-def pressurefd(amesh, disp, r, k, c, rho, gn=2):
+def kernel_helmholtz(k, x1, y1, z1, x2, y2, z2):
     '''
-    Frequency-domain pressure calculation from surface mesh.
+    Helmholtz kernel for acoustic waves.
     '''
-    kernel = helmholtz_kernel
+    r = cmath.sqrt((x2 - x1)**2 + (y2 - y1)**2 + (z2 - z1)**2)
+    return cmath.exp(-1j * k * r) / (4 * cmath.pi * r)
+
+
+def mesh_pres_vector(amesh, r, k, c, rho, gn=2):
+    '''
+    Frequency-domain pressure calculation vector from surface mesh.
+    '''
+    kernel = kernel_helmholtz
     nodes = amesh.vertices
+    nnodes = len(nodes)
     triangles = amesh.triangles
     triangle_areas = amesh.triangle_areas
 
@@ -112,7 +103,7 @@ def pressurefd(amesh, disp, r, k, c, rho, gn=2):
 
     gr, gw = gauss_quadrature(gn)
 
-    p = 0
+    p = np.zeros(nnodes, dtype=np.complex128)
 
     for tt in range(len(triangles)):
         tri = triangles[tt,:]
@@ -120,33 +111,43 @@ def pressurefd(amesh, disp, r, k, c, rho, gn=2):
         x2, y2 = nodes[tri[1],:2]
         x3, y3 = nodes[tri[2],:2]
 
-        u1 = disp[tri[0]]
-        u2 = disp[tri[1]]
-        u3 = disp[tri[2]]
-
         da = triangle_areas[tt]
 
-        ptri = 0j
         for (xi, eta), w in zip(gr, gw):
             
             xs = x1 * (1 - xi - eta) + x2 * xi + x3 * eta
             ys = y1 * (1 - xi - eta) + y2 * xi + y3 * eta
             zs = 0
 
-            u = u1 * (1 - xi - eta) + u2 * xi + u3 * eta
-
-            ptri += w * u * kernel(k, xs, ys, zs, x, y, z)
-            
-        ptri *= da
-        p += ptri
+            cfac = w * kernel(k, xs, ys, zs, x, y, z) * da
+            p[tri[0]] += (1 - xi - eta) * cfac
+            p[tri[1]] += xi * cfac
+            p[tri[2]] += eta * cfac
 
     return -(k * c)**2 * rho * 2 * p
 
 
-def helmholtz_kernel(k, x1, y1, z1, x2, y2, z2):
+def array_patch_pres_imp_resp(array, refn, db_file, r, c, rho, use_kkr=False, mult=2):
     '''
-    Helmholtz kernel for acoustic waves.
     '''
-    r = np.sqrt((x2 - x1)**2 + (y2 - y1)**2 + (z2 - z1)**2)
-    return np.exp(-1j * k * r) / (4 * np.pi * r)
+    # read database
+    freqs, pnfr, nodes = database.read_patch_to_node_freq_resp(db_file)
 
+    patches = abstract.get_patches_from_array(array)
+    amesh = mesh.Mesh.from_abstract(array, refn)
+
+    sfr = np.zeros((len(patches), len(freqs)), dtype=np.complex128)
+
+    for i, f in enumerate(freqs):
+        omg = 2 *np.pi * f
+        k = omg / c
+
+        p_vector = mesh_pres_vector(amesh, r, k, c, rho)
+
+        for j in range(len(patches)):
+            disp = pnfr[j,:,i]
+            sfr[j,i] = p_vector.dot(disp)
+
+    sir_t, sir = impulse_response.fft_to_fir(freqs, sfr, mult=mult, axis=1, use_kkr=use_kkr)
+
+    return sir_t, sir

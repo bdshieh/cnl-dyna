@@ -454,7 +454,7 @@ def script_parser(main, config_def):
 
 ''' MISC FUNCTIONS '''
 
-def memoize(func):
+def memoize_old(func):
     '''
     Simple memoizer to cache repeated function calls.
     '''
@@ -489,7 +489,7 @@ def memoize(func):
     return decorator
 
 
-def memoize2(func, maxsize=20):
+def memoize(func, maxsize=20):
     '''
     Simple memoizer to cache repeated function calls.
     '''
@@ -514,20 +514,18 @@ def memoize2(func, maxsize=20):
         return obj
 
     func.memo = {}
-    func.memosize = 0
     @functools.wraps(func)
     def decorator(*args, **kwargs):
         # key = tuple(make_hashable(a) for a in args)
         key = (tuple(make_hashable(a) for a in args), 
             tuple((k, make_hashable(v)) for k, v in sorted(kwargs.items())))
         if key not in func.memo:
-            if len(func.memosize > maxsize):
+            if len(func.memo) > maxsize:
                 return func(*args, **kwargs)
             else:
                 func.memo[key] = func(*args, **kwargs)
-                func.memosize += 1
         # return a deep copy to avoid issues with mutable return objects
-        return deepcopy(memo[key]) 
+        return deepcopy(func.memo[key]) 
     return decorator
 
 

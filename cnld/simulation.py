@@ -23,32 +23,6 @@ from cnld import abstract, fem, mesh, impulse_response, compensation, database
 #     raise('Could not find collapse voltage')
 
 
-# @util.memoize
-# def mem_static_disp(mem, vdc, refn=7, atol=1e-10, maxiter=100):
-#     '''
-#     '''
-#     mem_mesh = mesh.square(mem.length_x, mem.length_y, refn)
-#     K = fem.mem_k_matrix(mem_mesh, mem.y_modulus, m.thickness, m.p_ratio)
-#     g_eff = mem.gap + mem.isol / mem.permittivity
-#     F = fem.mem_f_vector(mem_mesh, 1)
-
-#     nnodes = K.shape[0]
-#     x0 = np.zeros(nnodes)
-
-#     for i in range(maxiter):
-#         x0_new = Kinv.dot(F * pressure_es(vdc, x0, g_eff)).squeeze()
-        
-#         if np.max(np.abs(x0_new - x0)) < atol:
-#             is_collapsed = False
-#             return x0_new, is_collapsed
-        
-#         x0 = x0_new
-
-#     is_collapsed = True
-#     return x0, is_collapsed
-
-
-
 def pressure_es2(v, x, fc):
     '''
     '''

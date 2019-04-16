@@ -34,14 +34,14 @@ def process(job):
     refn = cfg.mesh_refn
 
     # create finite element matrix
-    Gfe = fem.array_mbk_spmatrix(array, refn, f)
+    Gfe, _ = fem.mbk_from_abstract(array, f, refn)
 
     # create boundary element matrix
     hmkwrds = ['format', 'aprx', 'basis', 'admis', 'eta', 'eps', 'm', 'clf', 
         'eps_aca', 'rk', 'q_reg', 'q_sing', 'strict']
     hmargs = { k:getattr(cfg, k) for k in hmkwrds }
     # Z = bem.z_from_abstract(array, k, refn, format='HFormat', **hmargs)
-    Z = bem.array_z_matrix(array, refn, k, **hmargs)
+    Z = bem.z_from_abstract(array, k, refn, **hmargs)
     omg = 2 * np.pi * f
     Gbe = -omg**2 * 2 * rho * Z
 
@@ -50,17 +50,18 @@ def process(job):
     Glu = G.lu()
 
     # create patch pressure loads
-    F = fem.array_f_spmatrix(array, refn)
-    AVG = fem.array_avg_spmatrix(array, refn)
+    F = fem.f_from_abstract(array, refn)
+    AVG = fem.avg_from_abstract(array, refn)
     mesh = Mesh.from_abstract(array, refn)
     ob = mesh.on_boundary
+
 
     # solve for each source patch
     npatch = abstract.get_patch_count(array)
     source_patch = np.arange(npatch)
     dest_patch = np.arange(npatch)
-    # patches = abstract.get_patches_from_array(array)
-    # patch_areas = np.array([p.area for p in patches])
+    patches = abstract.get_patches_from_array(array)
+    patch_areas = np.array([p.area for p in patches])
 
     for sid in source_patch:
         # get RHS
@@ -74,7 +75,7 @@ def process(job):
         x[ob] = 0
 
         # average displacement over patches
-        x_patch = (AVG.T).dot(x)
+        x_patch = (AVG.T).dot(x) / patch_areas
 
         # write patch displacement results to frequency response database
         data = {}
@@ -119,7 +120,7 @@ def postprocess(file, mult):
 
     # postprocess and convert frequency response to impulse response
     freqs, ppfr = database.read_patch_to_patch_freq_resp(file)
-    t, ppir = impulse_response.fft_to_fir(freqs, ppfr, mult=mult, axis=-1, use_kkr=False)
+    t, ppir = impulse_response.fft_to_fir(freqs, ppfr, mult=mult, axis=-1, use_kkr=True)
     source_patches, dest_patches, times = np.meshgrid(np.arange(ppir.shape[0]), 
         np.arange(ppir.shape[1]), t, indexing='ij')
 
@@ -208,7 +209,7 @@ def main(cfg, args):
 
 # define default configuration for this script
 _Config = {}
-_Config['freqs'] = 0, 50e6, 200e3
+_Config['freqs'] = 0, 10e6, 500e3
 _Config['sound_speed'] = 1500.
 _Config['fluid_rho'] = 1000.
 _Config['array_config'] = ''
@@ -217,14 +218,14 @@ _Config['format'] = 'HFormat'
 _Config['aprx'] = 'paca'
 _Config['basis'] = 'linear'
 _Config['admis'] = '2'
-_Config['eta'] = 1.2
+_Config['eta'] = 0.9
 _Config['eps'] = 1e-12
 _Config['m'] = 4
 _Config['clf'] = 16
 _Config['eps_aca'] = 1e-2
 _Config['rk'] = 0
 _Config['q_reg'] = 2
-_Config['q_sing'] = 4
+_Config['q_sing'] = 8
 _Config['strict'] = True
 _Config['interpolation_multiplier'] = 2
 Config = abstract.register_type('Config', _Config)

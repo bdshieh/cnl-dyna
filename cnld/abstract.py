@@ -96,6 +96,14 @@ def _copy(self):
         return cls(**obj)
 
 
+def _memoize(self):
+    d = self._asdict()
+    for key in self._memoize_excl:
+        if key in d:
+            d.pop(key)
+    return json.dumps(d)
+
+
 def dump(obj, fp, indent=1, mode='w+', *args, **kwargs):
     ''''''
     json.dump(_generate_dict_with_name_attr(obj), open(fp, mode), indent=indent, *args, **kwargs)
@@ -116,15 +124,21 @@ def loads(s, *args, **kwargs):
     return _generate_object_from_json(json.loads(s, *args, **kwargs))
 
 
-def register_type(*args, **kwargs):
+def register_type(*args, excl=None, **kwargs):
     '''
     '''
+    if excl is None:
+        excl = []
+
     cls = namedlist(*args, **kwargs)
     cls.__repr__ = _repr
     cls.__str__ = _str
     cls.__contains__ = _contains
     cls.__copy__ = _copy
     cls.copy = copy
+    cls._memoize = _memoize
+    cls._memoize_excl = excl
+
     return cls
 
 
@@ -174,13 +188,14 @@ _SquareCmutMembrane['y_modulus'] = (110e9,)
 _SquareCmutMembrane['p_ratio'] = (0.22,)
 _SquareCmutMembrane['isolation'] = 200e-9
 _SquareCmutMembrane['permittivity'] = 6.3
-_SquareCmutMembrane['gap'] = 100e-9
+_SquareCmutMembrane['gap'] = 50e-9
 _SquareCmutMembrane['damping_mode_a'] = 0
 _SquareCmutMembrane['damping_mode_b'] = 4
-_SquareCmutMembrane['damping_ratio_a'] = 0.004
-_SquareCmutMembrane['damping_ratio_b'] = 0.004
+_SquareCmutMembrane['damping_ratio_a'] = 0.0
+_SquareCmutMembrane['damping_ratio_b'] = 0.0
 _SquareCmutMembrane['patches'] = FACTORY(list)
-SquareCmutMembrane = register_type('SquareCmutMembrane', _SquareCmutMembrane)
+SquareCmutMembrane = register_type('SquareCmutMembrane', _SquareCmutMembrane, 
+    excl=['id', 'position', 'patches'])
 
 _CircularCmutMembrane = OrderedDict()
 _CircularCmutMembrane['id'] = None
@@ -193,13 +208,14 @@ _CircularCmutMembrane['y_modulus'] = (110e9,)
 _CircularCmutMembrane['p_ratio'] = (0.22,)
 _CircularCmutMembrane['isolation'] = 200e-9
 _CircularCmutMembrane['permittivity'] = 6.3
-_CircularCmutMembrane['gap'] = 100e-9
+_CircularCmutMembrane['gap'] = 50e-9
 _CircularCmutMembrane['damping_mode_a'] = 0
 _CircularCmutMembrane['damping_mode_b'] = 4
-_CircularCmutMembrane['damping_ratio_a'] = 0.004
-_CircularCmutMembrane['damping_ratio_b'] = 0.004
+_CircularCmutMembrane['damping_ratio_a'] = 0.0
+_CircularCmutMembrane['damping_ratio_b'] = 0.0
 _CircularCmutMembrane['patches'] = FACTORY(list)
-CircularCmutMembrane = register_type('CircularCmutMembrane', _CircularCmutMembrane)
+CircularCmutMembrane = register_type('CircularCmutMembrane', _CircularCmutMembrane, 
+    excl=['id', 'position', 'patches'])
 
 _Patch = OrderedDict()
 _Patch['id'] = None

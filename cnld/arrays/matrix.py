@@ -174,14 +174,14 @@ _Config['permittivity'] = 6.3
 _Config['gap'] = 50e-9
 _Config['damping_mode_a'] = 0
 _Config['damping_mode_b'] = 4
-_Config['damping_ratio_a'] = 0.004
-_Config['damping_ratio_b'] = 0.005
+_Config['damping_ratio_a'] = 0.0
+_Config['damping_ratio_b'] = 0.0
 _Config['npatch'] = [3, 3]
 # array properties
 _Config['mempitch'] = [60e-6, 60e-6]
 _Config['nmem'] = [1, 1]
 _Config['elempitch'] = [60e-6, 60e-6]
-_Config['nelem'] = [5, 5]
+_Config['nelem'] = [2, 2]
 Config = register_type('Config', _Config)
 
 
