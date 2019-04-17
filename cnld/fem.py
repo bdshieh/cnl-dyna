@@ -379,9 +379,9 @@ def mem_patch_f_matrix(mem, refn):
     Load vector for a patch.
     '''
     if isinstance(mem, abstract.SquareCmutMembrane):
-        amesh = mesh.square(mem.length_x, mem.length_y, refn)
+        amesh = mesh.square(mem.length_x, mem.length_y, refn, center=mem.position)
     else:
-        amesh = mesh.circle(mem.radius, refn)
+        amesh = mesh.circle(mem.radius, refn, center=mem.position)
 
     nodes = amesh.vertices
     triangles = amesh.triangles
@@ -390,6 +390,7 @@ def mem_patch_f_matrix(mem, refn):
 
     f = []
     for pat in mem.patches:
+
         if isinstance(mem, abstract.SquareCmutMembrane):
 
             px, py, pz = pat.position
@@ -476,9 +477,9 @@ def mem_patch_avg_matrix(mem, refn):
     Load vector for a patch.
     '''
     if isinstance(mem, abstract.SquareCmutMembrane):
-        amesh = mesh.square(mem.length_x, mem.length_y, refn)
+        amesh = mesh.square(mem.length_x, mem.length_y, refn, center=mem.position)
     else:
-        amesh = mesh.circle(mem.radius, refn)
+        amesh = mesh.circle(mem.radius, refn, center=mem.position)
 
     nodes = amesh.vertices
     triangles = amesh.triangles

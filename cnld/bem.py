@@ -148,6 +148,6 @@ def array_patch_pres_imp_resp(array, refn, db_file, r, c, rho, use_kkr=False, mu
             disp = pnfr[j,:,i]
             sfr[j,i] = p_vector.dot(disp)
 
-    sir_t, sir = impulse_response.fft_to_fir(freqs, sfr, mult=mult, axis=1, use_kkr=use_kkr)
+    sir_t, sir = impulse_response.fft_to_sir(freqs, sfr, mult=mult, axis=1, use_kkr=use_kkr)
 
     return sir_t, sir

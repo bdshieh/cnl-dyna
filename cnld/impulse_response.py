@@ -114,6 +114,48 @@ def kramers_kronig(f, s, axis=-1):
     return np.apply_along_axis(func1d, axis, s)
 
 
+def kramers_kronig2(f, s, axis=-1):
+    '''
+    '''
+    def func1d(s):
+        re = np.real(s)
+        im = -np.imag(hilbert(re))
+        return re + 1j * im
+    
+    return np.apply_along_axis(func1d, axis, s)
+
+
+def kramers_kronig3(f, s, axis=-1):
+    '''
+    '''
+    def func1d(s):
+    
+        phase = np.angle(s)
+
+        # unwrap phase and estimate front delay
+        fd = np.unwrap(phase) / _omg
+        fd[np.isnan(fd)] = np.inf
+        tmin = np.round(np.min(fd) * fs) / fs
+        
+        # remove front delay
+        h = s * np.exp(-1j * omg * tmin)
+        re = np.real(h)
+        im = -np.imag(hilbert(re))
+        kkr = re + 1j * im
+
+        kkr *= np.exp(1j * omg * tmin)
+        return kkr
+
+    omg = 2 * np.pi * f
+    _omg = omg.copy()
+    _omg[_omg == 0] = np.nan
+
+    df = f[1] - f[0]
+    fs = df * len(f) 
+    
+    return np.apply_along_axis(func1d, axis, s)
+
+
 def interp_fft(f, s, mult, axis=-1):
 
     if mult == 1:
@@ -137,7 +179,25 @@ def fft_to_fir(f, s, mult=1, use_kkr=True, axis=-1):
     f2s, s2s = one_to_two(fi, si, axis=axis, odd=True)
 
     if use_kkr:
-        s2s = kramers_kronig(f2s, s2s, axis=axis)
+        s2s = kramers_kronig2(f2s, s2s, axis=axis)
+
+    df = f2s[1] - f2s[0]
+    nfft = len(f2s)
+    fs = df * nfft
+    t = np.arange(nfft) / fs
+    return t, np.real(ifft(s2s, axis=axis)) * fs
+
+
+def fft_to_sir(f, s, mult=1, use_kkr=True, axis=-1):
+    '''
+    Convert a one-sided FFT to an impulse response representing a delay causal LTI system.
+    '''
+    fi, si = interp_fft(f, s, mult=mult, axis=axis)
+    f2s, s2s = one_to_two(fi, si, axis=axis, odd=True)
+
+    if use_kkr:
+        # s2s = kramers_kronig3(f2s, s2s, axis=axis)
+        s2s = kramers_kronig2(f2s, s2s, axis=axis)
 
     df = f2s[1] - f2s[0]
     nfft = len(f2s)

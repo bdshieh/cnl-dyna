@@ -44,8 +44,8 @@ from cnld import abstract, mesh, fem, util
 
 def fcomp_from_abstract(array, refn):
 
-    F = fem.f_from_abstract(array, refn)
-    AVG = fem.avg_from_abstract(array, refn)
+    F = fem.array_f_spmatrix(array, refn)
+    AVG = fem.array_avg_spmatrix(array, refn)
 
     patches = abstract.get_patches_from_array(array)
 
@@ -54,14 +54,15 @@ def fcomp_from_abstract(array, refn):
     Kinvs = []
     for elem in array.elements:
         for mem in elem.membranes:
-            if isinstance(mem, abstract.SquareCmutMembrane):
-                square = True
-                amesh = mesh.square(mem.length_x, mem.length_y, refn=refn)
-            elif isinstance(mem, abstract.CircularCmutMembrane):
-                square = False
-                amesh = mesh.circle(mem.radius, refn=refn)
+            # if isinstance(mem, abstract.SquareCmutMembrane):
+            #     square = True
+            #     amesh = mesh.square(mem.length_x, mem.length_y, refn=refn)
+            # elif isinstance(mem, abstract.CircularCmutMembrane):
+            #     square = False
+            #     amesh = mesh.circle(mem.radius, refn=refn)
 
-            K = fem.mem_k_matrix(amesh, mem.y_modulus, mem.thickness, mem.p_ratio)
+            # K = fem.mem_k_matrix(amesh, mem.y_modulus, mem.thickness, mem.p_ratio)
+            K = fem.mem_k_matrix(mem, refn)
             Kinv = np.linalg.inv(K)
 
             # f = fem.mem_f_vector(amesh, 1)
@@ -84,7 +85,7 @@ def fcomp_from_abstract(array, refn):
 
         u = Kinv.dot(-f)
         unorm = (u / np.max(np.abs(u))).squeeze()
-        ubar = unorm.dot(avg) / pat.area
+        ubar = unorm.dot(avg) 
 
         fc = np.zeros(11)
         uavg = np.zeros(11)
@@ -92,7 +93,7 @@ def fcomp_from_abstract(array, refn):
         for i, d in enumerate(np.linspace(0, 1, 11)):
             uavg[i] = ubar * g * d
             x = unorm * g * d
-            fc[i] = (-e_0 / 2 / (x + g_eff)**2).dot(avg) / pat.area
+            fc[i] = (-e_0 / 2 / (x + g_eff)**2).dot(avg)
 
         uavg = np.append(uavg, -g)
         fc = np.append(fc, -e_0 / 2 / (-g + g_eff)**2)
