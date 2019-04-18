@@ -30,16 +30,56 @@ from cnld import abstract, mesh, fem, util
 
 #     fcomp = interp1d(uavg, fc, kind='cubic', bounds_error=False, fill_value=(fc[-1], fc[0]))
 
+@util.memoize
+def mem_patch_fcomp_funcs(mem, refn):
+    '''
+    '''
+    f = fem.mem_patch_f_matrix(mem, refn)
+    avg = fem.mem_patch_avg_matrix(mem, refn)
 
-# @util.memoize
-# def mem_static_x(amesh, E, h, eta, p):
+    K = fem.mem_k_matrix(mem, refn)
+    Kinv = fem.inv_block(Kinv)
 
-#     K = fem.mem_k_matrix(amesh, E, h, eta)
-#     Kinv = np.linalg.inv(K)
-#     f = fem.mem_f_vector(amesh, p)
+    g = mem.gap
+    g_eff = mem.gap + mem.isolation / mem.permittivity
 
-#     x = Kinv.dot(f)
-#     return x
+    u = Kinv.dot(-np.sum(f, axis=1)).squeeze()
+    unorm = u / np.max(np.abs(u))
+    
+    fcomps = []
+
+    for i, pat in enumerate(mem.patches):
+
+        avg_pat = avg[:,i]
+
+        u_pat = unorm.dot(avg)
+
+        fc = np.zeros(11)
+        uavg = np.zeros(11)
+
+        for i, d in enumerate(np.linspace(-1, 1, 11)):
+            uavg[i] = u_pat * g * d
+            x = unorm * g * d
+            fc[i] = (-e_0 / 2 / (x + g_eff)**2).dot(avg)
+
+        uavg = np.append(uavg, -g)
+        fc = np.append(fc, -e_0 / 2 / (-g + g_eff)**2)
+
+        fcomp = CubicSpline(uavg[::-1], fc[::-1], bc_type=((1, 0),'not-a-knot'))
+        fcomps.append(fcomp)
+    
+    return fcomps
+
+
+def array_patch_fcomp_funcs(array, refn):
+    '''
+    '''
+    fcomps = []
+    for elem in array.elements:
+        for mem in elem.membranes:
+            fcomps += mem_patch_fcomp_funcs(mem, refn)
+            
+    return fcomps
 
 
 def fcomp_from_abstract(array, refn):

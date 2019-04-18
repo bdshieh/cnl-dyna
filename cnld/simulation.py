@@ -111,7 +111,9 @@ class CompensatingFixedStepSolver:
                     gaps.append(mem.gap)
                     gaps_eff.append(mem.gap + mem.isolation / mem.permittivity)
         
-        fcomp = compensation.fcomp_from_abstract(array, refn)
+        # fcomp = compensation.fcomp_from_abstract(array, refn)
+        fcomp = compensation.array_patch_fcomp_funcs(array, refn)
+        
         return cls(fir_t, fir, v_t, v, gaps, gaps_eff, t_start, t_stop, fcomp, atol, maxiter)
 
     @property
