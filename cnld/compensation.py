@@ -9,27 +9,6 @@ import numpy.linalg
 from cnld import abstract, mesh, fem, util
 
 
-# @util.memoize
-# def patch_fcomp(patch):
-
-#     f = fem.square_patch_f_vector(amesh.vertices, amesh.triangles, amesh.on_boundary,
-#             mem.length_x, mem.length_y, pat.position[0] - mem.position[0], 
-#             pat.position[1] - mem.position[1], pat.length_x, pat.length_y)
-#     avg = fem.square_patch_avg_vector()
-
-#     u = Kinv.dot(-f)
-#     unorm = u / np.max(np.abs(u))
-
-#     d = np.linspace(0, 1, 11)
-#     fc = []
-#     uavg = []
-#     for di in d:
-#         ubar = (unorm * g * di).dot(avg) / pat.area
-#         uavg.append(ubar)
-#         fc.append((-e_0 / 2 / (unorm * g * di + g_eff)**2).dot(avg) / pat.area)
-
-#     fcomp = interp1d(uavg, fc, kind='cubic', bounds_error=False, fill_value=(fc[-1], fc[0]))
-
 @util.memoize
 def mem_patch_fcomp_funcs(mem, refn):
     '''
@@ -38,7 +17,7 @@ def mem_patch_fcomp_funcs(mem, refn):
     avg = fem.mem_patch_avg_matrix(mem, refn)
 
     K = fem.mem_k_matrix(mem, refn)
-    Kinv = fem.inv_block(Kinv)
+    Kinv = fem.inv_block(K)
 
     g = mem.gap
     g_eff = mem.gap + mem.isolation / mem.permittivity
@@ -52,7 +31,7 @@ def mem_patch_fcomp_funcs(mem, refn):
 
         avg_pat = avg[:,i]
 
-        u_pat = unorm.dot(avg)
+        u_pat = unorm.dot(avg_pat)
 
         fc = np.zeros(11)
         uavg = np.zeros(11)
@@ -60,7 +39,7 @@ def mem_patch_fcomp_funcs(mem, refn):
         for i, d in enumerate(np.linspace(-1, 1, 11)):
             uavg[i] = u_pat * g * d
             x = unorm * g * d
-            fc[i] = (-e_0 / 2 / (x + g_eff)**2).dot(avg)
+            fc[i] = (-e_0 / 2 / (x + g_eff)**2).dot(avg_pat)
 
         uavg = np.append(uavg, -g)
         fc = np.append(fc, -e_0 / 2 / (-g + g_eff)**2)

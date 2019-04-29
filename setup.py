@@ -6,7 +6,7 @@ from setuptools.extension import Extension
 from Cython.Build import cythonize
 import os
 
-# import numpy as np
+import numpy as np
 
 if os.name == 'nt':
     setup(
@@ -31,7 +31,7 @@ if os.name == 'nt':
 
 else:
     ext_opts = {
-        'include_dirs':['include'],
+        'include_dirs':['include', np.get_include()],
         # 'libraries':['h2', 'blas', 'lapack', 'gfortran'],
         'libraries':['h2', 'gfortran', 'openblas', 'omp'],
         'library_dirs':['lib'],
@@ -119,6 +119,11 @@ else:
         Extension(
             name='cnld.h2lib.sparsematrix',
             sources=['cnld/h2lib/sparsematrix.pyx'],
+            **ext_opts
+        ),
+        Extension(
+            name='cnld.simulation',
+            sources=['cnld/simulation.pyx'],
             **ext_opts
         ),
     ]
