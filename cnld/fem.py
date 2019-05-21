@@ -644,5 +644,38 @@ def array_mbk_linops(array, refn, f):
     return linop, linop_inv
 
 
+@util.memoize
+def mem_patch_fcol_vector(mem, refn):
+    '''
+    '''
+    f = mem_patch_f_matrix(mem, refn)
+    avg = mem_patch_avg_matrix(mem, refn)
+
+    K = mem_k_matrix(mem, refn)
+    Kinv = inv_block(K)
+    u = Kinv.dot(-np.sum(f, axis=1)).squeeze()
+    u = u / np.max(np.abs(u))
+
+    g = mem.gap
+
+    fcol = []
+
+    for i, pat in enumerate(mem.patches):
+
+        # f_pat = f[:,i]
+        # u = Kinv.dot(-f_pat).squeeze()
+        avg_pat = avg[:,i]
+        scale = -g / u[avg_pat > 0].min()
+        print(scale)
+        up = scale * u
+        up[up < -g] = -g
+
+        p = K.dot(up).dot(avg_pat)
+        fcol.append(-p)
+        # fcol.append(-g / u[f_pat > 0].min())
+    
+    return np.array(fcol)
+
+
 if __name__ == '__main__':
     pass
