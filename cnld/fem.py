@@ -659,22 +659,25 @@ def mem_patch_fcol_vector(mem, refn):
     g = mem.gap
 
     fcol = []
+    ups = []
 
     for i, pat in enumerate(mem.patches):
 
         # f_pat = f[:,i]
         # u = Kinv.dot(-f_pat).squeeze()
+        # u = u / np.max(np.abs(u))
         avg_pat = avg[:,i]
         scale = -g / u[avg_pat > 0].min()
-        print(scale)
+        # scale = -g / u.dot(avg_pat)
         up = scale * u
         up[up < -g] = -g
 
-        p = K.dot(up).dot(avg_pat)
+        p = (K.dot(up)).dot(avg_pat) / pat.area
         fcol.append(-p)
+        ups.append(up)
         # fcol.append(-g / u[f_pat > 0].min())
     
-    return np.array(fcol)
+    return np.array(fcol), np.array(ups)
 
 
 if __name__ == '__main__':

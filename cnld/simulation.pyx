@@ -277,7 +277,8 @@ class FixedStepSolver:
         # create gaps and gaps eff lookup
         self._gaps = np.array(gaps)
         self._gaps_eff = np.array(gaps_eff)
-        self._fcol = np.array(fcol)
+        self._fcol = np.array(fcol[0])
+        self._ups = np.array(fcol[1])
 
         # create state variables and set initial state
         self._time = [t_start,]
