@@ -50,13 +50,66 @@ def mem_patch_fcomp_funcs(mem, refn):
     return fcomps
 
 
+@util.memoize
+def mem_patch_fcomp_funcs2(mem, refn):
+    '''
+    '''
+    f = fem.mem_patch_f_matrix(mem, refn)
+    avg = fem.mem_patch_avg_matrix(mem, refn)
+
+    K = fem.mem_k_matrix(mem, refn)
+    Kinv = fem.inv_block(K)
+
+    g = mem.gap
+    g_eff = mem.gap + mem.isolation / mem.permittivity
+
+    u = Kinv.dot(-np.sum(f, axis=1)).squeeze()
+    u = u / np.max(np.abs(u))
+    
+    fcomps = []
+    fcomps_data = []
+
+    for i, pat in enumerate(mem.patches):
+
+        avg_pat = avg[:,i]
+        unorm = u / np.max(np.abs(u[avg_pat > 0]))
+        u_pat = unorm.dot(avg_pat)
+
+        fc = []
+        uavg = []
+
+        for i, d in enumerate(np.linspace(-2, 2, 21)):
+            x = unorm * g * d
+            x[x < -g] = -g
+
+            # uavg.append(u_pat * g * d)
+            uavg.append(x.dot(avg_pat))
+            fc.append((-e_0 / 2 / (x + g_eff)**2).dot(avg_pat))
+
+            if np.all(x[avg_pat > 0] <= -g):
+                break
+
+        # uavg = np.append(uavg, -g)
+        # fc = np.append(fc, -e_0 / 2 / (-g + g_eff)**2)
+        fc = np.array(fc)
+        uavg = np.array(uavg)
+
+        fcomp = CubicSpline(uavg[::-1], fc[::-1], bc_type=((1, 0),'not-a-knot'))
+        fcomps.append(fcomp)
+        fcomps_data.append((uavg, fc))
+    
+    # return fcomps, fcomps_data
+    return fcomps
+
+
+
 def array_patch_fcomp_funcs(array, refn):
     '''
     '''
     fcomps = []
     for elem in array.elements:
         for mem in elem.membranes:
-            fcomps += mem_patch_fcomp_funcs(mem, refn)
+            fcomps += mem_patch_fcomp_funcs2(mem, refn)
             
     return fcomps
 
