@@ -1,8 +1,6 @@
 '''
 '''
 import numpy as np
-import sqlite3 as sql
-import pandas as pd
 from scipy.signal import hilbert
 from scipy.fftpack import fft, ifft, fftshift, ifftshift, fftfreq
 from scipy.interpolate import interp1d
@@ -72,10 +70,10 @@ def two_to_one(f, s, axis=-1):
     return f1s, s1s
 
 
-def kramers_kronig(f, s, axis=-1):
+def kramers_kronig1(f, s, axis=-1):
     '''
-    Reconstructs spectrum with phase based on the Kramers-Kronig relations
-    for a causal LTI system.
+    Reconstructs spectrum based on the Kramers-Kronig relations using 
+    magnitude (gain)-phase relation and front delay estimation.
     '''
     def func1d(s):
         # mag = np.abs(s)
@@ -116,6 +114,8 @@ def kramers_kronig(f, s, axis=-1):
 
 def kramers_kronig2(f, s, axis=-1):
     '''
+    Reconstructs spectrum based on the Kramers-Kronig relations using 
+    real-imaginary relation. Does not account for front delay.
     '''
     def func1d(s):
         re = np.real(s)
@@ -127,6 +127,8 @@ def kramers_kronig2(f, s, axis=-1):
 
 def kramers_kronig3(f, s, axis=-1):
     '''
+    Reconstructs spectrum based on the Kramers-Kronig relations using 
+    real-imaginary relation and front-delay estimation.
     '''
     def func1d(s):
     
@@ -156,12 +158,13 @@ def kramers_kronig3(f, s, axis=-1):
     return np.apply_along_axis(func1d, axis, s)
 
 
-def interp_fft(f, s, mult, axis=-1):
-
-    if mult == 1:
+def interp_fft(f, s, n, axis=-1):
+    '''
+    '''
+    if n == 1:
         return f, s
 
-    fi = np.linspace(f[0], f[-1], (len(f) - 1) * mult + 1)
+    fi = np.linspace(f[0], f[-1], (len(f) - 1) * n + 1)
 
     mag = np.abs(s)
     phase = np.unwrap(np.angle(s), axis=axis)
@@ -171,11 +174,23 @@ def interp_fft(f, s, mult, axis=-1):
     return fi, imag(fi) * np.exp(1j * iphase(fi))
 
 
-def fft_to_fir(f, s, mult=1, use_kkr=True, axis=-1):
+def interp_time(t, s, n, kind='cubic', axis=-1):
+    '''
+    '''
+    if n == 1:
+        return t, s
+    
+    ti = np.linspace(t[0], t[-1], (len(t) - 1) * n + 1)
+    isig = interp1d(t, s, kind=kind, axis=axis)
+
+    return ti, isig(ti)
+
+
+def fft_to_fir(f, s, interp=1, use_kkr=True, axis=-1):
     '''
     Convert a one-sided FFT to an impulse response representing a delay causal LTI system.
     '''
-    fi, si = interp_fft(f, s, mult=mult, axis=axis)
+    fi, si = interp_fft(f, s, n=interp, axis=axis)
     f2s, s2s = one_to_two(fi, si, axis=axis, odd=True)
 
     if use_kkr:
@@ -188,11 +203,11 @@ def fft_to_fir(f, s, mult=1, use_kkr=True, axis=-1):
     return t, np.real(ifft(s2s, axis=axis)) * fs
 
 
-def fft_to_sir(f, s, mult=1, use_kkr=True, axis=-1):
+def fft_to_sir(f, s, interp=1, use_kkr=False, axis=-1):
     '''
     Convert a one-sided FFT to an impulse response representing a delay causal LTI system.
     '''
-    fi, si = interp_fft(f, s, mult=mult, axis=axis)
+    fi, si = interp_fft(f, s, n=interp, axis=axis)
     f2s, s2s = one_to_two(fi, si, axis=axis, odd=True)
 
     if use_kkr:

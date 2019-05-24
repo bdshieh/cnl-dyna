@@ -115,11 +115,11 @@ def run_process(*args, **kwargs):
         raise Exception("".join(traceback.format_exception(*sys.exc_info())))
 
 
-def postprocess(file, mult):
+def postprocess(file, interp):
 
     # postprocess and convert frequency response to impulse response
     freqs, ppfr = database.read_patch_to_patch_freq_resp(file)
-    t, ppir = impulse_response.fft_to_fir(freqs, ppfr, mult=mult, axis=-1, use_kkr=False)
+    t, ppir = impulse_response.fft_to_fir(freqs, ppfr, interp=interp, axis=-1, use_kkr=True)
     source_patches, dest_patches, times = np.meshgrid(np.arange(ppir.shape[0]), 
         np.arange(ppir.shape[1]), t, indexing='ij')
 
@@ -197,7 +197,7 @@ def main(cfg, args):
         for r in tqdm(result, desc='Running', total=njobs, initial=ijob):
             pass
 
-        postprocess(file, cfg.interpolation_multiplier)
+        postprocess(file, cfg.freq_interp)
 
     except Exception as e:
         print(e)
@@ -226,7 +226,7 @@ _Config['rk'] = 0
 _Config['q_reg'] = 2
 _Config['q_sing'] = 4
 _Config['strict'] = True
-_Config['interpolation_multiplier'] = 2
+_Config['freq_interp'] = 2
 Config = abstract.register_type('Config', _Config)
 
 
