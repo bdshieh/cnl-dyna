@@ -129,11 +129,11 @@ class FixedStepSolver:
         t_start, t_stop, t_step = t_lim
 
         npatch = fir.shape[0]
-
+        
         # define time array
         time = np.arange(t_start, t_stop + t_step, t_step)
         ntime = len(time)
-
+        
         # define voltage array (with interpolation)
         if v.ndim <= 1:
             v = np.tile(v, (npatch, 1)).T
@@ -141,7 +141,7 @@ class FixedStepSolver:
         voltage = fi_voltage(time)
 
         # define fir (with interpolation)
-        fi_fir = interp1d(fir_t, fir, axis=0, fill_value='extrapolate', kind='cubic', assume_sorted=True)
+        fi_fir = interp1d(fir_t, fir, axis=-1, fill_value='extrapolate', kind='cubic', assume_sorted=True)
         self._fir_t = np.arange(fir_t[0], fir_t[-1] + t_step, t_step)
         self._fir = fi_fir(self._fir_t)
 
@@ -172,6 +172,8 @@ class FixedStepSolver:
         self._iters = []
         self.atol = atol
         self.maxiter = maxiter
+        self.npatch = npatch
+        self.ntime = ntime
         
     @classmethod
     def from_array_and_db(cls, array, dbfile, t_v, t_lim, atol=1e-10, maxiter=5):
@@ -184,10 +186,10 @@ class FixedStepSolver:
         for elem in array.elements:
             for mem in elem.membranes:
                 for pat in mem.patches:
-                    gaps.append(mem.gap)
-                    gaps_eff.append(mem.gap + mem.isolation / mem.permittivity)
+                    gap.append(mem.gap)
+                    gap_eff.append(mem.gap + mem.isolation / mem.permittivity)
                 
-        return cls((fir_t, fir), (v_t, v), gap, gap_eff, t_lim, atol, maxiter)
+        return cls((fir_t, fir), t_v, gap, gap_eff, t_lim, atol, maxiter)
 
     @property
     def time(self):
@@ -207,15 +209,15 @@ class FixedStepSolver:
 
     @property
     def pressure_electrostatic(self):
-        return np.array(self._pressure_electrostatic[:self.current_time,:])
+        return np.array(self._pressure_electrostatic[:self.current_step,:])
 
     @property
     def pressure_contact(self):
-        return np.array(self._pressure_contact[:self.current_time,:])
+        return np.array(self._pressure_contact[:self.current_step,:])
 
     @property
     def pressure_applied(self):
-        return np.array(self._pressure_applied[:self.current_time,:])
+        return np.array(self._pressure_applied[:self.current_step,:])
 
     @property
     def state(self):
@@ -226,7 +228,7 @@ class FixedStepSolver:
         pressure_electrostatic = self.pressure_electrostatic
         pressure_contact = self.pressure_contact
         
-        return State(displacement=displacement, velocity=velocity, voltage=voltage,
+        return self.State(displacement=displacement, velocity=velocity, voltage=voltage,
             pressure_applied=pressure_applied, pressure_electrostatic=pressure_electrostatic,
             pressure_contact=pressure_contact)
 
@@ -240,7 +242,7 @@ class FixedStepSolver:
         pressure_electrostatic = self._pressure_electrostatic[idx,:]
         pressure_contact = self._pressure_contact[idx,:]
         
-        return State(displacement=displacement, velocity=velocity, voltage=voltage,
+        return self.State(displacement=displacement, velocity=velocity, voltage=voltage,
             pressure_applied=pressure_applied, pressure_electrostatic=pressure_electrostatic,
             pressure_contact=pressure_contact)
     
@@ -254,13 +256,13 @@ class FixedStepSolver:
         pressure_electrostatic = self._pressure_electrostatic[idx,:]
         pressure_contact = self._pressure_contact[idx,:]
         
-        return State(displacement=displacement, velocity=velocity, voltage=voltage,
+        return self.State(displacement=displacement, velocity=velocity, voltage=voltage,
             pressure_applied=pressure_applied, pressure_electrostatic=pressure_electrostatic,
             pressure_contact=pressure_contact)
 
     @property
     def properties(self):
-        return Properties(gap=self._gap, gap_effective=self._gap_eff, contact_stiffness=self._cont_stiff,
+        return self.Properties(gap=self._gap, gap_effective=self._gap_eff, contact_stiffness=self._cont_stiff,
             contact_damping=self._cont_damp)
 
     def _fir_conv(self, p, offset):
@@ -268,8 +270,8 @@ class FixedStepSolver:
 
     def _update_pressure_applied(self, state, props):
 
-        pa, pes, pc = applied_pres_model3(state.voltage, state.displacement, state.velocity, 
-            props.gap_eff, props.gap, props.contact_stiffness, props.contact_damping)
+        pa, pes, pc = applied_pres_model2(state.voltage, state.displacement, state.velocity, 
+            props.gap_effective, props.gap, props.contact_stiffness, props.contact_damping)
         
         state.pressure_applied[:] = pa
         state.pressure_electrostatic[:] = pes
@@ -285,7 +287,7 @@ class FixedStepSolver:
         state_next = self.state_next
         props = self.properties
 
-        state_next.displacement[:] = self._fir_conv(state.pressure, offset=1)
+        state_next.displacement[:] = self._fir_conv(state.pressure_applied, offset=1)
         self._update_velocity(state_last, state_next)
         self._update_pressure_applied(state_next, props)
  
@@ -293,7 +295,7 @@ class FixedStepSolver:
         
         state_next = self.state_next
 
-        p = self._pressure_applied[:ns,:]
+        p = self._pressure_applied[:self.current_step + 1,:]
 
         xr = self._fir_conv(p, offset=0)
         err = np.max(np.abs(state_next.displacement - xr))
@@ -308,7 +310,7 @@ class FixedStepSolver:
         props = self.properties
 
         self._blind_step()
-        xr1, err = self._check_accuracy_of_step()
+        xr, err = self._check_accuracy_of_step()
 
         i = 1
         for j in range(self.maxiter - 1):
@@ -319,7 +321,7 @@ class FixedStepSolver:
             self._update_velocity(state_last, state_next)
             self._update_pressure_applied(state_next, props)
             
-            xr1, err = self._check_accuracy_of_step()
+            xr, err = self._check_accuracy_of_step()
             i += 1
 
         self._error.append(err)
@@ -332,14 +334,17 @@ class FixedStepSolver:
 
     def solve(self):
 
-        stop = len(self._time)
+        stop = len(self._time) - 1
         while True:
             self.step()
-            if self.current_step >= stop
+            if self.current_step >= stop:
                 break
 
     def reset(self):
         
+        npatch = self.npatch
+        ntime = self.ntime
+
         # reset state
         self._displacement = np.zeros((ntime, npatch))
         self._velocity = np.zeros((ntime, npatch))
