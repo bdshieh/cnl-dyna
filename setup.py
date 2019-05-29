@@ -131,6 +131,11 @@ else:
             sources=['cnld/pressure_response.pyx'],
             **ext_opts
         ),
+        Extension(
+            name='cnld.simulation2',
+            sources=['cnld/simulation2.pyx'],
+            **ext_opts
+        ),
     ]
 
 
