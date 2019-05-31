@@ -76,7 +76,7 @@ cpdef np.ndarray fir_conv_cy(double[:,:,:] fir, double[:,:] p, double dt, int of
 def contact_pres(xc, xdot, cont_stiff, cont_damp):
     '''
     '''
-    pc =  -cont_stiff * xc + cont_damp * xdot
+    pc =  -cont_stiff * xc - cont_damp * xdot
     return pc
 
 
@@ -94,21 +94,40 @@ def applied_pres_model1(v, x, fc, gap, fcol):
     return pes
 
 
-def applied_pres_model2(v, x, xdot, g_eff, gap, cont_stiff, cont_damp):
+# def applied_pres_model2(v, x, xdot, g_eff, gap, cont_stiff, cont_damp, vmax):
+#     '''
+#     Applied pressure model with spring and damper contact.
+#     '''
+#     # in_zone = np.logical_and(x <= (-gap + 2e-9), x >= (-gap - 2e-9))
+#     in_zone = x <= (-gap + 5e-9)
+
+#     pes = -e_0 / 2 * v**2 / (x + g_eff)**2
+#     # pes[in_zone] = 0
+#     # pes[in_zone] = electrostat_pres(vmax[in_zone], -gap[in_zone], g_eff[in_zone])
+
+#     xc = x + gap - 5e-9
+#     pc = -cont_stiff * xc - cont_damp * xdot
+#     pc[~in_zone] = 0
+    
+#     pa = pes + pc
+
+#     return pa, pes, pc
+
+
+def applied_pres_model2(v, x, xdot, g_eff, gap, cont_stiff, cont_damp, vmax):
     '''
     Applied pressure model with spring and damper contact.
     '''
     is_collapsed = x <= -gap
 
     pes = electrostat_pres(v, x, g_eff) 
-    pes[is_collapsed] = electrostat_pres(v[is_collapsed], -gap[is_collapsed], g_eff[is_collapsed])
+    # pes[is_collapsed] = electrostat_pres(vmax[is_collapsed], -gap[is_collapsed], g_eff[is_collapsed])
 
     xc = x + gap
     pc = contact_pres(xc, xdot, cont_stiff, cont_damp)
     pc[~is_collapsed] = 0
     
     pa = pes + pc
-    # pa[pa > 0] = 0
 
     return pa, pes, pc
 
@@ -271,8 +290,9 @@ class FixedStepSolver:
 
     def _update_pressure_applied(self, state, props):
 
+        vmax = self._voltage.max(axis=0)
         pa, pes, pc = applied_pres_model2(state.voltage, state.displacement, state.velocity, 
-            props.gap_effective, props.gap, props.contact_stiffness, props.contact_damping)
+            props.gap_effective, props.gap, props.contact_stiffness, props.contact_damping, vmax)
         
         state.pressure_applied[:] = pa
         state.pressure_electrostatic[:] = pes
