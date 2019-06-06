@@ -132,8 +132,8 @@ else:
             **ext_opts
         ),
         Extension(
-            name='cnld.simulation2',
-            sources=['cnld/simulation2.pyx'],
+            name='cnld.simulation3',
+            sources=['cnld/simulation3.pyx'],
             **ext_opts
         ),
     ]

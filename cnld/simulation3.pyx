@@ -12,6 +12,7 @@ from namedlist import namedlist
 
 from cnld import abstract, impulse_response, compensation, database, fem
 
+from simple_pid import PID
 
 
 def electrostat_pres(v, x, g_eff):
@@ -73,86 +74,6 @@ cpdef np.ndarray fir_conv_cy(double[:,:,:] fir, double[:,:] p, double dt, int of
     return np.asarray(x)
 
 
-def contact_pres(xc, xdot, cont_stiff, cont_damp):
-    '''
-    '''
-    pc =  -cont_stiff * xc**3 - cont_damp * xdot
-    return pc
-
-
-def applied_pres_model1(v, x, fc, gap, fcol):
-    '''
-    Applied pressure model with displacement profile compensation.
-    '''
-    pes = np.array([f(xi) * v**2 for f, xi in zip(fc, x)])
-
-    is_collapsed = x <= -gap
-    is_less_than_fcol = pes <= -fcol
-    mask = np.logical_and(is_collapsed, is_less_than_fcol)
-    pes[mask] = -fcol[mask]
-
-    return pes
-
-
-# def applied_pres_model2(v, x, xdot, g_eff, gap, cont_stiff, cont_damp, vmax):
-#     '''
-#     Applied pressure model with spring and damper contact.
-#     '''
-#     # in_zone = np.logical_and(x <= (-gap + 2e-9), x >= (-gap - 2e-9))
-#     in_zone = x <= (-gap + 5e-9)
-
-#     pes = -e_0 / 2 * v**2 / (x + g_eff)**2
-#     # pes[in_zone] = 0
-#     # pes[in_zone] = electrostat_pres(vmax[in_zone], -gap[in_zone], g_eff[in_zone])
-
-#     xc = x + gap - 5e-9
-#     pc = -cont_stiff * xc - cont_damp * xdot
-#     pc[~in_zone] = 0
-    
-#     pa = pes + pc
-
-#     return pa, pes, pc
-
-
-def applied_pres_model2(v, x, xdot, g_eff, gap, cont_stiff, cont_damp, vmax):
-    '''
-    Applied pressure model with spring and damper contact.
-    '''
-    is_collapsed = x <= -gap
-
-    pes = electrostat_pres(v, x, g_eff) 
-    # pes[is_collapsed] = electrostat_pres(vmax[is_collapsed], -gap[is_collapsed], g_eff[is_collapsed])
-
-    xc = x + gap
-    pc = contact_pres(xc, xdot, cont_stiff, cont_damp)
-    pc[~is_collapsed] = 0
-    
-    pa = pes + pc
-
-    return pa, pes, pc
-
-
-def applied_pres_model3(v, x, xdot, is_collapsed, g_eff, gap, cont_stiff, cont_damp):
-    '''
-    Applied pressure model with spring and damper contact.
-    '''
-    pes = electrostat_pres(v, x, g_eff) 
-    pes[is_collapsed] = 0
-
-    xc = x + gap
-    pc = contact_pres(xc, xdot, cont_stiff, cont_damp)
-    pc[~is_collapsed] = 0
-    
-    pa = pes + pc
-
-    return pa, pes, pc
-
-
-class SimPatch:
-    def __init__(self):
-        pass
-
-
 class FixedStepSolver:
     
     State = namedlist('State', 
@@ -211,6 +132,13 @@ class FixedStepSolver:
         self.ntime = ntime
         self.current_step = 0
         self.min_step = t_step
+
+        self._pid = []
+        for i in range(npatch):
+            pid = PID(1.0, 0.2, 0.04)
+            pid.setpoint = -self._gap[i]
+            pid.auto_mode = False
+            self._pid.append(pid)
 
         # set initial state
         self._update_pressure_applied(self.state_last, self.properties) 
@@ -325,34 +253,35 @@ class FixedStepSolver:
     def _fir_conv(self, p, offset):
         return fir_conv_cy(self._fir, p, self.min_step, offset=offset)
 
-    def _update_pressure_applied(self, state, props):
+    def _update_pressure_electrostatic(self, state, props):
 
-        # vmax = self._voltage.max(axis=0)
-        # pa, pes, pc = applied_pres_model2(state.voltage, state.displacement, state.velocity, 
-        #     props.gap_effective, props.gap, props.contact_stiffness, props.contact_damping, vmax)
-        pa, pes, pc = applied_pres_model3(state.voltage, state.displacement, state.velocity, state.is_collapsed, 
-            props.gap_effective, props.gap, props.contact_stiffness, props.contact_damping)
-
-        state.pressure_applied[:] = pa
+        pes = electrostat_pres(state.voltage, state.displacement, props.gap_effective)
         state.pressure_electrostatic[:] = pes
-        state.pressure_contact[:] = pc
-    
+
+    def _update_pressure_contact(self, state, props):
+        for i in range(self.npatch):
+            if state.is_collapsed[i]:
+                self._pid[i].auto_mode = True
+                state.pressure_contact[i] = self._pid[i](state.displacement[i])
+
+    def _update_pressure_applied(self, state, props):
+        mask = state.is_collapsed
+        state.pressure_applied[mask] = state.pressure_contact[mask]
+        state.pressure_applied[~mask] = state.pressure_electrostatic[~mask]
+
+        if self._time[self.current_step + 1] > 1e-6:
+            state.pressure_applied[:] = state.pressure_electrostatic
+        # state.pressure_applied[:] = state.pressure_contact + state.pressure_electrostatic
+
     def _update_velocity(self, state_last, state_next):
         state_next.velocity[:] = (state_next.displacement - state_last.displacement) / self.min_step
 
-    def _check_displacement_limit(self, state_last, state_next, props):
-        # limit_exceeded = state.displacement < -1.04 * props.gap
-        # state.displacement[limit_exceeded] = -1.04 * props.gap[limit_exceeded]
+    def _check_for_collapse(self, state_last, state_next, props):
 
         cond1 = state_last.is_collapsed == True
         cond2 = state_next.displacement <= -props.gap
         mask = np.logical_or(cond1, cond2)
         state_next.is_collapsed[mask] = True
-        # state.collapse_counter[mask] += 1
-
-        # mask = state.collapse_counter >= 20
-        # state.is_collapsed[mask] = False
-        # state.collapse_counter[mask] = 0
 
     def _blind_step(self):
 
@@ -362,8 +291,10 @@ class FixedStepSolver:
         props = self.properties
 
         state_next.displacement[:] = self._fir_conv(state.pressure_applied, offset=1)
-        self._check_displacement_limit(state_last, state_next, props)
+        self._check_for_collapse(state_last, state_next, props)
         self._update_velocity(state_last, state_next)
+        self._update_pressure_electrostatic(state_next, props)
+        self._update_pressure_contact(state_next, props)
         self._update_pressure_applied(state_next, props)
  
     def _check_accuracy_of_step(self):
@@ -393,8 +324,10 @@ class FixedStepSolver:
                 break
 
             state_next.displacement[:] = xr
-            self._check_displacement_limit(state_last, state_next, props)
+            self._check_for_collapse(state_last, state_next, props)
             self._update_velocity(state_last, state_next)
+            self._update_pressure_electrostatic(state_next, props)
+            self._update_pressure_contact(state_next, props)
             self._update_pressure_applied(state_next, props)
             
             xr, err = self._check_accuracy_of_step()
@@ -404,8 +337,10 @@ class FixedStepSolver:
         self._iters.append(i)
 
         state_next.displacement[:] = xr
-        self._check_displacement_limit(state_last, state_next, props)
+        self._check_for_collapse(state_last, state_next, props)
         self._update_velocity(state_last, state_next)
+        self._update_pressure_electrostatic(state_next, props)
+        self._update_pressure_contact(state_next, props)
         self._update_pressure_applied(state_next, props)
         self.current_step += 1
 
