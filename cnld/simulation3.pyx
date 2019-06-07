@@ -139,6 +139,14 @@ class FixedStepSolver:
             pid.setpoint = -self._gap[i]
             pid.auto_mode = False
             self._pid.append(pid)
+        self._p0 = 0
+
+        # self._pid2 = []
+        # for i in range(npatch):
+        #     pid = PID(1.0, 0.2, 0.04)
+        #     pid.setpoint = -self._gap[i]
+        #     pid.auto_mode = False
+        #     self._pid2.append(pid)
 
         # set initial state
         self._update_pressure_applied(self.state_last, self.properties) 
@@ -262,7 +270,19 @@ class FixedStepSolver:
         for i in range(self.npatch):
             if state.is_collapsed[i]:
                 self._pid[i].auto_mode = True
-                state.pressure_contact[i] = self._pid[i](state.displacement[i])
+                # pc1 = self._pid[i](state.displacement[i])
+                
+                # self._pid2[i].auto_mode = True
+                # mask = self.is_collapsed[:,i]
+                # if np.all(~mask):
+                #     xmean = 0
+                # else:
+                #     x = self.displacement[:,i][mask]
+                #     xmean = np.mean(x)
+                # pc2 = self._pid2[i](xmean)
+
+                # state.pressure_contact[i] = pc1 + pc2
+                state.pressure_contact[i] = self._pid[i](state.displacement[i]) + self._p0
 
     def _update_pressure_applied(self, state, props):
         mask = state.is_collapsed
@@ -279,7 +299,7 @@ class FixedStepSolver:
     def _check_for_collapse(self, state_last, state_next, props):
 
         cond1 = state_last.is_collapsed == True
-        cond2 = state_next.displacement <= -props.gap
+        cond2 = state_next.displacement <= -props.gap + 10e-9
         mask = np.logical_or(cond1, cond2)
         state_next.is_collapsed[mask] = True
 
