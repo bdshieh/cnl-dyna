@@ -83,7 +83,7 @@ cpdef np.ndarray mesh_pres_vector(double[:,:] vertices, unsigned int[:,:] triang
     return -(k * c)**2 * rho * 2 * np.array(p)
 
 
-def array_patch_pres_imp_resp(array, refn, db_file, r, c, rho, use_kkr=False, mult=2):
+def array_patch_pres_imp_resp(array, refn, db_file, r, c, rho, use_kkr=False, interp=2):
     '''
     '''
     # read database
@@ -104,14 +104,14 @@ def array_patch_pres_imp_resp(array, refn, db_file, r, c, rho, use_kkr=False, mu
             disp = pnfr[j,:,i]
             sfr[j,i] = p_vector.dot(disp)
 
-    sir_t, sir = impulse_response.fft_to_sir(freqs, sfr, mult=mult, axis=1, use_kkr=use_kkr)
+    sir_t, sir = impulse_response.fft_to_sir(freqs, sfr, interp=interp, axis=1, use_kkr=use_kkr)
 
     return sir_t, sir
 
 
-def press_resp(array, refn, db_file, pes, r, c, rho, use_kkr=False, mult=2):
+def press_resp(array, refn, db_file, pes, r, c, rho, use_kkr=False, interp=2):
 
-    sir_t, sir = array_patch_pres_imp_resp(array, refn, db_file, r, c, rho, mult=mult, use_kkr=use_kkr)
+    sir_t, sir = array_patch_pres_imp_resp(array, refn, db_file, r, c, rho, interp=interp, use_kkr=use_kkr)
     sir = sir.T
 
     dt = sir_t[1] - sir_t[0]
