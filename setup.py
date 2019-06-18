@@ -136,6 +136,11 @@ else:
             sources=['cnld/simulation4.pyx'],
             **ext_opts
         ),
+        Extension(
+            name='cnld.simulation_pid',
+            sources=['cnld/simulation_pid.pyx'],
+            **ext_opts
+        ),
     ]
 
 

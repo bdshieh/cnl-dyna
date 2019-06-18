@@ -135,18 +135,10 @@ class FixedStepSolver:
 
         self._pid = []
         for i in range(npatch):
-            pid = PID(1.0, 0.2, 0.04)
+            pid = PID(1, 1, 1)
             pid.setpoint = -self._gap[i]
             pid.auto_mode = False
             self._pid.append(pid)
-        self._p0 = 0
-
-        # self._pid2 = []
-        # for i in range(npatch):
-        #     pid = PID(1.0, 0.2, 0.04)
-        #     pid.setpoint = -self._gap[i]
-        #     pid.auto_mode = False
-        #     self._pid2.append(pid)
 
         # set initial state
         self._update_pressure_applied(self.state_last, self.properties) 
@@ -181,7 +173,7 @@ class FixedStepSolver:
     
     @property
     def velocity(self):
-        return np.array(self._displacement[:self.current_step + 1,:])
+        return np.array(self._velocity[:self.current_step + 1,:])
 
     @property
     def pressure_electrostatic(self):
@@ -266,37 +258,19 @@ class FixedStepSolver:
         pes = electrostat_pres(state.voltage, state.displacement, props.gap_effective)
         state.pressure_electrostatic[:] = pes
 
-    # def _update_pressure_contact(self, state, props):
-    #     for i in range(self.npatch):
-    #         if state.is_collapsed[i]:
-    #             self._pid[i].auto_mode = True
-    #             # pc1 = self._pid[i](state.displacement[i])
-                
-    #             # self._pid2[i].auto_mode = True
-    #             # mask = self.is_collapsed[:,i]
-    #             # if np.all(~mask):
-    #             #     xmean = 0
-    #             # else:
-    #             #     x = self.displacement[:,i][mask]
-    #             #     xmean = np.mean(x)
-    #             # pc2 = self._pid2[i](xmean)
-
-    #             # state.pressure_contact[i] = pc1 + pc2
-    #             state.pressure_contact[i] = self._pid[i](state.displacement[i]) + self._p0
-
     def _update_pressure_contact(self, state, props):
         for i in range(self.npatch):
             if state.is_collapsed[i]:
                 self._pid[i].auto_mode = True
-                state.pressure_contact[i] = self._pid[i](state.displacement[i]) + self._p0
+                state.pressure_contact[i] = self._pid[i](state.displacement[i])
 
     def _update_pressure_applied(self, state, props):
         mask = state.is_collapsed
         state.pressure_applied[mask] = state.pressure_contact[mask]
         state.pressure_applied[~mask] = state.pressure_electrostatic[~mask]
 
-        if self._time[self.current_step + 1] > 1e-6:
-            state.pressure_applied[:] = state.pressure_electrostatic
+        # if self._time[self.current_step + 1] > 1e-6:
+            # state.pressure_applied[:] = state.pressure_electrostatic
         # state.pressure_applied[:] = state.pressure_contact + state.pressure_electrostatic
 
     def _update_velocity(self, state_last, state_next):
@@ -369,12 +343,26 @@ class FixedStepSolver:
         self._update_pressure_contact(state_next, props)
         self._update_pressure_applied(state_next, props)
         self.current_step += 1
+    
+    def step_collapse(self):
+
+        state = self.state
+        state_last = self.state_last
+        state_next = self.state_next
+        props = self.properties
+
+        self._blind_step()
+        self.current_step += 1
 
     def solve(self):
 
         stop = len(self._time) - 1
         while True:
-            self.step()
+            if self.state_last.is_collapsed[0]:
+                self.step_collapse()
+            else:
+                self.step()
+
             if self.current_step >= stop:
                 break
 

@@ -164,7 +164,7 @@ class FixedStepSolver:
     
     @property
     def velocity(self):
-        return np.array(self._displacement[:self.current_step + 1,:])
+        return np.array(self._velocity[:self.current_step + 1,:])
 
     @property
     def pressure_electrostatic(self):
@@ -253,7 +253,7 @@ class FixedStepSolver:
             if state.is_collapsed[i]:
                 dx = state.displacement[i] + props.gap[i]
                 h0 = self._fir[i,i,0]
-                state.pressure_contact[i] = -dx / h0 / self.min_step * 0.8 - props.contact_damping[i] * state.velocity[i]
+                state.pressure_contact[i] = -dx / h0 / self.min_step * 1.0 - props.contact_damping[i] * state.velocity[i]
 
     def _update_pressure_applied(self, state, props):
         mask = state.is_collapsed
@@ -328,7 +328,7 @@ class FixedStepSolver:
         self._update_velocity(state_last, state_next)
         self._update_pressure_electrostatic(state_next, props)
         # self._update_pressure_contact(state_next, props)
-        # self._update_pressure_applied(state_next, props)
+        self._update_pressure_applied(state_next, props)
         self.current_step += 1
 
     def solve(self):
