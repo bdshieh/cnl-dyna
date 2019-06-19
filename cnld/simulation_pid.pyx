@@ -255,33 +255,48 @@ class FixedStepSolver:
 
     def _update_pressure_electrostatic(self, state, props):
 
-        pes = electrostat_pres(state.voltage, state.displacement, props.gap_effective)
-        state.pressure_electrostatic[:] = pes
+        # mask = self.state_last.is_collapsed
+        mask = state.is_collapsed
+        state.pressure_electrostatic[mask] = electrostat_pres(state.voltage, -props.gap, props.gap_effective)
+        state.pressure_electrostatic[~mask] = electrostat_pres(state.voltage, state.displacement, props.gap_effective)
 
     def _update_pressure_contact(self, state, props):
+
         for i in range(self.npatch):
             if state.is_collapsed[i]:
                 self._pid[i].auto_mode = True
                 state.pressure_contact[i] = self._pid[i](state.displacement[i])
+            else:
+                self._pid[i].auto_mode = False
 
     def _update_pressure_applied(self, state, props):
+
         mask = state.is_collapsed
         state.pressure_applied[mask] = state.pressure_contact[mask]
         state.pressure_applied[~mask] = state.pressure_electrostatic[~mask]
 
-        # if self._time[self.current_step + 1] > 1e-6:
-            # state.pressure_applied[:] = state.pressure_electrostatic
-        # state.pressure_applied[:] = state.pressure_contact + state.pressure_electrostatic
-
     def _update_velocity(self, state_last, state_next):
         state_next.velocity[:] = (state_next.displacement - state_last.displacement) / self.min_step
 
-    def _check_for_collapse(self, state_last, state_next, props):
+    def _update_collapse(self, state_last, state, props):
 
-        cond1 = state_last.is_collapsed == True
-        cond2 = state_next.displacement <= -props.gap  # + 10e-9
-        mask = np.logical_or(cond1, cond2)
-        state_next.is_collapsed[mask] = True
+        # patch is collapsed if gap is exceeded
+        mask = state.displacement <= -props.gap
+        state.is_collapsed[mask] = True
+
+        # patch is collapsed if it was collapsed at last state
+        mask1 = state_last.is_collapsed == True
+        state.is_collapsed[mask1] = True
+
+    def _check_collapse_exit(self, state_last, state, props):
+
+        # patch is collapsed if it was collapsed at last state
+        mask1 = state_last.is_collapsed == True
+
+        # patch can exit patch state
+        mask2 = state.pressure_electrostatic > state_last.pressure_contact
+        mask = np.logical_and(mask1, mask2)
+        state.is_collapsed[mask] = False
 
     def _blind_step(self):
 
@@ -291,9 +306,12 @@ class FixedStepSolver:
         props = self.properties
 
         state_next.displacement[:] = self._fir_conv(state.pressure_applied, offset=1)
-        self._check_for_collapse(state_last, state_next, props)
         self._update_velocity(state_last, state_next)
+
+        self._update_collapse(state_last, state_next, props)
         self._update_pressure_electrostatic(state_next, props)
+        self._check_collapse_exit(state_last, state_next, props)
+        
         self._update_pressure_contact(state_next, props)
         self._update_pressure_applied(state_next, props)
  
@@ -324,9 +342,12 @@ class FixedStepSolver:
                 break
 
             state_next.displacement[:] = xr
-            self._check_for_collapse(state_last, state_next, props)
             self._update_velocity(state_last, state_next)
+
+            self._update_collapse(state_last, state_next, props)
             self._update_pressure_electrostatic(state_next, props)
+            self._check_collapse_exit(state_last, state_next, props)
+
             self._update_pressure_contact(state_next, props)
             self._update_pressure_applied(state_next, props)
             
@@ -337,9 +358,12 @@ class FixedStepSolver:
         self._iters.append(i)
 
         state_next.displacement[:] = xr
-        self._check_for_collapse(state_last, state_next, props)
         self._update_velocity(state_last, state_next)
+
+        self._update_collapse(state_last, state_next, props)
         self._update_pressure_electrostatic(state_next, props)
+        self._check_collapse_exit(state_last, state_next, props)
+
         self._update_pressure_contact(state_next, props)
         self._update_pressure_applied(state_next, props)
         self.current_step += 1
