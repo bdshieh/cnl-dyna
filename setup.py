@@ -141,6 +141,11 @@ else:
             sources=['cnld/simulation_pid.pyx'],
             **ext_opts
         ),
+        Extension(
+            name='cnld.simulation_contact',
+            sources=['cnld/simulation_contact.pyx'],
+            **ext_opts
+        ),
     ]
 
 

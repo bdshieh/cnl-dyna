@@ -607,6 +607,7 @@ def array_mbk_spmatrix(array, refn, f, inv=False):
 
             M = mem_m_matrix(mem, refn, mu=0.5)
             K = mem_k_matrix(mem, refn)
+            # B = mem_b_matrix(mem, M, K)
             B = mem_b_matrix_eig(mem, refn, M, K)
 
             block = -(omg**2) * M - 1j * omg * B + K
