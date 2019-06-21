@@ -370,10 +370,10 @@ class FixedStepSolver:
 
         stop = len(self._time) - 1
         while True:
-            if self.state_last.is_collapsed[0]:
-                self.step_collapse()
-            else:
-                self.step()
+            # if self.state_last.is_collapsed[0]:
+            #     self.step_collapse()
+            # else:
+            self.step()
 
             if self.current_step >= stop:
                 break

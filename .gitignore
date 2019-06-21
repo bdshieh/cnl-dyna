@@ -119,3 +119,4 @@ venv.bak/
 # *.npz
 *.json
 *.gif
+singularity/*.img
