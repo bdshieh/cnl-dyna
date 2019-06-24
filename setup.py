@@ -132,8 +132,8 @@ else:
             **ext_opts
         ),
         Extension(
-            name='cnld.simulation4',
-            sources=['cnld/simulation4.pyx'],
+            name='cnld.simulation',
+            sources=['cnld/simulation.pyx'],
             **ext_opts
         ),
         Extension(
@@ -155,8 +155,6 @@ else:
         ext_modules=cythonize(ext_modules),
         packages=find_packages(),
         # package_data={'cnld': ['tests/kmat.npz']},
-        install_requires=[
-        ],
         entry_points={
         'console_scripts': [
             'cnld = cnld.cli:main'
@@ -165,11 +163,15 @@ else:
         setup_requires=[
             'setuptools>=18.0', 
             'cython>=0.25',
+        ],
+        install_requires=[
             'numpy',
             'scipy',
             'matplotlib',
-            # 'openmp',
-            # 'libgfortran',
-            'tqdm']
+            'tqdm',
+            'pandas',
+            'namedlist',
+            'jupyterlab',
+        ]
     )
 
