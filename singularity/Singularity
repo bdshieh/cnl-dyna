@@ -18,7 +18,7 @@ From: continuumio/miniconda3:latest
 #	../ /opt/cnl-dyna/	
 
 %post
-	sed -i 's/$/ universe/' /etc/apt/sources.list
+#	sed -i 's/$/ universe/' /etc/apt/sources.list
 	apt-get update
 	apt-get clean
 
@@ -43,7 +43,7 @@ From: continuumio/miniconda3:latest
 	cp /opt/cnl-dyna/singularity/options.inc.default /opt/H2Lib/
 	cp /opt/cnl-dyna/singularity/system.inc.linux /opt/H2Lib/
 	make
-	cp libh2.a /opt/cnl-dyna/lib/
+	mkdir /opt/cnl-dyna/lib/ && cp libh2.a /opt/cnl-dyna/lib/
 
 	# install cnl-dyna
 	cd /opt/cnl-dyna/
