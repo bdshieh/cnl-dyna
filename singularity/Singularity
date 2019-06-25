@@ -15,8 +15,7 @@ From: continuumio/miniconda3:latest
 
 
 %files
-	../ /opt/cnl-dyna/	
-
+#	../ /opt/cnl-dyna/	
 
 %post
 	sed -i 's/$/ universe/' /etc/apt/sources.list
@@ -32,11 +31,12 @@ From: continuumio/miniconda3:latest
 	
 	# install conda packages
 	conda update -y conda
-#	conda install -y numpy scipy matplotlib tqdm cython  pandas  jupyterlab nomkl
-#	conda install -y -c conda-forge namedlist
 	conda install -y -c conda-forge numpy scipy matplotlib tqdm cython  pandas  jupyterlab nomkl namedlist
 	conda clean -ya
-        
+       
+	# clone cnl-dyna
+	cd /opt/ && git clone https://github.com/bdshieh/cnl-dyna.git
+
 	# install H2Lib
 	cd /opt/ && git clone https://github.com/H2Lib/H2Lib.git && cd /opt/H2Lib
 	git checkout community
