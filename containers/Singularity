@@ -15,10 +15,9 @@ From: continuumio/miniconda3:latest
 
 
 %files
-#	../ /opt/cnl-dyna/	
+
 
 %post
-#	sed -i 's/$/ universe/' /etc/apt/sources.list
 	apt-get update
 	apt-get clean
 
@@ -40,10 +39,10 @@ From: continuumio/miniconda3:latest
 	# install H2Lib
 	cd /opt/ && git clone https://github.com/H2Lib/H2Lib.git && cd /opt/H2Lib
 	git checkout community
-	cp /opt/cnl-dyna/singularity/options.inc.default /opt/H2Lib/
-	cp /opt/cnl-dyna/singularity/system.inc.linux /opt/H2Lib/
+	cp /opt/cnl-dyna/lib/options.inc.default /opt/H2Lib/
+	cp /opt/cnl-dyna/lib/system.inc.linux /opt/H2Lib/
 	make
-	mkdir /opt/cnl-dyna/lib/ && cp libh2.a /opt/cnl-dyna/lib/
+	cp libh2.a /opt/cnl-dyna/lib/
 
 	# install cnl-dyna
 	cd /opt/cnl-dyna/
