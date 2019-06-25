@@ -3,14 +3,14 @@ From: continuumio/miniconda3:latest
 
 %runscript
 	echo "This is what happens when you run the container..."	
-#	export PATH=/opt/conda/bin:${PATH}
-	/bin/bash -c "source activate cnl-dyna"
+	/bin/bash
 	
 
 %startscript
 
 %environment
 	export PATH=/opt/conda/bin:${PATH}
+	export SINGULARITY_SHELL=/bin/bash
 
 %files
 	../ /opt/cnl-dyna/	
@@ -29,12 +29,9 @@ From: continuumio/miniconda3:latest
 #	rm ~/anaconda.sh 
 	export PATH=/opt/conda/bin:${PATH}
 	conda init bash
-#	echo "conda activate cnl-dyna" >> ~/.bashrc
-#	conda update -y conda
-
+	
 	# install conda packages
-	conda create -n cnl-dyna 	
-#	. activate cnl-dyna
+	conda update -y conda
 #	conda install -y numpy scipy matplotlib tqdm cython  pandas  jupyterlab nomkl
 #	conda install -y -c conda-forge namedlist
 #	conda clean -ya
