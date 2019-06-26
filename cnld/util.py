@@ -452,6 +452,49 @@ def script_parser(main, config_def):
     return parser, run_parser
 
 
+def script_parser2(main, config_def):
+    '''
+    General script command-line interface with 'config' and 'run' subcommands.
+    '''
+    if isinstance(config_def, dict):
+        # create config abstract type based on supplied dict
+        Config = abstract.register_type('Config', config_def)
+    else:
+        # config abstract type already defined
+        Config = config_def
+
+    # run
+    def run(args):
+
+        if args.show_config:
+            print(Config())
+            return
+        
+        if args.generate_config:
+            abstract.dump(Config(), args.generate_config)
+            return
+        
+        if args.file:
+            if args.config:
+                cfg = Config(**abstract.load(args.config))
+            else:
+                cfg = Config()
+
+            return main(cfg, args)
+
+    # create argument parser
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-g', '--generate-config')
+    parser.add_argument('-s', '--show-config', action='store_true')
+    parser.add_argument('file', nargs='?')
+    parser.add_argument('-c', '--config')
+    parser.add_argument('-t', '--threads', type=int)
+    parser.add_argument('-w', '--write-over', action='store_true')
+    parser.set_defaults(func=run)
+
+    return parser
+
+
 ''' MISC FUNCTIONS '''
 
 def memoize_old(func):

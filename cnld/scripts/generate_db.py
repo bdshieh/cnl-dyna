@@ -211,13 +211,13 @@ _Config = {}
 _Config['freqs'] = 0, 50e6, 200e3
 _Config['sound_speed'] = 1500.
 _Config['fluid_rho'] = 1000.
-_Config['array_config'] = ''
+_Config['array_config'] = 'array.json'
 _Config['mesh_refn'] = 9
 _Config['format'] = 'HFormat'
 _Config['aprx'] = 'paca'
 _Config['basis'] = 'linear'
 _Config['admis'] = '2'
-_Config['eta'] = 1.2
+_Config['eta'] = 0.8
 _Config['eps'] = 1e-12
 _Config['m'] = 4
 _Config['clf'] = 16
@@ -236,8 +236,10 @@ if __name__ == '__main__':
     from cnld import util
 
     # get script parser and parse arguments
-    parser, run_parser = util.script_parser(main, Config)
+    # parser, run_parser = util.script_parser(main, Config)
+    # args = parser.parse_args()
+    # args.func(args)
+    parser = util.script_parser2(main, Config)
     args = parser.parse_args()
     args.func(args)
-
 

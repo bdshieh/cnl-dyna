@@ -5,11 +5,9 @@ import subprocess
 
 
 scripts = {}
-scripts['matrix'] = 'cnld.arrays.matrix'
-scripts['hex_matrix'] = 'cnld.arrays.hex_matrix'
-# scripts['freq-resp-db'] = 'cnld.scripts.freq_resp_db'
-# scripts['imp-resp-db'] = 'cnld.scripts.imp_resp_db'
-scripts['gen-db'] = 'cnld.scripts.gen_db'
+scripts['matrix-array'] = 'cnld.scripts.matrix_array'
+scripts['hex-array'] = 'cnld.scripts.hex_array'
+scripts['generate-db'] = 'cnld.scripts.generate_db'
 
 # define parser
 parser = argparse.ArgumentParser()
