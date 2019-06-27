@@ -9,7 +9,7 @@ import os, sys, traceback
 from scipy.sparse.linalg import lgmres
 from timeit import default_timer as timer
 
-from cnld import abstract, util, bem, fem, frequency_response, impulse_response, database
+from cnld import abstract, util, bem, fem, impulse_response, database
 from cnld.compressed_formats import MbkSparseMatrix
 from cnld.mesh import Mesh
 
@@ -156,7 +156,7 @@ def main(cfg, args):
             os.remove(file)  
 
             # create databases
-            database.create_db(file)
+            database.create_db(file, **cfg._asdict())
             util.create_progress_table(file, njobs)
 
             # append node information
@@ -175,7 +175,7 @@ def main(cfg, args):
             os.makedirs(file_dir)
 
         # create databases
-        database.create_db(file)
+        database.create_db(file, **cfg._asdict())
         util.create_progress_table(file, njobs)
 
         # append node information

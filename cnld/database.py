@@ -38,6 +38,7 @@ displacement_imag float,
 time_solve float
 )
 '''
+
 PATCH_TO_PATCH_FREQ_RESP_INDEX = '''
 CREATE INDEX patch_to_patch_freq_resp_index ON patch_to_patch_freq_resp (
 source_patch, dest_patch, frequency
@@ -58,6 +59,7 @@ displacement_imag float,
 FOREIGN KEY (node_id, x, y, z) REFERENCES node (node_id, x, y, z)
 )
 '''
+
 PATCH_TO_NODE_FREQ_RESP_INDEX = '''
 CREATE INDEX patch_to_node_freq_resp_index ON patch_to_node_freq_resp (
 source_patch, node_id, frequency
@@ -72,6 +74,7 @@ time float,
 displacement float
 )
 '''
+
 PATCH_TO_PATCH_IMP_RESP_INDEX = '''
 CREATE INDEX patch_to_patch_imp_resp_index ON patch_to_patch_imp_resp (
 source_patch, dest_patch, time
@@ -97,11 +100,19 @@ def create_table(con, table_defn, index_defn=None):
         if index_defn is not None:
             con.execute(index_defn)
 
-
+            
 @util.open_db
-def create_db(con):
+def create_metadata_table(con, **kwargs):
+    table = [[str(v) for v in list(kwargs.values())]]
+    columns = list(kwargs.keys())
+    pd.DataFrame(table, columns=columns, dtype=str).to_sql('metadata', con, if_exists='replace', index=False)
+    
+    
+@util.open_db
+def create_db(con, **kwargs):
 
     # create_table(con, PROGRESS)
+    create_metadata_table(con, **kwargs)
     create_table(con, NODE)
     create_table(con, PATCH_TO_PATCH_FREQ_RESP, PATCH_TO_PATCH_FREQ_RESP_INDEX)
     create_table(con, PATCH_TO_NODE_FREQ_RESP, PATCH_TO_NODE_FREQ_RESP_INDEX)
@@ -110,7 +121,7 @@ def create_db(con):
 
 ''' UPDATING DATABASE '''
 
-@util.open_db
+@util.read_db
 def append_node(con, **kwargs):
 
     row_keys = ['node_id', 'x', 'y', 'z']
@@ -121,7 +132,7 @@ def append_node(con, **kwargs):
         con.executemany(query, zip(*row_data))
 
 
-@util.open_db
+@util.read_db
 def append_patch_to_patch_freq_resp(con, **kwargs):
 
     row_keys = ['source_patch', 'dest_patch', 'frequency', 'wavenumber', 'displacement_real', 
@@ -133,7 +144,7 @@ def append_patch_to_patch_freq_resp(con, **kwargs):
         con.executemany(query, zip(*row_data))
 
 
-@util.open_db
+@util.read_db
 def append_patch_to_node_freq_resp(con, **kwargs):
 
     row_keys = ['source_patch', 'node_id', 'x', 'y', 'z', 'frequency', 'wavenumber',  
@@ -145,7 +156,7 @@ def append_patch_to_node_freq_resp(con, **kwargs):
         con.executemany(query, zip(*row_data))
 
 
-@util.open_db
+@util.read_db
 def append_patch_to_patch_imp_resp(con, **kwargs):
     ''''''
     row_keys = ['source_patch', 'dest_patch', 'time', 'displacement']
@@ -175,8 +186,22 @@ def append_patch_to_patch_imp_resp(con, **kwargs):
 
 #     return is_complete, ijob
 
+@util.read_db
+def read_metadata(con, as_dict=False):
+    with con:
+        query = '''
+                SELECT *
+                FROM metadata
+                '''
+        table = pd.read_sql(query, con)
+        
+    if as_dict:
+        return {k: v for k, v in zip(table.columns, table.iloc[0])}
+    else:
+        return table
 
-@util.open_db
+
+@util.read_db
 def read_node(con):
     with con:
         query = '''
@@ -189,7 +214,7 @@ def read_node(con):
     return np.array([table['x'], table['y'], table['z']])
 
 
-@util.open_db
+@util.read_db
 def read_patch_to_patch_freq_resp(con):
     with con:
         query = '''
@@ -211,7 +236,7 @@ def read_patch_to_patch_freq_resp(con):
     return freqs, disp
 
 
-@util.open_db
+@util.read_db
 def read_patch_to_node_freq_resp(con):
     with con:
         query = '''
@@ -235,7 +260,7 @@ def read_patch_to_node_freq_resp(con):
     return freqs, disp, nodes
 
 
-@util.open_db
+@util.read_db
 def read_patch_to_patch_imp_resp(con):
     with con:
         query = '''

@@ -363,6 +363,19 @@ def open_db(f):
     return decorator
 
 
+def read_db(f):
+    def decorator(firstarg, *args, **kwargs):
+        if isinstance(firstarg, sql.Connection):
+            return f(firstarg, *args, **kwargs)
+        else:
+            if os.path.isfile(firstarg):
+                with closing(sql.connect(firstarg)) as con:
+                    return f(con, *args, **kwargs)
+            else:
+                raise IOError('File does not exist')
+    return decorator
+
+
 @open_db
 def table_exists(con, name):
 
