@@ -191,7 +191,7 @@ def _from_abstract(cls, array, refn=1, **kwargs):
     
     for elem in array.elements:
         for mem in elem.membranes:
-            # future: include type selector to choose between square and circle membranes
+
             if isinstance(mem, abstract.SquareCmutMembrane):
                 v, e, t, s = geometry_square(mem.length_x, mem.length_y, refn=refn)
             elif isinstance(mem, abstract.CircularCmutMembrane):
