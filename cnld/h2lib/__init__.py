@@ -15,6 +15,7 @@ from . krylovsolvers import *
 from . harith import *
 from . factorizations import *
 from . sparsematrix import *
+from . matrixnorms import *
 
 init_h2lib()
 # print('h2lib initialized')

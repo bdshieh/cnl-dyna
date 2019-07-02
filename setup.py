@@ -122,6 +122,11 @@ else:
             **ext_opts
         ),
         Extension(
+            name='cnld.h2lib.matrixnorms',
+            sources=['cnld/h2lib/matrixnorms.pyx'],
+            **ext_opts
+        ),
+        Extension(
             name='cnld.simulation',
             sources=['cnld/simulation.pyx'],
             **ext_opts
