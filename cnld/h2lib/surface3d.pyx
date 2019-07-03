@@ -92,3 +92,15 @@ cpdef Surface3d refine_red_surface3d(Surface3d gr):
 
 cpdef translate_surface3d(Surface3d gr, real[:] t):
     _surface3d.translate_surface3d(gr.ptr, &t[0])
+
+cpdef uint check_surface3d(Surface3d gr):
+    return _surface3d.check_surface3d(<pcsurface3d> gr.ptr)
+
+cpdef bint isclosed_surface3d(Surface3d gr):
+    return _surface3d.isclosed_surface3d(<pcsurface3d> gr.ptr)
+
+cpdef bint isoriented_surface3d(Surface3d gr):
+    return _surface3d.isoriented_surface3d(<pcsurface3d> gr.ptr)
+    
+    
+    

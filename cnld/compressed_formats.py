@@ -352,7 +352,7 @@ class SparseFormat(BaseFormat):
         the h-structure in href
         '''
         hm = clonestructure_hmatrix(href)
-        clear_hmatrix(hm)
+        clear_hmatrix(hm)  # very important to clear hmatrix otherwise addition doesn't work properly
         copy_sparsematrix_hmatrix(self._mat, hm)
         return HFormat(hm)
 
