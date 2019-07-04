@@ -298,7 +298,7 @@ class FixedStepSolver:
         state_next = self.state_next
         props = self.properties
 
-        state_next.displacement[:] = self._fir_conv_damped(state.pressure_applied, offset=1)
+        state_next.displacement[:] = self._fir_conv(state.pressure_applied, offset=1)
         self._update_velocity(state_last, state_next)
         self._update_collapse(state_next, props)
 
@@ -313,7 +313,7 @@ class FixedStepSolver:
 
         p = self._pressure_applied[:self.current_step + 2,:]
 
-        xr = self._fir_conv_damped(p, offset=0)
+        xr = self._fir_conv(p, offset=0)
         err = np.max(np.abs(state_next.displacement - xr))
 
         return xr, err
