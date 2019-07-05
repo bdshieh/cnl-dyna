@@ -2,112 +2,35 @@
 
 import numpy as np
 import scipy as sp
-from scipy.constants import epsilon_0 as e_0
 from scipy.interpolate import interp1d
-import numpy.linalg
-
-from cnld import abstract, mesh, fem, util
-
-
-def fcomp_from_abstract(array, refn):
-
-    F = fem.f_from_abstract(array, refn)
-    AVG = fem.avg_from_abstract(array, refn)
-
-    patches = abstract.get_patches_from_array(array)
-
-    gaps = []
-    gaps_eff = []
-    Kinvs = []
-    for elem in array.elements:
-        for mem in elem.membranes:
-            if isinstance(mem, abstract.SquareCmutMembrane):
-                square = True
-                amesh = mesh.square(mem.length_x, mem.length_y, refn=refn)
-            elif isinstance(mem, abstract.CircularCmutMembrane):
-                square = False
-                amesh = mesh.circle(mem.radius, refn=refn)
-
-            K = fem.mem_k_matrix(amesh, mem.y_modulus, mem.thickness, mem.p_ratio)
-            Kinv = np.linalg.inv(K)
-
-            # f = fem.mem_f_vector(amesh, 1)
-            # u = Kinv.dot(-f)
-            # unorm = (u / np.max(np.abs(u))).squeeze()
-
-            for pat in mem.patches:
-                Kinvs.append(Kinv)
-                gaps.append(mem.gap)
-                gaps_eff.append(mem.gap + mem.isolation / mem.permittivity)
-
-    fcomps = []
-    for i, pat in enumerate(patches):
-        
-        f = np.array(F[:,i].todense())
-        avg = np.array(AVG[:,i].todense())
-        g = gaps[i]
-        g_eff = gaps_eff[i]
-        Kinv = Kinvs[i]
-
-        u = Kinv.dot(-f)
-        unorm = (u / np.max(np.abs(u))).squeeze()
-        ubar = unorm.dot(avg) / pat.area
-
-        fc = []
-        uavg = []
-        fpp = []
-        for d in np.linspace(0, 1, 11):
-            uavg.append(ubar * g * d)
-            x = unorm * g * d
-            fc.append((-e_0 / 2 / (x + g_eff)**2).dot(avg) / pat.area)
-            fpp.append(-e_0 / 2 / (ubar * g * d + g_eff)**2)
-
-        # for d in np.linspace(1.2, 3, 10):
-        #     x = unorm * g * d
-        #     x[x < -g] = -g
-        #     xbar = x.dot(avg) / pat.area
-        #     uavg.append(x.dot(avg) / pat.area)
-        #     fc.append((-e_0 / 2 / (x + g_eff)**2).dot(avg) / pat.area)
-        #     fpp.append(-e_0 / 2 / (xbar + g_eff)**2)
-            
-        # fcomp = interp1d(uavg, fc, kind='cubic', bounds_error=False, fill_value=(fc[-1], fc[0]))
-        fcomp = np.array(uavg).squeeze(), np.array(fc).squeeze(), np.array(fpp).squeeze()
-        fcomps.append(fcomp)
-
-    return fcomps
-
-array = abstract.load('square_membrane.json')
-# array = abstract.load('circular_membrane.json')
-fcorr = fcomp_from_abstract(array, refn=9)
-
-
-
 from matplotlib import pyplot as plt
 from scipy.interpolate import CubicSpline
 
-for i in [4, 5, 8]:
-# for i in [0, 4, 8]:
+from cnld import abstract, arrays, compensation
 
-    uavg, fc, fpp = fcorr[i]
 
-    fig, ax = plt.subplots()
-    ax.plot(uavg, fc,'.-')
-    ax.plot(uavg, fpp, '--')
-    fig.show()
+refn = 7
+E = 110e9
+v = 0.22
+Estar = E / (2 * (1 - v**2))
+A = np.pi * (20e-6)**2
 
-uavg, fc, fpp = fcorr[4]
+array = arrays.matrix_array(nelem=[1, 1], npatch=[2, 4], shape='circle')
 
-uavg = np.append(uavg, -50e-9)
-mem = array.elements[0].membranes[0]
-g_eff = mem.gap + mem.isolation / mem.permittivity
-fc = np.append(fc, -e_0 / 2 / (-50e-9 + g_eff)**2)
-# fcomp = interp1d(uavg, fc, kind='cubic')
-fcomp = CubicSpline(uavg[::-1], fc[::-1], bc_type=((1, 0),'not-a-knot'))
-# fcomp = interp1d(uavg, fc, kind='cubic', bounds_error=False, fill_value='extrapolate')
+cont_stiff = 2 * Estar / np.sqrt(np.pi * A) * 1
+fcomp, meta = compensation.array_patch_fcomp_funcs(array, refn,
+                                                   cont_stiff=cont_stiff)
 
-ui = np.linspace(-50e-9, 0, 100)
 
+x = np.linspace(-70e-9, 70e-9, 101)
+v = 50
 fig, ax = plt.subplots()
-ax.plot(ui, fcomp(ui), '-')
-ax.plot(uavg, fc, '.')
+# ax.plot(x, fcomp[0](x, v), '.-')
+ax.plot(x, fcomp[0](x, v), '--')
+ax.plot(meta[0]['u'], meta[0]['f_es'] * v**2, '.-')
+ax.plot(meta[0]['u'], meta[0]['f_cont'], '.-')
+# ax.plot(x, fcomp[0][0](x) * v**2, '--')
+# ax.plot(x, fcomp[0][1](x), '--')
+# ax.plot(x, fcomp[0][0](x) * v**2 + fcomp[0][1](x), '--')
+ax.plot(meta[0]['u'], meta[0]['f_es'] * v**2 + meta[0]['f_cont'], '.')
 fig.show()
