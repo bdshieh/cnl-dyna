@@ -44,7 +44,8 @@ def mem_patch_fcomp_funcs(mem, refn):
         uavg = np.append(uavg, -g)
         fc = np.append(fc, -e_0 / 2 / (-g + g_eff)**2)
 
-        fcomp = CubicSpline(uavg[::-1], fc[::-1], bc_type=((1, 0),'not-a-knot'))
+        fcomp = CubicSpline(uavg[::-1], fc[::-1], bc_type=((1, 0),
+                            'not-a-knot'))
         fcomps.append(fcomp)
     
     return fcomps
@@ -139,9 +140,9 @@ def mem_patch_fcomp_funcs3(mem, refn, cont_stiff=None):
         for i, d in enumerate(np.linspace(2, -2, 21)):
             x = unorm * g * d
             x_es = x.copy()
-            # x_es[x_es < -g] = -g
+            x_es[x_es < -g] = -g
 
-            _avg = x.dot(avg_pat)
+            _avg = x_es.dot(avg_pat)
             _f_es = -e_0 / 2 / (x_es + g_eff)**2
             _f_cont = np.zeros(len(x))
             _f_cont[x < -g] = -cont_stiff * (x[x < -g] + g)
@@ -161,17 +162,18 @@ def mem_patch_fcomp_funcs3(mem, refn, cont_stiff=None):
         fcomp1 = CubicSpline(uavg, f_es)
         fcomp2 = CubicSpline(uavg, f_cont)
 
-        def make_fcomp(fcomp1, fcomp2):
-            def fcomp(x, v):
-                return fcomp1(x) * v**2 + fcomp2(x)
-            fcomp.fcomp1 = fcomp1
-            fcomp.fcomp2 = fcomp2
-            return fcomp
-
         fcomps.append(make_fcomp(fcomp1, fcomp2))
         fcomps_data.append({'u': uavg, 'f_es': f_es, 'f_cont': f_cont})
 
     return fcomps, fcomps_data
+
+
+def make_fcomp(fcomp1, fcomp2):
+    def fcomp(x, v):
+        return fcomp1(x) * v**2 + fcomp2(x)
+    fcomp.fcomp1 = fcomp1
+    fcomp.fcomp2 = fcomp2
+    return fcomp
 
 
 def array_patch_fcomp_funcs(array, refn, **kwargs):

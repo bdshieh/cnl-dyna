@@ -255,7 +255,7 @@ class FixedStepSolver:
         return fir_conv_cy(fird, p, self.min_step, offset=offset)
 
     def _update_pressure_electrostatic(self, state, props):
-        state.pressure_electrostatic[:] = electrostat_pres(state.voltage, -props.gap, props.gap_effective)
+        state.pressure_electrostatic[:] = electrostat_pres(state.voltage, state.displacement, props.gap_effective)
 
     def _update_pressure_contact(self, state, props):
         
@@ -415,10 +415,12 @@ class CompensationSolver(FixedStepSolver):
 
     def __init__(self, t_fir, t_v, gap, gap_eff, t_lim, fcomps, fcomps_meta, atol=1e-10, maxiter=5):
 
-        super().__init__(t_fir, t_v, gap, gap_eff, t_lim, atol=atol, maxiter=maxiter)
-
         self._fcomps = fcomps
         self._fcomp_meta = fcomps_meta
+
+        super().__init__(t_fir, t_v, gap, gap_eff, t_lim, atol=atol, maxiter=maxiter)
+
+
 
     @classmethod
     def from_array_and_db(cls, array, refn, dbfile, t_v, t_lim, atol=1e-10, maxiter=5, cont_stiff=None):
@@ -457,7 +459,9 @@ class CompensationSolver(FixedStepSolver):
 
     def _update_pressure_applied(self, state, props):
 
-        state.pressure_applied[:] = state.pressure_contact + state.pressure_electrostatic
+        # state.pressure_applied[:] = state.pressure_contact + state.pressure_electrostatic
+        for i in range(self.npatch):
+            state.pressure_applied[i] = self._fcomps[i](state.displacement[i], state.voltage[i])
 
 
 def gaussian_pulse(fc, fbw, fs, td=0, tpr=-60, antisym=True):
