@@ -279,9 +279,9 @@ def mem_b_matrix(mem, M, K):
 
 
 @util.memoize
-def mem_b_matrix_eig(mem, refn, M, K):
+def mem_eig(mem, refn):
     '''
-    Damping matrix based on Rayleigh damping for damping ratios at two modal frequencies.
+    Returns the eigenfrequency (in Hz) and eigenmodes of a membrane.
     '''
     if isinstance(mem, abstract.SquareCmutMembrane):
         amesh = mesh.square(mem.length_x, mem.length_y, refn)
@@ -289,19 +289,44 @@ def mem_b_matrix_eig(mem, refn, M, K):
         amesh = mesh.circle(mem.radius, refn)
     ob = amesh.on_boundary
 
+    M = mem_m_matrix(mem, refn, mu=0.5)
+    K = mem_k_matrix(mem, refn)
+    w, v = linalg.eig(linalg.inv(M).dot(K)[np.ix_(~ob, ~ob)])
+
+    idx = np.argsort(np.sqrt(np.abs(w)))
+    eigf = np.sqrt(np.abs(w))[idx] / (2 * np.pi)
+    eigv = v[:, idx]
+
+    return eigf, eigv
+
+
+@util.memoize
+def mem_b_matrix_eig(mem, refn, M, K):
+    '''
+    Damping matrix based on Rayleigh damping for damping ratios at two modal frequencies.
+    '''
+    # if isinstance(mem, abstract.SquareCmutMembrane):
+    #     amesh = mesh.square(mem.length_x, mem.length_y, refn)
+    # else:
+    #     amesh = mesh.circle(mem.radius, refn)
+    # ob = amesh.on_boundary
+
     ma = mem.damping_mode_a
     mb = mem.damping_mode_b
     za = mem.damping_ratio_a
     zb = mem.damping_ratio_b
 
     # determine eigenfrequencies of membrane
-    w, v = linalg.eig(linalg.inv(M).dot(K)[np.ix_(~ob, ~ob)])
-    omg = np.sort(np.sqrt(np.abs(w)))
-    omga = omg[ma]
-    omgb = omg[mb]
+    # w, v = linalg.eig(linalg.inv(M).dot(K)[np.ix_(~ob, ~ob)])
+    # omg = np.sort(np.sqrt(np.abs(w)))
+    # omga = omg[ma]
+    # omgb = omg[mb]
+    eigf, _ = mem_eig(mem, refn)
+    omga = eigf[ma] * 2 * np.pi
+    omgb = eigf[mb] * 2 * np.pi
 
     # solve for alpha and beta
-    A = 1 / 2 * np.array([[1 / omga, omga],[1 / omgb, omgb]])
+    A = 1 / 2 * np.array([[1 / omga, omga], [1 / omgb, omgb]])
     alpha, beta = linalg.inv(A).dot([za, zb])
     
     return alpha * M + beta * K

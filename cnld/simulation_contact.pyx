@@ -130,7 +130,6 @@ class FixedStepSolver:
         self.ntime = ntime
         self.current_step = 0
         self.min_step = t_step
-        self._collapse_damp_coeff = 0
 
         # set initial state
         self._update_pressure_applied(self.state_last, self.properties) 
@@ -244,15 +243,6 @@ class FixedStepSolver:
 
     def _fir_conv(self, p, offset):
         return fir_conv_cy(self._fir, p, self.min_step, offset=offset)
-    
-    def _fir_conv_damped(self, p, offset):
-
-        mask = self.state_next.is_collapsed
-        fird = self._fir.copy()
-        fir_t = self._fir_t
-        if np.any(mask):
-            fird[np.ix_(mask, mask),:] *= np.exp(-self._collapse_damp_coeff * fir_t)
-        return fir_conv_cy(fird, p, self.min_step, offset=offset)
 
     def _update_pressure_electrostatic(self, state, props):
         state.pressure_electrostatic[:] = electrostat_pres(state.voltage, state.displacement, props.gap_effective)
