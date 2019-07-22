@@ -413,7 +413,7 @@ class CompensationSolver(FixedStepSolver):
 
 
     @classmethod
-    def from_array_and_db(cls, array, refn, dbfile, t_v, t_lim, atol=1e-10, maxiter=5, cont_stiff=None):
+    def from_array_and_db(cls, array, refn, dbfile, t_v, t_lim, atol=1e-10, maxiter=10, cont_stiff=None):
         # read fir database
         fir_t, fir = database.read_patch_to_patch_imp_resp(dbfile)
 

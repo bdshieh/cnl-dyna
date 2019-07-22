@@ -137,7 +137,7 @@ def mem_patch_fcomp_funcs3(mem, refn, cont_stiff=None):
         f_cont = []
         uavg = []
 
-        for i, d in enumerate(np.linspace(2, -2, 21)):
+        for i, d in enumerate(np.linspace(2, -2, 81)):
             x = unorm * g * d
             x_es = x.copy()
             x_es[x_es < -g] = -g
