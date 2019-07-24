@@ -95,7 +95,7 @@ class FixedStepSolver:
         # define voltage array (with interpolation)
         if v.ndim <= 1:
             v = np.tile(v, (npatch, 1)).T
-        fi_voltage = interp1d(v_t, v, axis=0, fill_value=0, bounds_error=False, kind='linear', assume_sorted=True)
+        fi_voltage = interp1d(v_t, v, axis=0, fill_value=(v[0,:], v[-1,:]), bounds_error=False, kind='linear', assume_sorted=True)
         voltage = fi_voltage(time)
 
         # define fir (with interpolation)
