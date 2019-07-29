@@ -138,7 +138,7 @@ def mem_patch_fcomp_funcs3(mem, refn, cont_stiff=None):
         uavg = []
         umax = []
 
-        for i, d in enumerate(np.linspace(2, -2, 81)):
+        for i, d in enumerate(np.linspace(-2, 2, 81)):
             x = unorm * g * d
             x_es = x.copy()
             x_es[x_es < -g] = -g
@@ -149,15 +149,19 @@ def mem_patch_fcomp_funcs3(mem, refn, cont_stiff=None):
             _f_cont = np.zeros(len(x))
             _f_cont[x < -g] = -cont_stiff * (x[x < -g] + g)
 
+            if i > 0:
+                if _avg == uavg[i - 1]:
+                    break
+
             uavg.append(_avg)
             umax.append(_max)
             f_es.append(_f_es.dot(avg_pat))
             f_cont.append(_f_cont.dot(avg_pat))
 
-        f_es = np.array(f_es)
-        f_cont = np.array(f_cont)
-        uavg = np.array(uavg)
-        umax = np.array(umax)
+        f_es = np.array(f_es)[::-1]
+        f_cont = np.array(f_cont)[::-1]
+        uavg = np.array(uavg)[::-1]
+        umax = np.array(umax)[::-1]
 
         # fcomp1 = CubicSpline(uavg[::-1], f_es[::-1], bc_type=((1, 0),
         #                      'not-a-knot'))
