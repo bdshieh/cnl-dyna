@@ -451,7 +451,13 @@ class CompensationSolver(FixedStepSolver):
 
         # state.pressure_applied[:] = state.pressure_contact + state.pressure_electrostatic
         for i in range(self.npatch):
-            state.pressure_applied[i] = self._fcomps[i](state.displacement[i], state.voltage[i])
+            # state.pressure_applied[i] = self._fcomps[i](state.displacement[i], state.voltage[i])
+            p = self._fcomps[i](state.displacement[i], state.voltage[i])
+            # pmax = np.abs(state.pressure_electrostatic[i]) * 2
+            pmax = 2 * e_0 / 2 * np.max(self._voltage[i])**2 / (props.gap_eff - props.gap)**2
+            if p > pmax:
+                p = pmax
+            state.pressure_applied[i] = p
 
 
 def gaussian_pulse(fc, fbw, fs, td=0, tpr=-60, antisym=True):
