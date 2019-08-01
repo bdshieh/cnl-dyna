@@ -413,7 +413,7 @@ class CompensationSolver(FixedStepSolver):
 
 
     @classmethod
-    def from_array_and_db(cls, array, refn, dbfile, t_v, t_lim, atol=1e-10, maxiter=10, cont_stiff=None):
+    def from_array_and_db(cls, array, refn, dbfile, t_v, t_lim, atol=1e-10, maxiter=10, **kwargs):
         # read fir database
         fir_t, fir = database.read_patch_to_patch_imp_resp(dbfile)
 
@@ -433,7 +433,7 @@ class CompensationSolver(FixedStepSolver):
         #     A = np.pi * (10e-6)**2 / 4
         #     cont_stiff = 2 * Estar / np.sqrt(np.pi * A)
 
-        fcomps, fcomps_meta = compensation.array_patch_fcomp_funcs(array, refn, cont_stiff=cont_stiff)
+        fcomps, fcomps_meta = compensation.array_patch_fcomp_funcs(array, refn, **kwargs)
 
         return cls((fir_t, fir), t_v, gap, gap_eff, t_lim, fcomps, fcomps_meta, atol, maxiter)
 
@@ -445,19 +445,23 @@ class CompensationSolver(FixedStepSolver):
     def _update_pressure_contact(self, state, props):
         
         for i in range(self.npatch):
-            state.pressure_contact[i] = self._fcomps[i].fcomp2(state.displacement[i])
+
+            p = self._fcomps[i].fcomp2(state.displacement[i])
+            # if p > 0 :
+                # p -= self._fcomps[i].fcomp1(state.displacement[i]) * state.voltage[i]**2
+
+            # pmax = 2 * e_0 / 2 * np.max(self._voltage[i])**2 / (props.gap_effective[i] - props.gap[i])**2
+            # if p > pmax:
+                # p = pmax
+            state.pressure_contact[i] = p
 
     def _update_pressure_applied(self, state, props):
 
         # state.pressure_applied[:] = state.pressure_contact + state.pressure_electrostatic
         for i in range(self.npatch):
             # state.pressure_applied[i] = self._fcomps[i](state.displacement[i], state.voltage[i])
-            p = self._fcomps[i](state.displacement[i], state.voltage[i])
-            # pmax = np.abs(state.pressure_electrostatic[i]) * 2
-            pmax = 2 * e_0 / 2 * np.max(self._voltage[i])**2 / (props.gap_eff - props.gap)**2
-            if p > pmax:
-                p = pmax
-            state.pressure_applied[i] = p
+            # p = self._fcomps[i](state.displacement[i], state.voltage[i])
+            state.pressure_applied[i] = state.pressure_electrostatic[i] + state.pressure_contact[i]
 
 
 def gaussian_pulse(fc, fbw, fs, td=0, tpr=-60, antisym=True):
