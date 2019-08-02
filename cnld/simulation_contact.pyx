@@ -403,14 +403,11 @@ class FixedStepSolver:
 
 class CompensationSolver(FixedStepSolver):
 
-    def __init__(self, t_fir, t_v, gap, gap_eff, t_lim, fcomps, fcomps_meta, atol=1e-10, maxiter=5):
+    def __init__(self, t_fir, t_v, gap, gap_eff, t_lim, fcomps, atol=1e-10, maxiter=5):
 
         self._fcomps = fcomps
-        self._fcomp_meta = fcomps_meta
 
         super().__init__(t_fir, t_v, gap, gap_eff, t_lim, atol=atol, maxiter=maxiter)
-
-
 
     @classmethod
     def from_array_and_db(cls, array, refn, dbfile, t_v, t_lim, atol=1e-10, maxiter=10, **kwargs):
@@ -426,41 +423,24 @@ class CompensationSolver(FixedStepSolver):
                     gap.append(mem.gap)
                     gap_eff.append(mem.gap + mem.isolation / mem.permittivity)
 
-        # if not cont_stiff:
-        #     E = 110e9
-        #     v = 0.22
-        #     Estar = E / (2 * (1 - v**2))
-        #     A = np.pi * (10e-6)**2 / 4
-        #     cont_stiff = 2 * Estar / np.sqrt(np.pi * A)
+        # fcomps, fcomps_meta = compensation.array_patch_fcomp_funcs(array, refn, **kwargs)
+        fcomps = compensation.array_patch_fcomp_funcs(array, refn, **kwargs)
 
-        fcomps, fcomps_meta = compensation.array_patch_fcomp_funcs(array, refn, **kwargs)
-
-        return cls((fir_t, fir), t_v, gap, gap_eff, t_lim, fcomps, fcomps_meta, atol, maxiter)
+        return cls((fir_t, fir), t_v, gap, gap_eff, t_lim, fcomps, atol, maxiter)
 
     def _update_pressure_electrostatic(self, state, props):
 
         for i in range(self.npatch):
-            state.pressure_electrostatic[i] = self._fcomps[i].fcomp1(state.displacement[i]) * state.voltage[i]**2
+            state.pressure_electrostatic[i] = self._fcomps[i]['fes'](state.displacement[i], state.voltage[i])
 
     def _update_pressure_contact(self, state, props):
         
         for i in range(self.npatch):
-
-            p = self._fcomps[i].fcomp2(state.displacement[i])
-            # if p > 0 :
-                # p -= self._fcomps[i].fcomp1(state.displacement[i]) * state.voltage[i]**2
-
-            # pmax = 2 * e_0 / 2 * np.max(self._voltage[i])**2 / (props.gap_effective[i] - props.gap[i])**2
-            # if p > pmax:
-                # p = pmax
-            state.pressure_contact[i] = p
+            state.pressure_contact[i] = self._fcomps[i]['fcontact'](state.displacement[i], state.velocity[i])
 
     def _update_pressure_applied(self, state, props):
 
-        # state.pressure_applied[:] = state.pressure_contact + state.pressure_electrostatic
         for i in range(self.npatch):
-            # state.pressure_applied[i] = self._fcomps[i](state.displacement[i], state.voltage[i])
-            # p = self._fcomps[i](state.displacement[i], state.voltage[i])
             state.pressure_applied[i] = state.pressure_electrostatic[i] + state.pressure_contact[i]
 
 

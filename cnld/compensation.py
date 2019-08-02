@@ -179,7 +179,7 @@ def mem_patch_fcomp_funcs3(mem, refn, cont_stiff=None):
 
 
 @util.memoize
-def mem_patch_fcomp_funcs4(mem, refn, pmax, cont_stiff=None):
+def mem_patch_fcomp_funcs4(mem, refn, pmax, damping):
     '''
     '''
     f = fem.mem_patch_f_matrix(mem, refn)
@@ -194,26 +194,34 @@ def mem_patch_fcomp_funcs4(mem, refn, pmax, cont_stiff=None):
     u = Kinv.dot(-np.sum(f, axis=1)).squeeze()
     u = u / np.max(np.abs(u))
     
-    fcomps = []
-    fcomps_data = []
+    # define contact pressure function
+    cs = CubicSpline([-g, -g + 5e-9], [pmax, 0], bc_type=('natural', 'clamped'))
 
-    def _f(x):
-        if x > -45e-9:
-            return 0
-        m = pmax / 5e-9
-        return -m * (x + 45e-9)
+    def make_fcontact(damping):
+        def _fcontact(x, xdot):
+            if x > -45e-9:
+                return 0
+            return cs(x) + damping * xdot
+        return np.vectorize(_fcontact, excluded=[2])
+
+    fcontact = make_fcontact(damping)
+
+    # define electrostatic pressure function
+    def make_fes(umin, fmin, cs):
+        def _fes(x, v):
+            if x < umin:
+                return fmin * v**2
+            return cs(x) * v**2
+        return np.vectorize(_fes)
+
+    fcomps = []
 
     for i, pat in enumerate(mem.patches):
         
-        if not cont_stiff:
-            Estar = mem.y_modulus[0] / (2 * (1 - mem.p_ratio[0]**2))
-            cont_stiff = 2 * Estar / np.sqrt(np.pi * pat.area) / 2
-
         avg_pat = avg[:, i]
         unorm = u / np.max(np.abs(u[avg_pat > 0]))
 
         f_es = []
-        f_cont = []
         uavg = []
         umax = []
 
@@ -225,10 +233,6 @@ def mem_patch_fcomp_funcs4(mem, refn, pmax, cont_stiff=None):
             _avg = x_es.dot(avg_pat)
             _max = np.abs(x_es[avg_pat > 0]).max() * np.sign(-d)
             _f_es = -e_0 / 2 / (x_es + g_eff)**2
-    
-            # _f_cont = np.zeros(len(x))
-            # _f_cont[x < -g] = -cont_stiff * (x[x < -g] + g)
-            _f_cont = _f(_avg)
 
             if i > 0:
                 if _avg == uavg[i - 1]:
@@ -237,21 +241,17 @@ def mem_patch_fcomp_funcs4(mem, refn, pmax, cont_stiff=None):
             uavg.append(_avg)
             umax.append(_max)
             f_es.append(_f_es.dot(avg_pat))
-            f_cont.append(_f_cont)
 
         f_es = np.array(f_es)[::-1]
-        f_cont = np.array(f_cont)[::-1]
         uavg = np.array(uavg)[::-1]
         umax = np.array(umax)[::-1]
+        cs = CubicSpline(uavg, f_es, extrapolate=False)
 
-        fcomp1 = CubicSpline(uavg, f_es, extrapolate=False)
-        fcomp2 = CubicSpline(uavg, f_cont, extrapolate=False)
+        fes = make_fes(np.min(uavg), np.min(f_es), cs)
+        
+        fcomps.append({'fes': fes, 'fcontact': fcontact})
 
-        fcomps.append(make_fcomp(fcomp1, fcomp2))
-        fcomps_data.append({'u': uavg, 'u_max': umax, 'f_es': f_es,
-                            'f_cont': f_cont})
-
-    return fcomps, fcomps_data
+    return fcomps
 
 
 def make_fcomp(fcomp1, fcomp2):
