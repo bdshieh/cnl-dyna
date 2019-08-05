@@ -195,16 +195,93 @@ def mem_patch_fcomp_funcs4(mem, refn, pmax, damping):
     u = u / np.max(np.abs(u))
     
     # define contact pressure function
-    cs = CubicSpline([-g, -g + 5e-9], [pmax, 0], bc_type=('natural', 'clamped'))
-
+    
     def make_fcontact(damping):
+
+        cs = CubicSpline([-g, -g + 5e-9], [pmax, 0], bc_type=('natural', 'clamped'))
+        
         def _fcontact(x, xdot):
             if x > -45e-9:
                 return 0
-            return cs(x) + damping * xdot
-        return np.vectorize(_fcontact, excluded=[2])
+            return cs(x) - damping * xdot
+        return np.vectorize(_fcontact)
 
     fcontact = make_fcontact(damping)
+
+    # define electrostatic pressure function
+    def make_fes(umin, fmin, cs):
+        def _fes(x, v):
+            if x < umin:
+                return fmin * v**2
+            return cs(x) * v**2
+        return np.vectorize(_fes)
+
+    fcomps = []
+
+    for i, pat in enumerate(mem.patches):
+        
+        avg_pat = avg[:, i]
+        unorm = u / np.max(np.abs(u[avg_pat > 0]))
+
+        f_es = []
+        uavg = []
+        umax = []
+
+        for i, d in enumerate(np.linspace(-2, 2, 81)):
+            x = unorm * g * d
+            x_es = x.copy()
+            x_es[x_es < -g] = -g
+
+            _avg = x_es.dot(avg_pat)
+            _max = np.abs(x_es[avg_pat > 0]).max() * np.sign(-d)
+            _f_es = -e_0 / 2 / (x_es + g_eff)**2
+
+            if i > 0:
+                if _avg == uavg[i - 1]:
+                    break
+
+            uavg.append(_avg)
+            umax.append(_max)
+            f_es.append(_f_es.dot(avg_pat))
+
+        f_es = np.array(f_es)[::-1]
+        uavg = np.array(uavg)[::-1]
+        umax = np.array(umax)[::-1]
+        cs = CubicSpline(uavg, f_es, extrapolate=False)
+
+        fes = make_fes(np.min(uavg), np.min(f_es), cs)
+        
+        fcomps.append({'fes': fes, 'fcontact': fcontact})
+
+    return fcomps
+
+
+@util.memoize
+def mem_patch_fcomp_funcs5(mem, refn, lmbd, k, n, x0):
+    '''
+    '''
+    f = fem.mem_patch_f_matrix(mem, refn)
+    avg = fem.mem_patch_avg_matrix(mem, refn)
+
+    K = fem.mem_k_matrix(mem, refn)
+    Kinv = fem.inv_block(K)
+
+    g = mem.gap
+    g_eff = mem.gap + mem.isolation / mem.permittivity
+
+    u = Kinv.dot(-np.sum(f, axis=1)).squeeze()
+    u = u / np.max(np.abs(u))
+    
+    # define contact pressure function
+    
+    def make_fcontact(lmbd, k, n, x0):
+        def _fcontact(x, xdot):
+            if x >= x0:
+                return 0
+            return -(lmbd * (x0 - x)**n) * xdot + k * (x0 - x)**n
+        return np.vectorize(_fcontact)
+
+    fcontact = make_fcontact(lmbd, k, n, x0)
 
     # define electrostatic pressure function
     def make_fes(umin, fmin, cs):
@@ -268,7 +345,7 @@ def array_patch_fcomp_funcs(array, refn, **kwargs):
     fcomps = []
     for elem in array.elements:
         for mem in elem.membranes:
-            fcomps += mem_patch_fcomp_funcs4(mem, refn, **kwargs)
+            fcomps += mem_patch_fcomp_funcs5(mem, refn, **kwargs)
             
     return fcomps
 

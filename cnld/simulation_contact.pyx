@@ -293,7 +293,6 @@ class FixedStepSolver:
         self._update_collapse(state_next, props)
 
         self._update_pressure_electrostatic(state_next, props)
-
         self._update_pressure_contact(state_next, props)
         self._update_pressure_applied(state_next, props)
  
