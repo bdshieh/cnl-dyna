@@ -203,6 +203,26 @@ class FixedStepSolver:
             collapse_counter=collapse_counter)
 
     @property
+    def state_previous(self):
+        idx = self.current_step - 1
+        if idx < 0:
+            return None
+
+        displacement = self._displacement[idx,:]
+        velocity = self._velocity[idx,:]
+        voltage = self._voltage[idx,:]
+        pressure_applied = self._pressure_applied[idx,:]
+        pressure_electrostatic = self._pressure_electrostatic[idx,:]
+        pressure_contact = self._pressure_contact[idx,:]
+        is_collapsed = self._is_collapsed[idx,:]
+        collapse_counter = self._collapse_counter[idx,:]
+
+        return self.State(displacement=displacement, velocity=velocity, voltage=voltage,
+            pressure_applied=pressure_applied, pressure_electrostatic=pressure_electrostatic,
+            pressure_contact=pressure_contact, is_collapsed=is_collapsed, 
+            collapse_counter=collapse_counter)
+
+    @property
     def state_last(self):
         idx = self.current_step
         displacement = self._displacement[idx,:]
@@ -258,8 +278,19 @@ class FixedStepSolver:
         mask = state.is_collapsed
         state.pressure_applied[:] = state.pressure_contact + state.pressure_electrostatic
 
-    def _update_velocity(self, state_last, state_next):
-        state_next.velocity[:] = (state_next.displacement - state_last.displacement) / self.min_step
+    # def _update_velocity(self, state_last, state_next):
+    #     state_next.velocity[:] = (state_next.displacement - state_last.displacement) / self.min_step
+
+    def _update_velocity(self, state_previous, state_last, state_next):
+        # if state_previous is not None:
+            # state_next.velocity[:] = (state_previous.displacement - 4 * state_last.displacement + 3 * state_next.displacement) / (2 * self.min_step)
+        # else:
+        for i in range(self.npatch):
+            v = (state_next.displacement[i] - state_last.displacement[i]) / self.min_step
+            if np.isnan(v) or np.abs(v) > (self.properties.gap[i] / self.min_step):
+                v = (state_last.displacement[i] - state_previous.displacement[i]) / self.min_step
+            state_next.velocity[i] = v
+
 
     def _update_collapse(self, state, props):
 
@@ -289,7 +320,8 @@ class FixedStepSolver:
         props = self.properties
 
         state_next.displacement[:] = self._fir_conv(state.pressure_applied, offset=1)
-        self._update_velocity(state_last, state_next)
+        # self._update_velocity(state_last, state_next)
+        self._update_velocity(self.state_previous, state_last, state_next)
         self._update_collapse(state_next, props)
 
         self._update_pressure_electrostatic(state_next, props)
@@ -323,7 +355,8 @@ class FixedStepSolver:
                 break
 
             state_next.displacement[:] = xr
-            self._update_velocity(state_last, state_next)
+            # self._update_velocity(state_last, state_next)
+            self._update_velocity(self.state_previous, state_last, state_next)
             self._update_collapse(state_next, props)
 
             self._update_pressure_electrostatic(state_next, props)
@@ -337,7 +370,8 @@ class FixedStepSolver:
         self._iters.append(i)
 
         state_next.displacement[:] = xr
-        self._update_velocity(state_last, state_next)
+        # self._update_velocity(state_last, state_next)
+        self._update_velocity(self.state_previous, state_last, state_next)
         self._update_collapse(state_next, props)
 
         self._update_pressure_electrostatic(state_next, props)
@@ -427,18 +461,18 @@ class CompensationSolver(FixedStepSolver):
 
         return cls((fir_t, fir), t_v, gap, gap_eff, t_lim, fcomps, atol, maxiter)
 
-    def _update_pressure_electrostatic(self, state, props):
+    # def _update_pressure_electrostatic(self, state, props):
+        # for i in range(self.npatch):
+            # state.pressure_electrostatic[i] = self._fcomps[i]['fes'](state.displacement[i], state.voltage[i])
 
-        for i in range(self.npatch):
-            state.pressure_electrostatic[i] = self._fcomps[i]['fes'](state.displacement[i], state.voltage[i])
+    def _update_pressure_electrostatic(self, state, props):
+        state.pressure_electrostatic[:] = electrostat_pres(state.voltage, state.displacement, props.gap_effective)
 
     def _update_pressure_contact(self, state, props):
-        
         for i in range(self.npatch):
             state.pressure_contact[i] = self._fcomps[i]['fcontact'](state.displacement[i], state.velocity[i])
 
     def _update_pressure_applied(self, state, props):
-
         for i in range(self.npatch):
             state.pressure_applied[i] = state.pressure_electrostatic[i] + state.pressure_contact[i]
 
