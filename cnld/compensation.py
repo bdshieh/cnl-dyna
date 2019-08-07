@@ -272,17 +272,6 @@ def mem_patch_fcomp_funcs5(mem, refn, lmbd, k, n, x0):
     u = Kinv.dot(-np.sum(f, axis=1)).squeeze()
     u = u / np.max(np.abs(u))
     
-    # define contact pressure function
-    
-    def make_fcontact(lmbd, k, n, x0):
-        def _fcontact(x, xdot):
-            if x >= x0:
-                return 0
-            return -(lmbd * (x0 - x)**n) * xdot + k * (x0 - x)**n
-        return np.vectorize(_fcontact)
-
-    fcontact = make_fcontact(lmbd, k, n, x0)
-
     # define electrostatic pressure function
     def make_fes(umin, fmin, cs):
         def _fes(x, v):
