@@ -266,6 +266,12 @@ class FixedStepSolver:
     def _fir_conv(self, p, offset):
         return fir_conv_cy(self._fir, p, self.min_step, offset=offset)
 
+    def _fir_conv_base(self, p):
+        return fir_conv_cy(self._fir, p[:-1,:], self.min_step, offset=1)
+
+    def _fir_conv_add(self, p):
+        return fir_conv_cy(self._fir, p[-1:,:], self.min_step, offset=0)
+
     def _update_p_es(self, state, props):
         state.p_es[:] = electrostat_pres(state.voltage, state.displacement, props.gap_effective)
 
@@ -296,15 +302,20 @@ class FixedStepSolver:
         # self._update_p_cont_dmp(state_next)
         self._update_p_total(state_next)
  
-    def _check_accuracy_of_step(self):
+    def _check_accuracy_of_step(self, base=None):
         
         state_next = self.state_next
 
         p = self._p_total[:self.current_step + 2,:]
-        xr = self._fir_conv(p, offset=0)
+
+        if base is None:
+            base = self._fir_conv_base(p)
+
+        add = self._fir_conv_add(p)
+        xr = base + add
         err = np.max(np.abs(state_next.displacement - xr))
 
-        return xr, err
+        return xr, err, base
         
     def step(self):
 
@@ -313,7 +324,7 @@ class FixedStepSolver:
         props = self.properties
 
         self._blind_step()
-        xr, err = self._check_accuracy_of_step()
+        xr, err, base = self._check_accuracy_of_step()
 
         i = 1
         for j in range(self.maxiter - 1):
@@ -328,7 +339,7 @@ class FixedStepSolver:
             # self._update_p_cont_dmp(state_next)
             self._update_p_total(state_next)
             
-            xr, err = self._check_accuracy_of_step()
+            xr, err, base = self._check_accuracy_of_step(base=base)
             i += 1
 
         # self._error.append(err)
@@ -343,7 +354,7 @@ class FixedStepSolver:
         self._update_p_cont_dmp(state_next)
         self._update_p_total(state_next)
 
-        xr, err = self._check_accuracy_of_step()
+        xr, err, base = self._check_accuracy_of_step(base=base)
         state_next.displacement[:] = xr
         self._update_velocity(state_last, state_next)
         # self._update_p_cont_dmp(state_next)
@@ -365,7 +376,7 @@ class FixedStepSolver:
     #         # self._update_p_cont_dmp(state_next)
             self._update_p_total(state_next)
             
-            xr, err = self._check_accuracy_of_step()
+            xr, err, base = self._check_accuracy_of_step(base=base)
             if err <= self.atol:
                 break
 
@@ -448,6 +459,20 @@ class CompensationSolver(FixedStepSolver):
     def _update_p_es(self, state, props):
         state.p_es[:] = electrostat_pres(state.voltage, state.displacement, props.gap_effective)
 
+
+class SimState:
+    
+    def __init__(self):
+        State = namedlist('State', 'time displacement velocity voltage p_total p_es p_cont_spr p_cont_dmp')
+
+    def get_state(self, i):
+        pass
+    
+    def set_state(self, i):
+        pass
+
+# A numerical model for CMUT contact dynamics 
+# A scalable numerical model for CMUT non-linear dynamics and contact mechanics
 
 def gaussian_pulse(fc, fbw, fs, td=0, tpr=-60, antisym=True):
     '''
