@@ -88,6 +88,91 @@ def make_f_cont_dmp(lmbd, n, x0):
     return np.vectorize(_f_cont_dmp)
 
 
+class StateDB:
+    
+    State = namedlist('State', 't x u v p_tot p_es p_cont_spr p_cont_dmp')
+
+    def __init__(self, t_lim, t_v, npatch):
+
+        v_t, v = t_v
+        t_start, t_stop, t_step = t_lim
+        
+        # define time array
+        t = np.arange(t_start, t_stop + t_step, t_step)
+        nt = len(t)
+        
+        # define voltage array (with interpolation)
+        if v.ndim <= 1:
+            v = np.tile(v, (npatch, 1)).T
+        fi_voltage = interp1d(v_t, v, axis=0, fill_value=(v[0,:], v[-1,:]), bounds_error=False, kind='linear', assume_sorted=True)
+        voltage = fi_voltage(t)
+
+        self._t = t
+        self._v = voltage
+        self._x = np.zeros((nt, npatch))
+        self._u = np.zeros((nt, npatch))
+        self._p_es = np.zeros((nt, npatch))
+        self._p_cont_spr = np.zeros((nt, npatch))
+        self._p_cont_dmp = np.zeros((nt, npatch))
+        self._p_tot = np.zeros((nt, npatch))
+
+    @property
+    def t(self):
+        return self._t
+
+    @property
+    def v(self):
+        return self._v
+
+    @property
+    def x(self):
+        return self._x
+
+    @property
+    def u(self):
+        return self._u
+
+    @property
+    def p_es(self):
+        return self._p_es
+
+    @property
+    def p_cont_spr(self):
+        return self._p_cont_spr
+
+    @property
+    def p_cont_dmp(self):
+        return self._p_cont_dmp
+
+    @property
+    def p_tot(self):
+        return self._p_tot
+
+    def get_state_i(self, i):
+        return State(t=self._t[i], v=self._v[i, :], x=self._x[i, :], u=self._u[i, :], p_es=self._p_es[i, :],
+                     p_cont_spr=self._p_cont_spr[i, :], p_cont_dmp=self._p_cont_dmp[i, :], 
+                     p_tot=self._p_tot[i, :])
+    
+    def set_state_i(self, i, s):
+
+        self._x[i, :] = s.x
+        self._u[i, :] = s.u
+        self._p_es[i, :] = s.p_es
+        self._p_cont_spr[i, :] = s.p_cont_spr
+        self._p_cont_dmp[i, :] = s.p_cont_dmp
+        self._p_tot[i, :] = s.p_tot
+    
+    def get_state_t(self, t):
+
+        i = int(np.min(np.abs(t - self._t)))
+        return self.get_state_i(i)
+    
+    def set_state_t(self, t):
+
+        i = int(np.min(np.abs(t - self._t)))
+        self.set_state_i(i)
+
+
 class FixedStepSolver:
     
     State = namedlist('State', 
@@ -99,20 +184,8 @@ class FixedStepSolver:
     def __init__(self, t_fir, t_v, gap, gap_eff, t_lim, k, n, x0, lmbd, atol=1e-10, maxiter=5):
 
         fir_t, fir = t_fir
-        v_t, v = t_v
         t_start, t_stop, t_step = t_lim
-
         npatch = fir.shape[0]
-        
-        # define time array
-        time = np.arange(t_start, t_stop + t_step, t_step)
-        ntime = len(time)
-        
-        # define voltage array (with interpolation)
-        if v.ndim <= 1:
-            v = np.tile(v, (npatch, 1)).T
-        fi_voltage = interp1d(v_t, v, axis=0, fill_value=(v[0,:], v[-1,:]), bounds_error=False, kind='linear', assume_sorted=True)
-        voltage = fi_voltage(time)
 
         # define fir (with interpolation)
         fi_fir = interp1d(fir_t, fir, axis=-1, kind='cubic', assume_sorted=True)
@@ -125,14 +198,7 @@ class FixedStepSolver:
         vmax = voltage.max(axis=0)
 
         # define patch state
-        self._time = time
-        self._voltage = voltage
-        self._displacement = np.zeros((ntime, npatch))
-        self._velocity = np.zeros((ntime, npatch))
-        self._p_es = np.zeros((ntime, npatch))
-        self._p_cont_spr = np.zeros((ntime, npatch))
-        self._p_cont_dmp = np.zeros((ntime, npatch))
-        self._p_total = np.zeros((ntime, npatch))
+        self._db = StateDB(t_lim, t_v, npatch)
 
         # create other variables
         self._error = []
@@ -171,79 +237,43 @@ class FixedStepSolver:
 
     @property
     def time(self):
-        return np.array(self._time[:self.current_step + 1])
+        return self._db.time[:self.current_step]
 
     @property
     def voltage(self):
-        return np.array(self._voltage[:self.current_step + 1,:])
+        return self.time, self._db.v[:self.current_step, :]
     
     @property
     def displacement(self):
-        return np.array(self._displacement[:self.current_step + 1,:])
+        return self.time, self._db.x[:self.current_step, :]
     
     @property
     def velocity(self):
-        return np.array(self._velocity[:self.current_step + 1,:])
+        return self.time, self._db.u[:self.current_step, :]
 
     @property
-    def p_es(self):
-        return np.array(self._p_es[:self.current_step + 1,:])
+    def pressure_electrostatic(self):
+        return self.time, self._db.p_es[:self.current_step, :]
 
     @property
-    def p_cont_spr(self):
-        return np.array(self._p_cont_spr[:self.current_step + 1,:])
+    def pressure_contact_spring(self):
+        return self.time, self._db._p_cont_spr[:self.current_step, :]
 
     @property
-    def p_cont_dmp(self):
-        return np.array(self._p_cont_dmp[:self.current_step + 1,:])
+    def pressure_contact_damper(self):
+        return self.time, self._db._p_cont_dmp[:self.current_step, :]
 
     @property
-    def p_total(self):
-        return np.array(self._p_total[:self.current_step + 1,:])
+    def pressure_total(self):
+        return self.time, self._db._p_tot[:self.current_step, :]
 
     @property
-    def state(self):
-        displacement = self.displacement
-        velocity = self.velocity
-        voltage = self.voltage
-        p_total = self.p_total
-        p_es = self.p_es
-        p_cont_spr = self.p_cont_spr
-        p_cont_dmp = self.p_cont_dmp
-        
-        return self.State(displacement=displacement, velocity=velocity, voltage=voltage,
-            p_total=p_total, p_es=p_es, p_cont_spr=p_cont_spr, p_cont_dmp=p_cont_dmp)
-
+    def state_current(self):
+        return self._db.get_state_i(self.current_step)
+    
     @property
     def state_previous(self):
-        idx = self.current_step - 1
-        if idx < 0:
-            return None
 
-        displacement = self._displacement[idx,:]
-        velocity = self._velocity[idx,:]
-        voltage = self._voltage[idx,:]
-        p_total = self._p_total[idx,:]
-        p_es = self._p_es[idx,:]
-        p_cont_spr = self._p_cont_spr[idx,:]
-        p_cont_dmp = self.p_cont_dmp[idx,:]
-
-        return self.State(displacement=displacement, velocity=velocity, voltage=voltage,
-            p_total=p_total, p_es=p_es, p_cont_spr=p_cont_spr, p_cont_dmp=p_cont_dmp)
-
-    @property
-    def state_last(self):
-        idx = self.current_step
-        displacement = self._displacement[idx,:]
-        velocity = self._velocity[idx,:]
-        voltage = self._voltage[idx,:]
-        p_total = self._p_total[idx,:]
-        p_es = self._p_es[idx,:]
-        p_cont_spr = self._p_cont_spr[idx,:]
-        p_cont_dmp = self.p_cont_dmp[idx,:]
-
-        return self.State(displacement=displacement, velocity=velocity, voltage=voltage,
-            p_total=p_total, p_es=p_es, p_cont_spr=p_cont_spr, p_cont_dmp=p_cont_dmp)
     
     @property
     def state_next(self):
@@ -460,57 +490,7 @@ class CompensationSolver(FixedStepSolver):
         state.p_es[:] = electrostat_pres(state.voltage, state.displacement, props.gap_effective)
 
 
-class StateDB:
-    
-    State = namedlist('State', 't x u v p_tot p_es p_cont_spr p_cont_dmp')
 
-    def __init__(self, t_lim, t_v, npatch):
-
-        v_t, v = t_v
-        t_start, t_stop, t_step = t_lim
-        
-        # define time array
-        t = np.arange(t_start, t_stop + t_step, t_step)
-        nt = len(t)
-        
-        # define voltage array (with interpolation)
-        if v.ndim <= 1:
-            v = np.tile(v, (npatch, 1)).T
-        fi_voltage = interp1d(v_t, v, axis=0, fill_value=(v[0,:], v[-1,:]), bounds_error=False, kind='linear', assume_sorted=True)
-        voltage = fi_voltage(t)
-
-        self._t = t
-        self._v = voltage
-        self._x = np.zeros((nt, npatch))
-        self._u = np.zeros((nt, npatch))
-        self._p_es = np.zeros((nt, npatch))
-        self._p_cont_spr = np.zeros((nt, npatch))
-        self._p_cont_dmp = np.zeros((nt, npatch))
-        self._p_tot = np.zeros((nt, npatch))
-
-    def get_state_i(self, i):
-        return State(t=self._t[i], v=self._v[i, :], x=self._x[i, :], u=self._u[i, :], p_es=self._p_es[i, :],
-                     p_cont_spr=self._p_cont_spr[i, :], p_cont_dmp=self._p_cont_dmp[i, :], 
-                     p_tot=self._p_tot[i, :])
-    
-    def set_state_i(self, i, s):
-
-        self._x[i, :] = s.x
-        self._u[i, :] = s.u
-        self._p_es[i, :] = s.p_es
-        self._p_cont_spr[i, :] = s.p_cont_spr
-        self._p_cont_dmp[i, :] = s.p_cont_dmp
-        self._p_tot[i, :] = s.p_tot
-    
-    def get_state_t(self, t):
-
-        i = int(np.min(np.abs(t - self._t)))
-        return self.get_state_i(i)
-    
-    def set_state_t(self, t):
-
-        i = int(np.min(np.abs(t - self._t)))
-        self.set_state_i(i)
     
 
 # A numerical model for CMUT contact dynamics 
