@@ -45,7 +45,7 @@ def fir_conv_py(fir, p, fs, offset):
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-cpdef np.ndarray fir_conv_cy(double[:,:,:] fir, double[:,:] p, double dt, int offset):
+cpdef np.ndarray fir_conv_cy(const double[:,:,:] fir, const double[:,:] p, double dt, int offset):
     '''
     '''
     cdef int nsrc = fir.shape[0]
@@ -90,7 +90,7 @@ def make_f_cont_dmp(lmbd, n, x0):
 
 class StateDB:
     
-    State = namedlist('State', 't x u v p_tot p_es p_cont_spr p_cont_dmp')
+    State = namedlist('State', 'i t x u v p_tot p_es p_cont_spr p_cont_dmp', default=None)
 
     def __init__(self, t_lim, t_v, npatch):
 
@@ -107,6 +107,7 @@ class StateDB:
         fi_voltage = interp1d(v_t, v, axis=0, fill_value=(v[0,:], v[-1,:]), bounds_error=False, kind='linear', assume_sorted=True)
         voltage = fi_voltage(t)
 
+        self._i = np.arange(nt)
         self._t = t
         self._v = voltage
         self._x = np.zeros((nt, npatch))
@@ -117,69 +118,101 @@ class StateDB:
         self._p_tot = np.zeros((nt, npatch))
 
     @property
+    def i(self):
+        arr = self._i.view()
+        arr.flags.writeable = False
+        return arr
+
+    @property
     def t(self):
-        return self._t
+        arr = self._t.view()
+        arr.flags.writeable = False
+        return arr
 
     @property
     def v(self):
-        return self._v
+        arr = self._v.view()
+        arr.flags.writeable = False
+        return arr
 
     @property
     def x(self):
-        return self._x
+        arr = self._x.view()
+        arr.flags.writeable = False
+        return arr
 
     @property
     def u(self):
-        return self._u
+        arr = self._u.view()
+        arr.flags.writeable = False
+        return arr
 
     @property
     def p_es(self):
-        return self._p_es
+        arr = self._p_es.view()
+        arr.flags.writeable = False
+        return arr
 
     @property
     def p_cont_spr(self):
-        return self._p_cont_spr
+        arr = self._p_cont_spr.view()
+        arr.flags.writeable = False
+        return arr
 
     @property
     def p_cont_dmp(self):
-        return self._p_cont_dmp
+        arr = self._p_cont_dmp.view()
+        arr.flags.writeable = False
+        return arr
 
     @property
     def p_tot(self):
-        return self._p_tot
+        arr = self._p_tot.view()
+        arr.flags.writeable = False
+        return arr
 
     def get_state_i(self, i):
-        return State(t=self._t[i], v=self._v[i, :], x=self._x[i, :], u=self._u[i, :], p_es=self._p_es[i, :],
-                     p_cont_spr=self._p_cont_spr[i, :], p_cont_dmp=self._p_cont_dmp[i, :], 
-                     p_tot=self._p_tot[i, :])
-    
-    def set_state_i(self, i, s):
+        return self.State(i=self.i[i], t=self.t[i], v=self.v[i, :], x=self.x[i, :], u=self.u[i, :], p_es=self.p_es[i, :],
+                          p_cont_spr=self.p_cont_spr[i, :], p_cont_dmp=self.p_cont_dmp[i, :], 
+                          p_tot=self.p_tot[i, :])
 
-        self._x[i, :] = s.x
-        self._u[i, :] = s.u
-        self._p_es[i, :] = s.p_es
-        self._p_cont_spr[i, :] = s.p_cont_spr
-        self._p_cont_dmp[i, :] = s.p_cont_dmp
-        self._p_tot[i, :] = s.p_tot
-    
     def get_state_t(self, t):
 
-        i = int(np.min(np.abs(t - self._t)))
+        i = int(np.argmin(np.abs(t - self.t)))
         return self.get_state_i(i)
-    
-    def set_state_t(self, t):
 
+    def set_state_i(self, s):
+
+        i = s.i
+
+        if s.x is not None: self._x[i, :] = s.x
+        if s.u is not None: self._u[i, :] = s.u
+        if s.p_es is not None: self._p_es[i, :] = s.p_es
+        if s.p_cont_spr is not None: self._p_cont_spr[i, :] = s.p_cont_spr
+        if s.p_cont_dmp is not None: self._p_cont_dmp[i, :] = s.p_cont_dmp
+        if s.p_tot is not None: self._p_tot[i, :] = s.p_tot
+    
+    def set_state_t(self, s):
+
+        t = s.t
         i = int(np.min(np.abs(t - self._t)))
         self.set_state_i(i)
+    
+    def clear(self):
+
+        nt, npatch = self._x.shape
+        
+        self._x = np.zeros((nt, npatch))
+        self._u = np.zeros((nt, npatch))
+        self._p_es = np.zeros((nt, npatch))
+        self._p_cont_spr = np.zeros((nt, npatch))
+        self._p_cont_dmp = np.zeros((nt, npatch))
+        self._p_tot = np.zeros((nt, npatch))
 
 
 class FixedStepSolver:
     
-    State = namedlist('State', 
-    '''
-    displacement velocity voltage p_total p_es p_cont_spr p_cont_dmp  
-    ''')
-    Properties = namedlist('Properties', 'gap gap_effective')
+    Properties = namedlist('Properties', 'gap gap_eff')
 
     def __init__(self, t_fir, t_v, gap, gap_eff, t_lim, k, n, x0, lmbd, atol=1e-10, maxiter=5):
 
@@ -195,7 +228,6 @@ class FixedStepSolver:
         # define patch properties
         self._gap = np.array(gap)
         self._gap_eff = np.array(gap_eff)
-        vmax = voltage.max(axis=0)
 
         # define patch state
         self._db = StateDB(t_lim, t_v, npatch)
@@ -206,21 +238,18 @@ class FixedStepSolver:
         self.atol = atol
         self.maxiter = maxiter
         self.npatch = npatch
-        self.ntime = ntime
-        self.current_step = 0
+        self.current_step = 1
         self.min_step = t_step
 
         self._f_cont_spr = make_f_cont_spr(k, n, x0)
         self._f_cont_dmp = make_f_cont_dmp(lmbd, n, x0)
 
         # set initial state
-        self._update_p_es(self.state_last, self.properties)
-        self._update_p_cont_spr(self.state_last)
-        self._update_p_cont_dmp(self.state_last)
-        self._update_p_total(self.state_last) 
+        self._update_all(self.get_previous_state(), self.get_previous_state())
 
     @classmethod
     def from_array_and_db(cls, array, dbfile, t_v, t_lim, k, n, x0, lmbd, atol=1e-10, maxiter=5):
+
         # read fir database
         fir_t, fir = database.read_patch_to_patch_imp_resp(dbfile)
 
@@ -237,184 +266,160 @@ class FixedStepSolver:
 
     @property
     def time(self):
-        return self._db.time[:self.current_step]
+        return self._db.t[:self.current_step]
 
     @property
     def voltage(self):
-        return self.time, self._db.v[:self.current_step, :]
+        return self._db.v[:self.current_step, :]
     
     @property
     def displacement(self):
-        return self.time, self._db.x[:self.current_step, :]
+        return self._db.x[:self.current_step, :]
     
     @property
     def velocity(self):
-        return self.time, self._db.u[:self.current_step, :]
+        return self._db.u[:self.current_step, :]
 
     @property
     def pressure_electrostatic(self):
-        return self.time, self._db.p_es[:self.current_step, :]
+        return self._db.p_es[:self.current_step, :]
 
     @property
     def pressure_contact_spring(self):
-        return self.time, self._db._p_cont_spr[:self.current_step, :]
+        return self._db.p_cont_spr[:self.current_step, :]
 
     @property
     def pressure_contact_damper(self):
-        return self.time, self._db._p_cont_dmp[:self.current_step, :]
+        return self._db.p_cont_dmp[:self.current_step, :]
 
     @property
     def pressure_total(self):
-        return self.time, self._db._p_tot[:self.current_step, :]
+        return self._db.p_tot[:self.current_step, :]
 
     @property
-    def state_current(self):
+    def error(self):
+        return np.array(self._error[:self.current_step])
+
+    @property
+    def iters(self):
+        return np.array(self._iters[:self.current_step])
+    
+    @property
+    def props(self):
+        return self.Properties(gap=self._gap, gap_eff=self._gap_eff)
+
+    def get_current_state(self):
         return self._db.get_state_i(self.current_step)
     
-    @property
-    def state_previous(self):
+    def get_previous_state(self):
+        return self._db.get_state_i(self.current_step - 1)
 
-    
-    @property
-    def state_next(self):
-        idx = self.current_step + 1
-        displacement = self._displacement[idx,:]
-        velocity = self._velocity[idx,:]
-        voltage = self._voltage[idx,:]
-        p_total = self._p_total[idx,:]
-        p_es = self._p_es[idx,:]
-        p_cont_spr = self._p_cont_spr[idx,:]
-        p_cont_dmp = self._p_cont_dmp[idx,:]
+    def get_state_i(self, i):
+        return self._db.get_state_i(i)
 
-        return self.State(displacement=displacement, velocity=velocity, voltage=voltage,
-            p_total=p_total, p_es=p_es, p_cont_spr=p_cont_spr, p_cont_dmp=p_cont_dmp)
+    def get_state_d(self, d):
+        return self._db.get_state_i(self.current_step + d)
 
-    @property
-    def properties(self):
-        return self.Properties(gap=self._gap, gap_effective=self._gap_eff)
+    def get_state_t(self, t):
+        return self._db.get_state_t(t)
 
     def _fir_conv(self, p, offset):
         return fir_conv_cy(self._fir, p, self.min_step, offset=offset)
 
     def _fir_conv_base(self, p):
-        return fir_conv_cy(self._fir, p[:-1,:], self.min_step, offset=1)
+        return fir_conv_cy(self._fir, p[:-1, :], self.min_step, offset=1)
 
     def _fir_conv_add(self, p):
-        return fir_conv_cy(self._fir, p[-1:,:], self.min_step, offset=0)
+        return fir_conv_cy(self._fir, p[-1:, :], self.min_step, offset=0)
 
-    def _update_p_es(self, state, props):
-        state.p_es[:] = electrostat_pres(state.voltage, state.displacement, props.gap_effective)
-
-    def _update_p_cont_spr(self, state):
-        state.p_cont_spr[:] = self._f_cont_spr(state.displacement)
-
-    def _update_p_cont_dmp(self, state):
-        state.p_cont_dmp[:] = self._f_cont_dmp(state.displacement, state.velocity)
-
-    def _update_p_total(self, state):
-        state.p_total[:] = state.p_cont_spr + state.p_cont_dmp + state.p_es
-
-    def _update_velocity(self, state_last, state_next):
-        state_next.velocity[:] = (state_next.displacement - state_last.displacement) / self.min_step
-
-    def _blind_step(self):
-
-        state = self.state
-        state_last = self.state_last
-        state_next = self.state_next
-        props = self.properties
-
-        state_next.displacement[:] = self._fir_conv(state.p_total, offset=1)
-        self._update_velocity(state_last, state_next)
-
-        self._update_p_es(state_next, props)
-        self._update_p_cont_spr(state_next)
-        # self._update_p_cont_dmp(state_next)
-        self._update_p_total(state_next)
- 
-    def _check_accuracy_of_step(self, base=None):
+    def _update_all(self, state, state_prev):
         
-        state_next = self.state_next
+        db = self._db
+        props = self.props
 
-        p = self._p_total[:self.current_step + 2,:]
+        u = (state.x - state_prev.x) / self.min_step
+        p_es = electrostat_pres(state.v, state.x, props.gap_eff)
+        p_cont_spr = self._f_cont_spr(state.x)
+        p_tot = p_cont_spr + state.p_cont_dmp + p_es
+        db.set_state_i(db.State(i=state.i, u=u, p_es=p_es, p_cont_spr=p_cont_spr, 
+                                p_tot=p_tot))
 
-        if base is None:
-            base = self._fir_conv_base(p)
+    def _update_cont_dmp(self, state):
+        
+        db = self._db
 
-        add = self._fir_conv_add(p)
-        xr = base + add
-        err = np.max(np.abs(state_next.displacement - xr))
+        p_cont_dmp = self._f_cont_dmp(state.x, state.u)
+        db.set_state_i(db.State(i=state.i, p_cont_dmp=p_cont_dmp))
 
-        return xr, err, base
+    def _update_x(self, conv_base=None):
+
+        db = self._db
+        state = self.get_current_state()
+
+        p = self._db.p_tot[:self.current_step + 1, :]
+
+        if conv_base is None:
+            conv_base = self._fir_conv_base(p)
+
+        conv_add = self._fir_conv_add(p)
+        xnew = conv_base + conv_add
+        err = np.max(np.abs(state.x - xnew))
+        db.set_state_i(db.State(i=state.i, x=xnew))
+
+        return  err, conv_base
+
+    def _blind_x(self):
+
+        db = self._db
+        state = self.get_current_state()
+        state_prev = self.get_previous_state()
+
+        x = self._fir_conv(self._db.p_tot[:self.current_step, :], offset=1)
+        db.set_state_i(db.State(i=state.i, x=x))
+        self._update_all(state, state_prev)
         
     def step(self):
 
-        state_last = self.state_last
-        state_next = self.state_next
-        props = self.properties
+        db = self._db
+        state = self.get_current_state()
+        state_prev = self.get_previous_state()
+        props = self.props
 
-        self._blind_step()
-        xr, err, base = self._check_accuracy_of_step()
+        # make blind estimate of displacement
+        self._blind_x()
 
-        i = 1
+        # update displacement estimate without considering contact damping
+        err, base = self._update_x(conv_base=None)
+        self._update_all(state, state_prev)
+
+        i = 2  # track number of convolutions done for calculation
         for j in range(self.maxiter - 1):
             if err <= self.atol:
                 break
 
-            state_next.displacement[:] = xr
-            self._update_velocity(state_last, state_next)
-
-            self._update_p_es(state_next, props)
-            self._update_p_cont_spr(state_next)
-            # self._update_p_cont_dmp(state_next)
-            self._update_p_total(state_next)
-            
-            xr, err, base = self._check_accuracy_of_step(base=base)
+            err, base = self._update_x(conv_base=base)
+            self._update_all(state, state_prev)
             i += 1
 
-        # self._error.append(err)
-        self._iters.append(i)
+        # update contact damping based on current estimates
+        self._update_cont_dmp(state)
+        self._update_all(state, state_prev)
+        
+        # update displacement estimate with constant contact damping
+        err, base = self._update_x(conv_base=base)
+        self._update_all(state, state_prev)
 
-        state_next.displacement[:] = xr
-        # x0 = xr.copy()
-        self._update_velocity(state_last, state_next)
-
-        self._update_p_es(state_next, props)
-        self._update_p_cont_spr(state_next)
-        self._update_p_cont_dmp(state_next)
-        self._update_p_total(state_next)
-
-        xr, err, base = self._check_accuracy_of_step(base=base)
-        state_next.displacement[:] = xr
-        self._update_velocity(state_last, state_next)
-        # self._update_p_cont_dmp(state_next)
-        # self._error.append(err)
-
-        ##
-        # if np.any(state_next.p_cont_dmp > 0):
-        #     xr, err = self._check_accuracy_of_step()
-        #     self._error.append(err)
-
-        # if np.any(state_next.p_cont_dmp > 0):
-        for j in range(10):
-
-            state_next.displacement[:] = xr
-            self._update_velocity(state_last, state_next)
-
-            self._update_p_es(state_next, props)
-            self._update_p_cont_spr(state_next)
-    #         # self._update_p_cont_dmp(state_next)
-            self._update_p_total(state_next)
-            
-            xr, err, base = self._check_accuracy_of_step(base=base)
+        for j in range(self.maxiter - 1):
             if err <= self.atol:
                 break
 
-        state_next.displacement[:] = xr
-        self._update_velocity(state_last, state_next)
+            err, base = self._update_x(conv_base=base)
+            self._update_all(state, state_prev)
+            i += 1
+        
+        # save results
         self._error.append(err)
-        ##
-
+        self._iters.append(i)
         self.current_step += 1
     
     def solve(self):
@@ -427,25 +432,15 @@ class FixedStepSolver:
                 break
 
     def reset(self):
-        
-        npatch = self.npatch
-        ntime = self.ntime
 
         # reset state
-        self._displacement = np.zeros((ntime, npatch))
-        self._velocity = np.zeros((ntime, npatch))
-        self._p_es = np.zeros((ntime, npatch))
-        self._p_cont_spr = np.zeros((ntime, npatch))
-        self._p_cont_dmp = np.zeros((ntime, npatch))
-        self._p_total = np.zeros((ntime, npatch))
-
-        # set initial state
-        self._update_p_total(self.state_last) 
-        self.current_step = 1
-
-        # create other variables
+        self._db.clear()
         self._error = []
         self._iters = []
+
+        # set initial state
+        self._update_all(self.get_previous_state(), self.get_previous_state())
+        self.current_step = 1
 
     def __iter__(self):
         return self
@@ -489,9 +484,6 @@ class CompensationSolver(FixedStepSolver):
     def _update_p_es(self, state, props):
         state.p_es[:] = electrostat_pres(state.voltage, state.displacement, props.gap_effective)
 
-
-
-    
 
 # A numerical model for CMUT contact dynamics 
 # A scalable numerical model for CMUT non-linear dynamics and contact mechanics

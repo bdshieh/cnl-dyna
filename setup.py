@@ -151,13 +151,17 @@ else:
             sources=['cnld/simulation_contact.pyx'],
             **ext_opts
         ),
+        # Extension(
+        #     name='cnld.simulation_contact2',
+        #     sources=['cnld/simulation_contact2.pyx'],
+        #     **ext_opts
+        # ),
         Extension(
-            name='cnld.simulation_contact2',
-            sources=['cnld/simulation_contact2.pyx'],
+            name='cnld.simulation_contact3',
+            sources=['cnld/simulation_contact3.pyx'],
             **ext_opts
         ),
     ]
-
 
     setup(
         name='cnl-dyna',
@@ -184,4 +188,3 @@ else:
             'jupyterlab',
         ]
     )
-
