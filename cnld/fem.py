@@ -33,11 +33,11 @@ def mem_static_x_vector(mem, refn, vdc, atol=1e-10, maxiter=100):
 
     for i in range(maxiter):
         x0_new = Kinv.dot(F * pes(vdc, x0, g_eff))
-        
+
         if np.max(np.abs(x0_new - x0)) < atol:
             is_collapsed = False
             return x0_new, is_collapsed
-        
+
         x0 = x0_new
 
     is_collapsed = True
@@ -53,7 +53,7 @@ def mem_k_matrix(mem, refn):
     def L(x1, y1, x2, y2):
         # calculates edge length
         return np.sqrt((x2 - x1)**2 + (y2 - y1)**2)
-    
+
     def T_matrix(x1, y1, x2, y2):
         # transformation matrix for an edge
         z = [0, 0, 1]
@@ -62,7 +62,7 @@ def mem_k_matrix(mem, refn):
         norm = np.linalg.norm(n)
         n = n / norm
         nx, ny, _ = n
-        return np.array([[-nx, 0],[0, -ny],[-ny, -nx]])
+        return np.array([[-nx, 0], [0, -ny], [-ny, -nx]])
 
     if isinstance(mem, abstract.SquareCmutMembrane):
         amesh = mesh.square(mem.length_x, mem.length_y, refn)
@@ -82,7 +82,7 @@ def mem_k_matrix(mem, refn):
     triangle_neighbors = []
     for tt in range(ntriangles):
         neighbors = []
-        for te in triangle_edges[tt,:]:
+        for te in triangle_edges[tt, :]:
             mask = np.any(triangle_edges == te, axis=1)
             args = np.nonzero(mask)[0]
             if len(args) > 1:
@@ -93,28 +93,28 @@ def mem_k_matrix(mem, refn):
     amesh.triangle_neighbors = triangle_neighbors
 
     # construct constitutive matrix for material
-    h = mem.thickness[0] # no support for composite membranes yet
+    h = mem.thickness[0]  # no support for composite membranes yet
     E = mem.y_modulus[0]
     eta = mem.p_ratio[0]
 
-    D = np.zeros((3,3))
-    D[0,0] = 1
-    D[0,1] = eta
-    D[1,0] = eta
-    D[1,1] = 1
-    D[2,2] = (1 - eta) / 2
+    D = np.zeros((3, 3))
+    D[0, 0] = 1
+    D[0, 1] = eta
+    D[1, 0] = eta
+    D[1, 1] = 1
+    D[2, 2] = (1 - eta) / 2
     D = D * E * h**3 / (12 * (1 - eta**2))
 
     # calculate Jacobian and gradient operator for each triangle
     gradops = []
     for tt in range(ntriangles):
-        tri = triangles[tt,:]
-        xi, yi = nodes[tri[0],:2]
-        xj, yj = nodes[tri[1],:2]
-        xk, yk = nodes[tri[2],:2]
+        tri = triangles[tt, :]
+        xi, yi = nodes[tri[0], :2]
+        xj, yj = nodes[tri[1], :2]
+        xk, yk = nodes[tri[2], :2]
 
         J = np.array([[xj - xi, xk - xi], [yj - yi, yk - yi]])
-        gradop = np.linalg.inv(J.T).dot([[-1, 1, 0],[-1, 0, 1]])
+        gradop = np.linalg.inv(J.T).dot([[-1, 1, 0], [-1, 0, 1]])
         # gradop = np.linalg.inv(J.T).dot([[1, 0, -1],[0, 1, -1]])
 
         gradops.append(gradop)
@@ -122,18 +122,18 @@ def mem_k_matrix(mem, refn):
     # construct K matrix
     K = np.zeros((len(nodes), len(nodes)))
     for p in range(ntriangles):
-        trip = triangles[p,:]
+        trip = triangles[p, :]
         ap = triangle_areas[p]
 
-        xi, yi = nodes[trip[0],:2]
-        xj, yj = nodes[trip[1],:2]
-        xk, yk = nodes[trip[2],:2]
+        xi, yi = nodes[trip[0], :2]
+        xj, yj = nodes[trip[1], :2]
+        xk, yk = nodes[trip[2], :2]
 
         neighbors = triangle_neighbors[p]
         gradp = gradops[p]
         # list triangle edges, ordered so that z cross-product will produce outward normal
         edges = [(xk, yk, xj, yj), (xi, yi, xk, yk), (xj, yj, xi, yi)]
-        
+
         # begin putting together indexes needed later for matrix assignment
         ii, jj, kk = trip
         Kidx = [ii, jj, kk]
@@ -144,10 +144,11 @@ def mem_k_matrix(mem, refn):
         for j, n in enumerate(neighbors):
             if n is None:
                 continue
-            
+
             # determine index of the node in the neighbor opposite edge
-            iin, jjn, kkn = triangles[n,:]
-            uidx = [x for x in np.unique([ii, jj, kk, iin, jjn, kkn]) if x not in [ii, jj, kk]][0]
+            iin, jjn, kkn = triangles[n, :]
+            uidx = [x for x in np.unique([ii, jj, kk, iin, jjn, kkn]) if x not in [
+                ii, jj, kk]][0]
             # update indexes
             Kidx.append(uidx)
             Kpidx.append(3 + j)
@@ -157,11 +158,11 @@ def mem_k_matrix(mem, refn):
             gradn = gradops[n]
 
             pterm = l / 2 * T.dot(gradp)
-            Bp[:,:3] += pterm
+            Bp[:, :3] += pterm
 
             nterm = l / 2 * T.dot(gradn)
             idx = [Kpidx[Kidx.index(x)] for x in [iin, jjn, kkn]]
-            Bp[:,idx] += nterm
+            Bp[:, idx] += nterm
         Bp = Bp / ap
 
         # construct local K matrix for control element
@@ -169,8 +170,8 @@ def mem_k_matrix(mem, refn):
 
         # add matrix values to global K matrix
         K[np.ix_(Kidx, Kidx)] += Kp[np.ix_(Kpidx, Kpidx)]
-    
-    K[ob,:] = 0
+
+    K[ob, :] = 0
     K[:, ob] = 0
     K[ob, ob] = 1
 
@@ -185,7 +186,7 @@ def mem_m_matrix(mem, refn, mu=0.5):
     DLM = mem_dlm_matrix(mem, refn)
     CMM = mem_cm_matrix(mem, refn)
 
-    return mu * DLM  + (1 - mu) * CMM
+    return mu * DLM + (1 - mu) * CMM
 
 
 @util.memoize
@@ -208,18 +209,19 @@ def mem_cm_matrix(mem, refn):
     # construct M matrix by adding contribution from each element
     M = np.zeros((len(nodes), len(nodes)))
     for tt in range(len(triangles)):
-        tri = triangles[tt,:]
-        xi, yi = nodes[tri[0],:2]
-        xj, yj = nodes[tri[1],:2]
-        xk, yk = nodes[tri[2],:2]
+        tri = triangles[tt, :]
+        xi, yi = nodes[tri[0], :2]
+        xj, yj = nodes[tri[1], :2]
+        xk, yk = nodes[tri[2], :2]
 
         # da = ((xj - xi) * (yk - yi) - (xk - xi) * (yj - yi))
         da = triangle_areas[tt]
-        Mt = np.array([[1, 1 / 2, 1 / 2], [1 / 2, 1, 1 / 2], [1 / 2, 1 / 2, 1]]) / 12
+        Mt = np.array(
+            [[1, 1 / 2, 1 / 2], [1 / 2, 1, 1 / 2], [1 / 2, 1 / 2, 1]]) / 12
         M[np.ix_(tri, tri)] += 2 * Mt * mass * da
 
     ob = amesh.on_boundary
-    M[ob,:] = 0
+    M[ob, :] = 0
     M[:, ob] = 0
     M[ob, ob] = 1
 
@@ -246,12 +248,12 @@ def mem_dlm_matrix(mem, refn):
     # construct M matrix by adding contribution from each element
     M = np.zeros((len(nodes), len(nodes)))
     for tt in range(len(triangles)):
-        tri = triangles[tt,:]
+        tri = triangles[tt, :]
         ap = triangle_areas[tt]
         M[tri, tri] += 1 / 3 * mass * ap
 
     ob = amesh.on_boundary
-    M[ob,:] = 0
+    M[ob, :] = 0
     M[:, ob] = 0
     M[ob, ob] = 1
 
@@ -267,14 +269,14 @@ def mem_b_matrix(mem, M, K):
     fb = mem.damping_freq_b
     za = mem.damping_ratio_a
     zb = mem.damping_ratio_b
-    
+
     omga = 2 * np.pi * fa
     omgb = 2 * np.pi * fb
-    
+
     # solve for alpha and beta
-    A = 1 / 2 * np.array([[1 / omga, omga],[1 / omgb, omgb]])
+    A = 1 / 2 * np.array([[1 / omga, omga], [1 / omgb, omgb]])
     alpha, beta = linalg.inv(A).dot([za, zb])
-    
+
     return alpha * M + beta * K
 
 
@@ -328,11 +330,11 @@ def mem_b_matrix_eig(mem, refn, M, K):
     # solve for alpha and beta
     A = 1 / 2 * np.array([[1 / omga, omga], [1 / omgb, omgb]])
     alpha, beta = linalg.inv(A).dot([za, zb])
-    
-    return alpha * M + beta * K
-    
 
-@util.memoize    
+    return alpha * M + beta * K
+
+
+@util.memoize
 def mem_f_vector(mem, refn, p):
     '''
     Pressure load vector based on equal distribution of pressure to element nodes.
@@ -349,7 +351,7 @@ def mem_f_vector(mem, refn, p):
 
     f = np.zeros(len(nodes))
     for tt in range(len(triangles)):
-        tri = triangles[tt,:]
+        tri = triangles[tt, :]
         ap = triangle_areas[tt]
         bfac = 1 * np.sum(~ob[tri])
 
@@ -375,17 +377,18 @@ def mem_f_vector_arb_load(mem, refn, load_func):
 
     f = np.zeros(len(nodes))
     for tt in range(len(triangles)):
-        tri = triangles[tt,:]
-        xi, yi = nodes[tri[0],:2]
-        xj, yj = nodes[tri[1],:2]
-        xk, yk = nodes[tri[2],:2]
+        tri = triangles[tt, :]
+        xi, yi = nodes[tri[0], :2]
+        xj, yj = nodes[tri[1], :2]
+        xk, yk = nodes[tri[2], :2]
 
         def load_func_psi_eta(psi, eta):
             x = (xj - xi) * psi + (xk - xi) * eta + xi
             y = (yj - yi) * psi + (yk - yi) * eta + yi
             return load_func(x, y)
 
-        integ, _ = dblquad(load_func_psi_eta, 0, 1, 0, lambda x: 1 - x, epsrel=1e-1, epsabs=1e-1)
+        integ, _ = dblquad(load_func_psi_eta, 0, 1, 0,
+                           lambda x: 1 - x, epsrel=1e-1, epsabs=1e-1)
         frac = integ / (1 / 2)  # fraction of triangle covered by load
         da = triangle_areas[tt]
         bfac = 1 * np.sum(~ob[tri])
@@ -404,7 +407,8 @@ def mem_patch_f_matrix(mem, refn):
     Load vector for a patch.
     '''
     if isinstance(mem, abstract.SquareCmutMembrane):
-        amesh = mesh.square(mem.length_x, mem.length_y, refn, center=mem.position)
+        amesh = mesh.square(mem.length_x, mem.length_y,
+                            refn, center=mem.position)
     else:
         amesh = mesh.circle(mem.radius, refn, center=mem.position)
 
@@ -424,9 +428,9 @@ def mem_patch_f_matrix(mem, refn):
 
             def load_func(x, y):
                 # use 2 * eps to account for potential round-off error
-                if x -(px - plx / 2) >= -2 * eps:
+                if x - (px - plx / 2) >= -2 * eps:
                     if x - (px + plx / 2) <= 2 * eps:
-                        if y - (py - ply / 2) >= -2 * eps :
+                        if y - (py - ply / 2) >= -2 * eps:
                             if y - (py + ply / 2) <= 2 * eps:
                                 return 1
                 return 0
@@ -442,9 +446,11 @@ def mem_patch_f_matrix(mem, refn):
                 th = np.arctan2((y - py), (x - px))
                 # pertube theta by 2 * eps to account for potential round-off error
                 th1 = th - 2 * eps
-                if th1 < -np.pi: th1 += 2 * np.pi  # account for [-pi, pi] wrap-around
+                if th1 < -np.pi:
+                    th1 += 2 * np.pi  # account for [-pi, pi] wrap-around
                 th2 = th + 2 * eps
-                if th2 > np.pi: th2 -= 2 * np.pi  # account for [-pi, pi] wrap-around
+                if th2 > np.pi:
+                    th2 -= 2 * np.pi  # account for [-pi, pi] wrap-around
                 if r - prmin >= -2 * eps:
                     if r - prmax <= 2 * eps:
                         # for theta, check both perturbed values
@@ -458,10 +464,10 @@ def mem_patch_f_matrix(mem, refn):
 
         f_pat = np.zeros(len(nodes))
         for tt in range(len(triangles)):
-            tri = triangles[tt,:]
-            xi, yi = nodes[tri[0],:2]
-            xj, yj = nodes[tri[1],:2]
-            xk, yk = nodes[tri[2],:2]
+            tri = triangles[tt, :]
+            xi, yi = nodes[tri[0], :2]
+            xj, yj = nodes[tri[1], :2]
+            xk, yk = nodes[tri[2], :2]
 
             # check if triangle vertices are inside or outside load
             loadi = load_func(xi, yi)
@@ -483,9 +489,10 @@ def mem_patch_f_matrix(mem, refn):
                     y = (yj - yi) * psi + (yk - yi) * eta + yi
                     return load_func(x, y)
 
-                integ, _ = dblquad(load_func_psi_eta, 0, 1, 0, lambda x: 1 - x, epsrel=1e-1, epsabs=1e-1)
+                integ, _ = dblquad(load_func_psi_eta, 0, 1, 0,
+                                   lambda x: 1 - x, epsrel=1e-1, epsabs=1e-1)
                 frac = integ / (1 / 2)  # fraction of triangle covered by load
-                da = triangle_areas[tt] 
+                da = triangle_areas[tt]
                 bfac = 1 * np.sum(~ob[tri])
 
                 f_pat[tri] += 1 / bfac * frac * da
@@ -502,7 +509,8 @@ def mem_patch_avg_matrix(mem, refn):
     Load vector for a patch.
     '''
     if isinstance(mem, abstract.SquareCmutMembrane):
-        amesh = mesh.square(mem.length_x, mem.length_y, refn, center=mem.position)
+        amesh = mesh.square(mem.length_x, mem.length_y,
+                            refn, center=mem.position)
     else:
         amesh = mesh.circle(mem.radius, refn, center=mem.position)
 
@@ -521,9 +529,9 @@ def mem_patch_avg_matrix(mem, refn):
 
             def load_func(x, y):
                 # use 2 * eps to account for potential round-off error
-                if x -(px - plx / 2) >= -2 * eps:
+                if x - (px - plx / 2) >= -2 * eps:
                     if x - (px + plx / 2) <= 2 * eps:
-                        if y - (py - ply / 2) >= -2 * eps :
+                        if y - (py - ply / 2) >= -2 * eps:
                             if y - (py + ply / 2) <= 2 * eps:
                                 return 1
                 return 0
@@ -539,9 +547,11 @@ def mem_patch_avg_matrix(mem, refn):
                 th = np.arctan2((y - py), (x - px))
                 # pertube theta by 2 * eps to account for potential round-off error
                 th1 = th - 2 * eps
-                if th1 < -np.pi: th1 += 2 * np.pi  # account for [-pi, pi] wrap-around
+                if th1 < -np.pi:
+                    th1 += 2 * np.pi  # account for [-pi, pi] wrap-around
                 th2 = th + 2 * eps
-                if th2 > np.pi: th2 -= 2 * np.pi  # account for [-pi, pi] wrap-around
+                if th2 > np.pi:
+                    th2 -= 2 * np.pi  # account for [-pi, pi] wrap-around
                 if r - prmin >= -2 * eps:
                     if r - prmax <= 2 * eps:
                         # for theta, check both perturbed values
@@ -555,10 +565,10 @@ def mem_patch_avg_matrix(mem, refn):
 
         avg_pat = np.zeros(len(nodes))
         for tt in range(len(triangles)):
-            tri = triangles[tt,:]
-            xi, yi = nodes[tri[0],:2]
-            xj, yj = nodes[tri[1],:2]
-            xk, yk = nodes[tri[2],:2]
+            tri = triangles[tt, :]
+            xi, yi = nodes[tri[0], :2]
+            xj, yj = nodes[tri[1], :2]
+            xk, yk = nodes[tri[2], :2]
 
             # check if triangle vertices are inside or outside load
             loadi = load_func(xi, yi)
@@ -579,9 +589,10 @@ def mem_patch_avg_matrix(mem, refn):
                     y = (yj - yi) * psi + (yk - yi) * eta + yi
                     return load_func(x, y)
 
-                integ, _ = dblquad(load_func_psi_eta, 0, 1, 0, lambda x: 1 - x, epsrel=1e-1, epsabs=1e-1)
+                integ, _ = dblquad(load_func_psi_eta, 0, 1, 0,
+                                   lambda x: 1 - x, epsrel=1e-1, epsabs=1e-1)
                 frac = integ / (1 / 2)  # fraction of triangle covered by load
-                da = triangle_areas[tt] 
+                da = triangle_areas[tt]
 
                 avg_pat[tri] += 1 / 3 * frac * da
 
@@ -599,7 +610,7 @@ def array_f_spmatrix(array, refn):
         for mem in elem.membranes:
             f = mem_patch_f_matrix(mem, refn)
             blocks.append(f)
-    
+
     return sps.block_diag(blocks, format='csc')
 
 
@@ -612,7 +623,7 @@ def array_avg_spmatrix(array, refn):
         for mem in elem.membranes:
             avg = mem_patch_avg_matrix(mem, refn)
             blocks.append(avg)
-    
+
     return sps.block_diag(blocks, format='csc')
 
 
@@ -626,7 +637,8 @@ def array_mbk_spmatrix(array, refn, f, inv=False):
     '''
     omg = 2 * np.pi * f
     blocks = []
-    if inv: blocks_inv = []
+    if inv:
+        blocks_inv = []
     for elem in array.elements:
         for mem in elem.membranes:
 
@@ -636,9 +648,10 @@ def array_mbk_spmatrix(array, refn, f, inv=False):
             B = mem_b_matrix_eig(mem, refn, M, K)
 
             block = -(omg**2) * M - 1j * omg * B + K
-        
+
             blocks.append(block)
-            if inv: blocks_inv.append(inv_block(block))
+            if inv:
+                blocks_inv.append(inv_block(block))
     if inv:
         return sps.block_diag(blocks, format='csr'), sps.block_diag(blocks_inv, format='csr')
     else:
@@ -658,14 +671,16 @@ def array_mbk_linops(array, refn, f):
         p = MBK.dot(x)
         p[ob] = 0
         return p
-    linop = sps.linalg.LinearOperator((nnodes, nnodes), dtype=np.complex128, matvec=mv)
+    linop = sps.linalg.LinearOperator(
+        (nnodes, nnodes), dtype=np.complex128, matvec=mv)
 
     def inv_mv(x):
         x[ob] = 0
         p = MBK_inv.dot(x)
         p[ob] = 0
         return p
-    linop_inv = sps.linalg.LinearOperator((nnodes, nnodes), dtype=np.complex128, matvec=inv_mv)
+    linop_inv = sps.linalg.LinearOperator(
+        (nnodes, nnodes), dtype=np.complex128, matvec=inv_mv)
 
     return linop, linop_inv
 
@@ -692,7 +707,7 @@ def mem_patch_fcol_vector(mem, refn):
         # f_pat = f[:,i]
         # u = Kinv.dot(-f_pat).squeeze()
         # u = u / np.max(np.abs(u))
-        avg_pat = avg[:,i]
+        avg_pat = avg[:, i]
         scale = -g / u[avg_pat > 0].min()
         # scale = -g / u.dot(avg_pat)
         up = scale * u
@@ -702,7 +717,7 @@ def mem_patch_fcol_vector(mem, refn):
         fcol.append(-p)
         ups.append(up)
         # fcol.append(-g / u[f_pat > 0].min())
-    
+
     return np.array(fcol), np.array(ups)
 
 
