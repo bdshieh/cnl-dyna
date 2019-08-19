@@ -464,7 +464,7 @@ class CompensationSolver(FixedStepSolver):
         super().__init__(t_fir, t_v, gap, gap_eff, t_lim, 0, 0, 0, 0, atol=atol, maxiter=maxiter)
 
     @classmethod
-    def from_array_and_db(cls, array, refn, dbfile, t_v, t_lim, lmbd, k, n=1, atol=1e-10, maxiter=5):
+    def from_array_and_db(cls, array, refn, dbfile, t_v, t_lim, lmbd, k, n=1, atol=1e-10, maxiter=5, **kwargs):
 
         # read fir database
         fir_t, fir = database.read_patch_to_patch_imp_resp(dbfile)
@@ -478,7 +478,7 @@ class CompensationSolver(FixedStepSolver):
                     gap.append(mem.gap)
                     gap_eff.append(mem.gap + mem.isolation / mem.permittivity)
 
-        comp_funcs = compensation.array_patch_comp_funcs(array, refn, lmbd, k, n)
+        comp_funcs = compensation.array_patch_comp_funcs(array, refn, lmbd, k, n, **kwargs)
 
         return cls((fir_t, fir), t_v, gap, gap_eff, t_lim, comp_funcs, atol, maxiter)
 

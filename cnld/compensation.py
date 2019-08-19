@@ -306,7 +306,7 @@ def make_p_cont_dmp_func(lmbd, n, x0):
 
 
 @util.memoize
-def mem_patch_comp_funcs(mem, refn, lmbd, k, n):
+def mem_patch_comp_funcs(mem, refn, lmbd, k, n, x0=None):
     '''
     Create compensation functions for each patch.
     '''
@@ -329,7 +329,8 @@ def mem_patch_comp_funcs(mem, refn, lmbd, k, n):
         avg_pat = avg[:, i]
         xnorm = xprof / np.max(np.abs(xprof[avg_pat > 0]))
 
-        x0 = (xnorm * g).dot(avg_pat)
+        if x0 is None:
+            x0 = (xnorm * g).dot(avg_pat)
 
         p_es = []
         xavg = []
@@ -381,12 +382,12 @@ def mem_patch_comp_funcs(mem, refn, lmbd, k, n):
 #     return fcomp
 
 
-def array_patch_comp_funcs(array, refn, lmbd, k, n):
+def array_patch_comp_funcs(array, refn, lmbd, k, n, **kwargs):
     '''
     '''
     fcomps = []
     for elem in array.elements:
         for mem in elem.membranes:
-            fcomps += mem_patch_comp_funcs(mem, refn, lmbd, k, n)
+            fcomps += mem_patch_comp_funcs(mem, refn, lmbd, k, n, **kwargs)
 
     return fcomps
