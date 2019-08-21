@@ -408,9 +408,8 @@ def mem_static_x_vector(mem, refn, vdc, k, x0, atol=1e-10, maxiter=100):
     is_collapsed = True
     return x, p, is_collapsed
 
-    
 @util.memoize
-def mem_patch_comp_funcs(mem, refn, lmbd, k, n, x0=None):
+def mem_patch_comp_funcs2(mem, refn, lmbd, k, n, x0=None):
     '''
     Create compensation functions for each patch.
     '''

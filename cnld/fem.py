@@ -374,6 +374,7 @@ def mem_f_vector_arb_load(mem, refn, load_func):
     nodes = amesh.vertices
     triangles = amesh.triangles
     triangle_areas = amesh.triangle_areas
+    ob = amesh.on_boundary
 
     f = np.zeros(len(nodes))
     for tt in range(len(triangles)):
@@ -506,7 +507,7 @@ def mem_patch_f_matrix(mem, refn):
 @util.memoize
 def mem_patch_avg_matrix(mem, refn):
     '''
-    Load vector for a patch.
+    Averaging vector for a patch.
     '''
     if isinstance(mem, abstract.SquareCmutMembrane):
         amesh = mesh.square(mem.length_x, mem.length_y,
@@ -517,7 +518,7 @@ def mem_patch_avg_matrix(mem, refn):
     nodes = amesh.vertices
     triangles = amesh.triangles
     triangle_areas = amesh.triangle_areas
-    ob = amesh.on_boundary
+    # ob = amesh.on_boundary
 
     avg = []
     for pat in mem.patches:
