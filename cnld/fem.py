@@ -179,6 +179,237 @@ def mem_k_matrix(mem, refn):
 
 
 @util.memoize
+def mem_k_matrix_hpb(mem, refn):
+    '''
+    Stiffness matrix based on 3-dof (rotation-free) triangular plate elements.
+    '''
+    def mag(r1, r2):
+        # calculates edge length
+        return np.sqrt((r2[0] - r1[0])**2 + (r2[1] - r1[1])**2)
+
+    if isinstance(mem, abstract.SquareCmutMembrane):
+        amesh = mesh.square(mem.length_x, mem.length_y, refn)
+    else:
+        amesh = mesh.circle(mem.radius, refn)
+
+    # get mesh information
+    nodes = amesh.vertices
+    triangles = amesh.triangles
+    triangle_edges = amesh.triangle_edges
+    triangle_areas = amesh.triangle_areas
+    ntriangles = len(triangles)
+    ob = amesh.on_boundary
+
+    # determine list of neighbors for each triangle
+    # None indicates neighbor doesn't exist for that edge (boundary edge)
+    triangle_neighbors = []
+    for tt in range(ntriangles):
+        neighbors = []
+        for te in triangle_edges[tt, :]:
+            mask = np.any(triangle_edges == te, axis=1)
+            args = np.nonzero(mask)[0]
+            if len(args) > 1:
+                neighbors.append(args[args != tt][0])
+            else:
+                neighbors.append(None)
+
+                # determine index of the node in the neighbor opposite edge
+                iin, jjn, kkn = triangles[neighbors[0], :]
+                uidx = [x for x in np.unique([ii, jj, kk, iin, jjn, kkn]) if x not in [
+                    ii, jj, kk]][0]
+                # update indexes
+                Kidx.append(uidx)
+                Kpidx.append(3 + j)
+
+        triangle_neighbors.append(neighbors)
+    amesh.triangle_neighbors = triangle_neighbors
+
+    # construct constitutive matrix for material
+    h = mem.thickness[0]  # no support for composite membranes yet
+    E = mem.y_modulus[0]
+    eta = mem.p_ratio[0]
+
+    D = np.zeros((3, 3))
+    D[0, 0] = 1
+    D[0, 1] = eta
+    D[1, 0] = eta
+    D[1, 1] = 1
+    D[2, 2] = (1 - eta)
+    D = D * E * h**3 / (12 * (1 - eta**2))
+
+    # construct K matrix
+    K = np.zeros((len(nodes), len(nodes)))
+    for p in range(ntriangles):
+        trip = triangles[p, :]
+        ap = triangle_areas[p]
+
+        x5, y5 = nodes[trip[0], :2]
+        x6, y6 = nodes[trip[1], :2]
+        x4, y4 = nodes[trip[2], :2]
+
+        r4 = np.array([x4, y4])
+        r5 = np.array([x5, y5])
+        r6 = np.array([x6, y6])
+
+        neighbors = triangle_neighbors[p]
+
+        if neighbors[0] is None:
+            x = r5
+            xo = r6
+            n = (r4 - r6) / mag(r4, r6)
+            x1, y1 = -x + 2 * xo + (x - xo).dot(n) * n
+        else:
+            x1, y1 = triangles[neighbors[0], :2]
+
+        if neighbors[1] is None:
+            x = r6
+            xo = r4
+            n = (r5 - r4) / mag(r5, r4)
+            x2, y2 = -x + 2 * xo + (x - xo).dot(n) * n
+        else:
+            x2, y2 = triangles[neighbors[1], :2]
+
+        if neighbors[2] is None:
+            x = r4
+            xo = r5
+            n = (r6 - r5) / mag(r6, r5)
+            x3, y3 = -x + 2 * xo + (x - xo).dot(n) * n
+        else:
+            x3, y3 = triangles[neighbors[2], :2]
+
+        r1 = np.array([x1, y1])
+        r2 = np.array([x2, y2])
+        r3 = np.array([x3, y3])
+
+        C = np.zeros((6, 3))
+        C[0, :] = [x1**2 / 2, y1**2 / 2, x1 * y1]
+        C[1, :] = [x2**2 / 2, y2**2 / 2, x2 * y2]
+        C[2, :] = [x3**2 / 2, y3**2 / 2, x3 * y3]
+        C[3, :] = [x4**2 / 2, y4**2 / 2, x4 * y4]
+        C[4, :] = [x5**2 / 2, y5**2 / 2, x5 * y5]
+        C[5, :] = [x6**2 / 2, y6**2 / 2, x6 * y6]
+
+        # L1 = np.sqrt((x6 - x4)**2 + (y6 - y4)**2)
+        # b1a1 = ((x1 - x4) * (x6 - x4) + (y1 - y4) * (y6 - y4)) / np.sqrt((x6 - x4)**2 + (y6 - y4)**2)
+        # b1a2 = ((x1 - x6) * (x4 - x6) + (y1 - y6) * (y4 - y6)) / np.sqrt((x4 - x6)**2 + (y4 - y6)**2)
+        # b1b1 = ((x5 - x4) * (x6 - x4) + (y5 - y4) * (y6 - y4)) / np.sqrt((x6 - x4)**2 + (y6 - y4)**2)
+        # b1b2 = ((x5 - x6) * (x4 - x6) + (y5 - y6) * (y4 - y6)) / np.sqrt((x4 - x6)**2 + (y4 - y6)**2)
+        # h1a = np.sqrt(np.sqrt((x1 - x4)**2 + (y1 - y4)**2) - b1a1**2)
+        # h1b = np.sqrt(np.sqrt((x5 - x6)**2 + (y5 - y6)**2) - b1b2**2)
+
+        L1 = mag(r6, r4)
+        b1a1 = (r1 - r4).dot(r6 - r4) / L1
+        b1a2 = (r1 - r6).dot(r4 - r6) / L1
+        b1b1 = (r5 - r4).dot(r6 - r4) / L1
+        b1b2 = (r5 - r6).dot(r4 - r6) / L1
+        h1a = np.sqrt(mag(r1, r4)**2 - b1a1**2)
+        h1b = np.sqrt(mag(r5, r6)**2 - b1b2**2)
+
+        L2 = mag(r5, r4)
+        b2a1 = (r2 - r5).dot(r4 - r5) / L2
+        b2a2 = (r2 - r4).dot(r5 - r4) / L2
+        b2b1 = (r6 - r5).dot(r4 - r5) / L2
+        b2b2 = (r6 - r4).dot(r4 - r5) / L2
+        h2a = np.sqrt(mag(r2, r5)**2 - b2a1**2)
+        h2b = np.sqrt(mag(r6, r4)**2 - b2b2**2)
+
+        L3 = mag(r5, r6)
+        b3a1 = (r3 - r6).dot(r5 - r6) / L3
+        b3a2 = (r3 - r5).dot(r6 - r5) / L3
+        b3b1 = (r4 - r6).dot(r5 - r6) / L3
+        b3b2 = (r4 - r5).dot(r6 - r5) / L3
+        h3a = np.sqrt(mag(r3, r6)**2 - b3a1**2)
+        h3b = np.sqrt(mag(r4, r5)**2 - b3b2**2)
+
+        L = np.zeros((3, 6))
+        L[0, 0] = 1 / h1a
+        L[1, 1] = 1 / h2a
+        L[2, 2] = 1 / h3a
+        L[0, 3] = -b1a2 / (L1 * h1a) + -b1b2 / (L1 * h1b)
+        L[0, 4] = 1 / h1b
+        L[0, 5] = -b1a1 / (L1 * h1a) + -b1b1 / (L1 * h1b)
+        L[1, 3] = -b2b1 / (L2 * h2b) + -b2a1 / (L2 * h2a)
+        L[1, 4] = -b2b2 / (L2 * h2b) + -b2a2 / (L2 * h2a)
+        L[1, 5] = 1 / h2b
+        L[2, 3] = 1 / h3b
+        L[2, 4] = -b3a1 / (L3 * h3a) + -b3b1 / (L3 * h3b)
+        L[2, 5] = -b3b2 / (L3 * h3b) + -b3a2 / (L3 * h3a)
+
+        G = L.dot(C)
+        Ginv = np.linalg.inv(G)
+
+        I_D = np.zeros((3, 3))
+        I_D[0, 0] = 1
+        I_D[1, 1] = 1
+        I_D[2, 2] = 2
+
+        K_be = ap * (L.T).dot(Ginv.T).dot(I_D).dot(D).dot(Ginv).dot(L)
+
+        # begin putting together indexes needed later for matrix assignment
+        K_idx = [trip[2], trip[0], trip[1]]
+        K_be_idx = [4, 5, 6]
+
+        # apply BCs
+        if neighbors[0] is None:
+
+            K_be[3, 3] /= 2
+            K_be[4, 3] = (K_be[4, 3] + K_be[0, 3]) / 2
+            K_be[3, 4] = (K_be[3, 4] + K_be[3, 0]) / 2
+
+            K_be[5, 5] /= 2
+            K_be[4, 5] = (K_be[4, 5] + K_be[0, 5]) / 2
+            K_be[5, 4] = (K_be[5, 4] + K_be[5, 0]) / 2
+
+            K_be[4, 4] = (K_be[0, 0] + K_be[0, 4] + K_be[4, 0] + K_be[4, 4]) / 2
+
+        else:
+
+            K_idx.append(neighbors[0])
+            K_be_idx.append(0)
+        
+        if neighbors[1] is None:
+
+            K_be[3, 3] /= 2
+            K_be[5, 3] = (K_be[5, 3] + K_be[1, 3]) / 2
+            K_be[3, 5] = (K_be[3, 5] + K_be[3, 1]) / 2
+
+            K_be[4, 4] /= 2
+            K_be[5, 4] = (K_be[5, 4] + K_be[1, 4]) / 2
+            K_be[4, 5] = (K_be[4, 5] + K_be[4, 1]) / 2
+
+            K_be[5, 5] = (K_be[1, 1] + K_be[1, 5] + K_be[5, 1] + K_be[5, 5]) / 2
+
+        else:
+            K_idx.append(neighbors[1])
+            K_be_idx.append(1)
+
+        if neighbors[2] is None:
+
+            K_be[4, 4] /= 2
+            K_be[3, 4] = (K_be[3, 4] + K_be[2, 4]) / 2
+            K_be[4, 3] = (K_be[4, 3] + K_be[4, 2]) / 2
+
+            K_be[5, 5] /= 2
+            K_be[5, 3] = (K_be[5, 3] + K_be[2, 5]) / 2
+            K_be[3, 5] = (K_be[3, 5] + K_be[5, 2]) / 2
+
+            K_be[3, 3] = (K_be[2, 2] + K_be[2, 3] + K_be[3, 2] + K_be[3, 3]) / 2
+
+        else:
+            K_idx.append(neighbors[2])
+            K_be_idx.append(2)
+
+        # add matrix values to global K matrix
+        K[np.ix_(K_idx, K_idx)] += K_be[np.ix_(K_be_idx, K_be_idx)]
+
+    K[ob, :] = 0
+    K[:, ob] = 0
+    K[ob, ob] = 1
+
+    return K
+
+
+@util.memoize
 def mem_m_matrix(mem, refn, mu=0.5):
     '''
     Mass matrix based on average of lumped and consistent mass matrix (lumped-consistent).
