@@ -200,29 +200,41 @@ def mem_k_matrix_hpb(mem, refn):
     ntriangles = len(triangles)
     ob = amesh.on_boundary
 
-    # determine list of neighbors for each triangle
+    # determine list of neighbors and neighbor nodes for each triangle
     # None indicates neighbor doesn't exist for that edge (boundary edge)
     triangle_neighbors = []
+    neighbors_node = []
+
     for tt in range(ntriangles):
+
         neighbors = []
+        neighbor_node = []
         for te in triangle_edges[tt, :]:
+
             mask = np.any(triangle_edges == te, axis=1)
             args = np.nonzero(mask)[0]
+
             if len(args) > 1:
-                neighbors.append(args[args != tt][0])
-            else:
-                neighbors.append(None)
+                
+                n = args[args != tt][0]
+                neighbors.append(n)
 
                 # determine index of the node in the neighbor opposite edge
-                iin, jjn, kkn = triangles[neighbors[0], :]
+                iin, jjn, kkn = triangles[n, :]
+                ii, jj, kk = triangles[tt, :]
                 uidx = [x for x in np.unique([ii, jj, kk, iin, jjn, kkn]) if x not in [
                     ii, jj, kk]][0]
-                # update indexes
-                Kidx.append(uidx)
-                Kpidx.append(3 + j)
+                neighbor_node.append(uidx)
+
+            else:
+                neighbors.append(None)
+                neighbor_node.append(None)
 
         triangle_neighbors.append(neighbors)
+        neighbors_node.append(neighbor_node)
+
     amesh.triangle_neighbors = triangle_neighbors
+    amesh.neighbors_node = neighbors_node
 
     # construct constitutive matrix for material
     h = mem.thickness[0]  # no support for composite membranes yet
@@ -240,6 +252,7 @@ def mem_k_matrix_hpb(mem, refn):
     # construct K matrix
     K = np.zeros((len(nodes), len(nodes)))
     for p in range(ntriangles):
+
         trip = triangles[p, :]
         ap = triangle_areas[p]
 
@@ -251,7 +264,7 @@ def mem_k_matrix_hpb(mem, refn):
         r5 = np.array([x5, y5])
         r6 = np.array([x6, y6])
 
-        neighbors = triangle_neighbors[p]
+        neighbors = neighbors_node[p]
 
         if neighbors[0] is None:
             x = r5
@@ -259,7 +272,7 @@ def mem_k_matrix_hpb(mem, refn):
             n = (r4 - r6) / mag(r4, r6)
             x1, y1 = -x + 2 * xo + (x - xo).dot(n) * n
         else:
-            x1, y1 = triangles[neighbors[0], :2]
+            x1, y1 = nodes[neighbors[0], :2]
 
         if neighbors[1] is None:
             x = r6
@@ -267,7 +280,7 @@ def mem_k_matrix_hpb(mem, refn):
             n = (r5 - r4) / mag(r5, r4)
             x2, y2 = -x + 2 * xo + (x - xo).dot(n) * n
         else:
-            x2, y2 = triangles[neighbors[1], :2]
+            x2, y2 = nodes[neighbors[1], :2]
 
         if neighbors[2] is None:
             x = r4
@@ -275,7 +288,7 @@ def mem_k_matrix_hpb(mem, refn):
             n = (r6 - r5) / mag(r6, r5)
             x3, y3 = -x + 2 * xo + (x - xo).dot(n) * n
         else:
-            x3, y3 = triangles[neighbors[2], :2]
+            x3, y3 = nodes[neighbors[2], :2]
 
         r1 = np.array([x1, y1])
         r2 = np.array([x2, y2])
@@ -288,14 +301,6 @@ def mem_k_matrix_hpb(mem, refn):
         C[3, :] = [x4**2 / 2, y4**2 / 2, x4 * y4]
         C[4, :] = [x5**2 / 2, y5**2 / 2, x5 * y5]
         C[5, :] = [x6**2 / 2, y6**2 / 2, x6 * y6]
-
-        # L1 = np.sqrt((x6 - x4)**2 + (y6 - y4)**2)
-        # b1a1 = ((x1 - x4) * (x6 - x4) + (y1 - y4) * (y6 - y4)) / np.sqrt((x6 - x4)**2 + (y6 - y4)**2)
-        # b1a2 = ((x1 - x6) * (x4 - x6) + (y1 - y6) * (y4 - y6)) / np.sqrt((x4 - x6)**2 + (y4 - y6)**2)
-        # b1b1 = ((x5 - x4) * (x6 - x4) + (y5 - y4) * (y6 - y4)) / np.sqrt((x6 - x4)**2 + (y6 - y4)**2)
-        # b1b2 = ((x5 - x6) * (x4 - x6) + (y5 - y6) * (y4 - y6)) / np.sqrt((x4 - x6)**2 + (y4 - y6)**2)
-        # h1a = np.sqrt(np.sqrt((x1 - x4)**2 + (y1 - y4)**2) - b1a1**2)
-        # h1b = np.sqrt(np.sqrt((x5 - x6)**2 + (y5 - y6)**2) - b1b2**2)
 
         L1 = mag(r6, r4)
         b1a1 = (r1 - r4).dot(r6 - r4) / L1
@@ -347,7 +352,7 @@ def mem_k_matrix_hpb(mem, refn):
 
         # begin putting together indexes needed later for matrix assignment
         K_idx = [trip[2], trip[0], trip[1]]
-        K_be_idx = [4, 5, 6]
+        K_be_idx = [3, 4, 5]
 
         # apply BCs
         if neighbors[0] is None:
