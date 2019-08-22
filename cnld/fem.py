@@ -178,12 +178,12 @@ def mem_k_matrix(mem, refn):
     return K
 
 
-@util.memoize
-def mem_k_matrix_hpb(mem, refn):
+# @util.memoize
+def mem_k_matrix_hpb(mem, refn, retmesh=False):
     '''
     Stiffness matrix based on 3-dof (rotation-free) triangular plate elements.
     '''
-    def mag(r1, r2):
+    def norm(r1, r2):
         # calculates edge length
         return np.sqrt((r2[0] - r1[0])**2 + (r2[1] - r1[1])**2)
 
@@ -256,6 +256,7 @@ def mem_k_matrix_hpb(mem, refn):
         trip = triangles[p, :]
         ap = triangle_areas[p]
 
+        # assign primary triangle nodes based on order of edges
         x5, y5 = nodes[trip[0], :2]
         x6, y6 = nodes[trip[1], :2]
         x4, y4 = nodes[trip[2], :2]
@@ -264,29 +265,30 @@ def mem_k_matrix_hpb(mem, refn):
         r5 = np.array([x5, y5])
         r6 = np.array([x6, y6])
 
+        # assign neighboring triangle nodes and add fictitious nodes if necessary
         neighbors = neighbors_node[p]
 
         if neighbors[0] is None:
             x = r5
             xo = r6
-            n = (r4 - r6) / mag(r4, r6)
-            x1, y1 = -x + 2 * xo + (x - xo).dot(n) * n
+            n = (r4 - r6) / norm(r4, r6)
+            x1, y1 = -x + 2 * xo + 2 * (x - xo).dot(n) * n
         else:
             x1, y1 = nodes[neighbors[0], :2]
 
         if neighbors[1] is None:
             x = r6
             xo = r4
-            n = (r5 - r4) / mag(r5, r4)
-            x2, y2 = -x + 2 * xo + (x - xo).dot(n) * n
+            n = (r5 - r4) / norm(r5, r4)
+            x2, y2 = -x + 2 * xo + 2 * (x - xo).dot(n) * n
         else:
             x2, y2 = nodes[neighbors[1], :2]
 
         if neighbors[2] is None:
             x = r4
             xo = r5
-            n = (r6 - r5) / mag(r6, r5)
-            x3, y3 = -x + 2 * xo + (x - xo).dot(n) * n
+            n = (r6 - r5) / norm(r6, r5)
+            x3, y3 = -x + 2 * xo + 2 * (x - xo).dot(n) * n
         else:
             x3, y3 = nodes[neighbors[2], :2]
 
@@ -294,6 +296,7 @@ def mem_k_matrix_hpb(mem, refn):
         r2 = np.array([x2, y2])
         r3 = np.array([x3, y3])
 
+        # construct C matrix
         C = np.zeros((6, 3))
         C[0, :] = [x1**2 / 2, y1**2 / 2, x1 * y1]
         C[1, :] = [x2**2 / 2, y2**2 / 2, x2 * y2]
@@ -302,29 +305,34 @@ def mem_k_matrix_hpb(mem, refn):
         C[4, :] = [x5**2 / 2, y5**2 / 2, x5 * y5]
         C[5, :] = [x6**2 / 2, y6**2 / 2, x6 * y6]
 
-        L1 = mag(r6, r4)
+        # construct L matrix
+
+        # calculate vars based on geometry of first sub-element
+        L1 = norm(r6, r4)
         b1a1 = (r1 - r4).dot(r6 - r4) / L1
         b1a2 = (r1 - r6).dot(r4 - r6) / L1
         b1b1 = (r5 - r4).dot(r6 - r4) / L1
         b1b2 = (r5 - r6).dot(r4 - r6) / L1
-        h1a = np.sqrt(mag(r1, r4)**2 - b1a1**2)
-        h1b = np.sqrt(mag(r5, r6)**2 - b1b2**2)
+        h1a = np.sqrt(norm(r1, r4)**2 - b1a1**2)
+        h1b = np.sqrt(norm(r5, r6)**2 - b1b2**2)
 
-        L2 = mag(r5, r4)
+        # calculate vars based on geometry of second sub-element
+        L2 = norm(r5, r4)
         b2a1 = (r2 - r5).dot(r4 - r5) / L2
         b2a2 = (r2 - r4).dot(r5 - r4) / L2
         b2b1 = (r6 - r5).dot(r4 - r5) / L2
-        b2b2 = (r6 - r4).dot(r4 - r5) / L2
-        h2a = np.sqrt(mag(r2, r5)**2 - b2a1**2)
-        h2b = np.sqrt(mag(r6, r4)**2 - b2b2**2)
+        b2b2 = (r6 - r4).dot(r5 - r4) / L2
+        h2a = np.sqrt(norm(r2, r5)**2 - b2a1**2)
+        h2b = np.sqrt(norm(r6, r4)**2 - b2b2**2)
 
-        L3 = mag(r5, r6)
+        # calculate vars based on geometry of third sub-element
+        L3 = norm(r5, r6)
         b3a1 = (r3 - r6).dot(r5 - r6) / L3
         b3a2 = (r3 - r5).dot(r6 - r5) / L3
         b3b1 = (r4 - r6).dot(r5 - r6) / L3
         b3b2 = (r4 - r5).dot(r6 - r5) / L3
-        h3a = np.sqrt(mag(r3, r6)**2 - b3a1**2)
-        h3b = np.sqrt(mag(r4, r5)**2 - b3b2**2)
+        h3a = np.sqrt(norm(r3, r6)**2 - b3a1**2)
+        h3b = np.sqrt(norm(r4, r5)**2 - b3b2**2)
 
         L = np.zeros((3, 6))
         L[0, 0] = 1 / h1a
@@ -340,9 +348,11 @@ def mem_k_matrix_hpb(mem, refn):
         L[2, 4] = -b3a1 / (L3 * h3a) + -b3b1 / (L3 * h3b)
         L[2, 5] = -b3b2 / (L3 * h3b) + -b3a2 / (L3 * h3a)
 
+        # calculate G matrix
         G = L.dot(C)
         Ginv = np.linalg.inv(G)
 
+        # create I_D matrix
         I_D = np.zeros((3, 3))
         I_D[0, 0] = 1
         I_D[1, 1] = 1
@@ -356,51 +366,68 @@ def mem_k_matrix_hpb(mem, refn):
 
         # apply BCs
         if neighbors[0] is None:
+            # fictitious node index = 0
+            # mirrored node index = 4
+            # boundary nodes index = 3, 5
 
-            K_be[3, 3] /= 2
+            # modify row for mirrored node
+            K_be[4, 4] = (K_be[0, 0] + K_be[0, 4] + K_be[4, 0] + K_be[4, 4]) / 2
             K_be[4, 3] = (K_be[4, 3] + K_be[0, 3]) / 2
+            K_be[4, 5] = (K_be[4, 5] + K_be[0, 5]) / 2
+
+            # modify row of first boundary node
+            K_be[3, 3] = K_be[3, 3] / 2
             K_be[3, 4] = (K_be[3, 4] + K_be[3, 0]) / 2
 
-            K_be[5, 5] /= 2
-            K_be[4, 5] = (K_be[4, 5] + K_be[0, 5]) / 2
+            # modify row of second boundary node
+            K_be[5, 5] = K_be[5, 5] / 2
             K_be[5, 4] = (K_be[5, 4] + K_be[5, 0]) / 2
-
-            K_be[4, 4] = (K_be[0, 0] + K_be[0, 4] + K_be[4, 0] + K_be[4, 4]) / 2
-
         else:
 
             K_idx.append(neighbors[0])
             K_be_idx.append(0)
         
         if neighbors[1] is None:
+            # fictitious node index = 1
+            # mirrored node index = 5
+            # boundary nodes index = 3, 4
 
-            K_be[3, 3] /= 2
+            # modify row for mirrored node
+            K_be[5, 5] = (K_be[1, 1] + K_be[1, 5] + K_be[5, 1] + K_be[5, 5]) / 2
             K_be[5, 3] = (K_be[5, 3] + K_be[1, 3]) / 2
+            K_be[5, 4] = (K_be[5, 4] + K_be[1, 4]) / 2
+
+            # modify row of first boundary node
+            K_be[3, 3] = K_be[3, 3] / 2
             K_be[3, 5] = (K_be[3, 5] + K_be[3, 1]) / 2
 
-            K_be[4, 4] /= 2
-            K_be[5, 4] = (K_be[5, 4] + K_be[1, 4]) / 2
+            # modify row of second boundary node
+            K_be[4, 4] = K_be[4, 4] / 2
             K_be[4, 5] = (K_be[4, 5] + K_be[4, 1]) / 2
-
-            K_be[5, 5] = (K_be[1, 1] + K_be[1, 5] + K_be[5, 1] + K_be[5, 5]) / 2
-
         else:
+
             K_idx.append(neighbors[1])
             K_be_idx.append(1)
 
         if neighbors[2] is None:
+            # fictitious node index = 2
+            # mirrored node index = 3
+            # boundary nodes index = 4, 5
 
-            K_be[4, 4] /= 2
+            # modify row for mirrored node
+            K_be[3, 3] = (K_be[2, 2] + K_be[2, 3] + K_be[3, 2] + K_be[3, 3]) / 2
             K_be[3, 4] = (K_be[3, 4] + K_be[2, 4]) / 2
+            K_be[3, 5] = (K_be[3, 5] + K_be[2, 5]) / 2
+
+            # modify row of first boundary node
+            K_be[4, 4] = K_be[4, 4] / 2
             K_be[4, 3] = (K_be[4, 3] + K_be[4, 2]) / 2
 
-            K_be[5, 5] /= 2
-            K_be[5, 3] = (K_be[5, 3] + K_be[2, 5]) / 2
-            K_be[3, 5] = (K_be[3, 5] + K_be[5, 2]) / 2
-
-            K_be[3, 3] = (K_be[2, 2] + K_be[2, 3] + K_be[3, 2] + K_be[3, 3]) / 2
-
+            # modify row of second boundary node
+            K_be[5, 5] = K_be[5, 5] / 2
+            K_be[5, 3] = (K_be[5, 3] + K_be[5, 2]) / 2
         else:
+
             K_idx.append(neighbors[2])
             K_be_idx.append(2)
 
@@ -411,7 +438,10 @@ def mem_k_matrix_hpb(mem, refn):
     K[:, ob] = 0
     K[ob, ob] = 1
 
-    return K
+    if retmesh:
+        return K, amesh
+    else:
+        return K
 
 
 @util.memoize
