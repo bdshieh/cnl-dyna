@@ -305,6 +305,7 @@ def mem_k_matrix_hybrid(mem, refn, retmesh=False):
         neighbors = neighbors_node[p]
 
         if None in neighbors:
+        # if True:
             
             xi, yi = nodes[trip[0], :2]
             xj, yj = nodes[trip[1], :2]
@@ -427,8 +428,8 @@ def mem_k_matrix_hybrid(mem, refn, retmesh=False):
             K_be = ap * L.T @ Ginv.T @ I_D @ D @ Ginv @ L
 
             # begin putting together indexes needed later for matrix assignment
-            K_idx = [trip[2], trip[0], trip[1]]
-            K_be_idx = [3, 4, 5]
+            K_idx = [neighbors[0], neighbors[1], neighbors[2], trip[2], trip[0], trip[1]]
+            K_be_idx = [0, 1, 2, 3, 4, 5]
 
             # add matrix values to global K matrix
             K[np.ix_(K_idx, K_idx)] += K_be[np.ix_(K_be_idx, K_be_idx)]
