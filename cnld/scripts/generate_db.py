@@ -9,7 +9,7 @@ import os, sys, traceback
 from scipy.sparse.linalg import lgmres
 from timeit import default_timer as timer
 
-from cnld import abstract, util, bem, fem, impulse_response, database
+from cnld import abstract, util, bem, fem2 as fem, impulse_response, database
 from cnld.compressed_formats import MbkSparseMatrix
 from cnld.mesh import Mesh
 
