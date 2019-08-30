@@ -381,9 +381,9 @@ def mem_k_matrix_hpb(mem, refn, retmesh=False):
             # non-boundary nodes index = 1, 2
 
             # modify row for mirrored node
-            K_be[4, 4] = (K_be[0, 0] + K_be[0, 4] + K_be[4, 0] + K_be[4, 4]) / 2
-            K_be[4, 1] = (K_be[4, 1] + K_be[0, 1]) / 2
-            K_be[4, 2] = (K_be[4, 2] + K_be[0, 2]) / 2
+            K_be[4, 4] = (K_be[0, 0] + K_be[0, 4] + K_be[4, 0] + K_be[4, 4]) #/ 2
+            K_be[4, 1] = (K_be[4, 1] + K_be[0, 1]) #/ 2
+            K_be[4, 2] = (K_be[4, 2] + K_be[0, 2]) #/ 2
             # K_be[4, 1] /= 2
             # K_be[1, 4] /= 2
             # K_be[4, 2] /= 2
@@ -392,10 +392,10 @@ def mem_k_matrix_hpb(mem, refn, retmesh=False):
             # K_be[4, 5] = (K_be[4, 5] + K_be[0, 5]) / 2
 
             # modify row of first non-boundary node
-            K_be[1, 4] = K_be[1, 4] + K_be[1, 0]
+            K_be[1, 4] = (K_be[1, 4] + K_be[1, 0]) #/ 2
 
             # modify row of second non-boundary node
-            K_be[2, 4] = K_be[2, 4] + K_be[2, 0]
+            K_be[2, 4] = (K_be[2, 4] + K_be[2, 0]) #/ 2
 
             # modify row of first boundary node
             # K_be[3, 3] = K_be[3, 3] / 2
@@ -416,9 +416,9 @@ def mem_k_matrix_hpb(mem, refn, retmesh=False):
             # non-boundary nodes index = 0, 2
 
             # modify row for mirrored node
-            K_be[5, 5] = (K_be[1, 1] + K_be[1, 5] + K_be[5, 1] + K_be[5, 5]) / 2
-            K_be[5, 0] = (K_be[5, 0] + K_be[1, 0]) / 2
-            K_be[5, 2] = (K_be[5, 2] + K_be[1, 2]) / 2
+            K_be[5, 5] = (K_be[1, 1] + K_be[1, 5] + K_be[5, 1] + K_be[5, 5]) #/ 2
+            K_be[5, 0] = (K_be[5, 0] + K_be[1, 0]) #/ 2
+            K_be[5, 2] = (K_be[5, 2] + K_be[1, 2]) #/ 2
             # K_be[5, 0] /= 2
             # K_be[0, 5] /= 2
             # K_be[5, 2] /= 2
@@ -427,10 +427,10 @@ def mem_k_matrix_hpb(mem, refn, retmesh=False):
             # K_be[5, 4] = (K_be[5, 4] + K_be[1, 4]) / 2
 
             # modify row of first non-boundary node
-            K_be[0, 5] = K_be[0, 5] + K_be[0, 1]
+            K_be[0, 5] = (K_be[0, 5] + K_be[0, 1]) #/ 2
 
             # modify row of second non-boundary node
-            K_be[2, 5] = K_be[2, 5] + K_be[2, 1]
+            K_be[2, 5] = (K_be[2, 5] + K_be[2, 1]) #/ 2
 
             # modify row of first boundary node
             # K_be[3, 3] = K_be[3, 3] / 2
@@ -451,9 +451,9 @@ def mem_k_matrix_hpb(mem, refn, retmesh=False):
             # non-boundary nodes index = 0, 1
 
             # modify row for mirrored node
-            K_be[3, 3] = (K_be[2, 2] + K_be[2, 3] + K_be[3, 2] + K_be[3, 3]) / 2
-            K_be[3, 0] = (K_be[3, 0] + K_be[2, 0]) / 2
-            K_be[3, 1] = (K_be[3, 1] + K_be[2, 1]) / 2
+            K_be[3, 3] = (K_be[2, 2] + K_be[2, 3] + K_be[3, 2] + K_be[3, 3]) #/ 2
+            K_be[3, 0] = (K_be[3, 0] + K_be[2, 0]) #/ 2
+            K_be[3, 1] = (K_be[3, 1] + K_be[2, 1]) #/ 2
             # K_be[3, 0] /= 2
             # K_be[0, 3] /= 2
             # K_be[3, 1] /= 2
@@ -462,10 +462,10 @@ def mem_k_matrix_hpb(mem, refn, retmesh=False):
             # K_be[3, 5] = (K_be[3, 5] + K_be[2, 5]) / 2
 
             # modify row of first non-boundary node
-            K_be[0, 3] = K_be[0, 3] + K_be[0, 2]
+            K_be[0, 3] = (K_be[0, 3] + K_be[0, 2]) #/ 2
 
             # modify row of second non-boundary node
-            K_be[1, 3] = K_be[1, 3] + K_be[1, 2]
+            K_be[1, 3] = (K_be[1, 3] + K_be[1, 2]) #/ 2
 
             # modify row of first boundary node
             # K_be[4, 4] = K_be[4, 4] / 2
