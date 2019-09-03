@@ -529,6 +529,34 @@ class CompensationSolver(FixedStepSolver):
         return xmax
 
 
+class StaticSolver(FixedStepSolver):
+
+    def __init__(self, t_fir, t_v, gap, gap_eff, t_lim, lmbd, atol=1e-10, maxiter=5):
+        super().__init__(t_fir, t_v, gap, gap_eff, t_lim, 0, 0, 0, 0, atol=atol, maxiter=maxiter)
+
+        def p_cont_dmp(x, xdot):
+            return -lmbd * xdot
+        
+        self._p_cont_dmp = np.vectorize(p_cont_dmp)
+
+    @classmethod
+    def from_array_and_db(cls, array, dbfile, t_v, t_lim, lmbd, atol=1e-10, maxiter=5, **kwargs):
+
+        # read fir database
+        fir_t, fir = database.read_patch_to_patch_imp_resp(dbfile)
+
+        # create gap and gap eff
+        gap = []
+        gap_eff = []
+        for elem in array.elements:
+            for mem in elem.membranes:
+                for pat in mem.patches:
+                    gap.append(mem.gap)
+                    gap_eff.append(mem.gap + mem.isolation / mem.permittivity)
+
+        return cls((fir_t, fir), t_v, gap, gap_eff, t_lim, lmbd, atol, maxiter)
+
+
 # A numerical model for CMUT contact dynamics 
 # A scalable numerical model for CMUT non-linear dynamics and contact mechanics
 

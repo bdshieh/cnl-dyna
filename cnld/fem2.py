@@ -45,11 +45,12 @@ def mem_static_x_vector(mem, refn, vdc, atol=1e-10, maxiter=100):
 
 
 @util.memoize
-def mem_k_matrix(mem, refn):
+def mem_k_matrix(mem, refn, type='bpt'):
 
-    K1 = mem_k_matrix_bpt(mem, refn)
-    K2 = mem_k_matrix_hpb(mem, refn)
-    return (K1 + K2) / 2
+    if type.lower() in ['bpt', ]:
+        return mem_k_matrix_bpt(mem, refn)
+    else:
+        return mem_k_matrix_hpb(mem, refn)
 
 
 @util.memoize
@@ -186,7 +187,7 @@ def mem_k_matrix_bpt(mem, refn):
     return K
 
 
-# @util.memoize
+@util.memoize
 def mem_k_matrix_hpb(mem, refn, retmesh=False):
     '''
     Stiffness matrix based on 3-dof (rotation-free) triangular plate elements.
@@ -486,14 +487,11 @@ def mem_k_matrix_hpb(mem, refn, retmesh=False):
     K[:, ob] = 0
     K[ob, ob] = 1
 
-    if retmesh:
-        return K, amesh
-    else:
-        return K
+    return K
 
         
-# @util.memoize
-def mem_k_matrix_hybrid(mem, refn, retmesh=False):
+@util.memoize
+def mem_k_matrix_hybrid(mem, refn):
     '''
     Stiffness matrix based on 3-dof (rotation-free) triangular plate elements.
     '''
@@ -752,10 +750,7 @@ def mem_k_matrix_hybrid(mem, refn, retmesh=False):
     K[:, ob] = 0
     K[ob, ob] = 1
 
-    if retmesh:
-        return K, amesh
-    else:
-        return K
+    return K
 
 
 @util.memoize
