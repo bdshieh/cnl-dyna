@@ -1,25 +1,26 @@
 '''
 Data-sparse (compressed) formats for matrices using h2lib
 '''
-
-from . h2lib import *
+from timeit import default_timer as timer
 
 import numpy as np
-from timeit import default_timer as timer
-from scipy.sparse import csr_matrix, issparse
-from matplotlib import pyplot as plt
 from matplotlib import patches
+from matplotlib import pyplot as plt
+from scipy.sparse import csr_matrix, issparse
+
+from .h2lib import *
 
 
 class BaseFormat:
     '''
-    Base class defining abstract interface for formats
+    Base class defining abstract interface for formats.
     '''
     def __init__(self, mat):
         self._mat = mat
 
     def __del__(self):
-        if self._mat is not None: del self._mat
+        if self._mat is not None:
+            del self._mat
 
     ''' PROPERTIES '''
     @property
@@ -41,7 +42,7 @@ class BaseFormat:
     @property
     def format(self):
         return self.__class__.__name__
-    
+
     ''' MAGIC OPERATIONS '''
     def _add(self, x):
         return NotImplemented
@@ -49,19 +50,19 @@ class BaseFormat:
     def __add__(self, x):
         if not isinstance(x, BaseFormat):
             raise ValueError('operation not supported with this type')
-        
+
         if self.shape != x.shape:
             raise ValueError('dimension mismatch')
-        
+
         return self._add(x)
-    
+
     def __radd__(self, x):
         return self.__add__(x)
 
     def __rmul__(self, x):
         if not np.isscalar(x):
             return NotImplemented
-        return self.__mul__(x)    
+        return self.__mul__(x)
 
     def __mul__(self, x):
         return self.dot(x)
@@ -74,7 +75,7 @@ class BaseFormat:
 
     def __sub__(self, x):
         return self.__add__(-x)
-    
+
     def __rsub__(self, x):
         return self.__sub__(x) * -1
 
@@ -84,7 +85,7 @@ class BaseFormat:
 
     def _matmat(self, x):
         return NotImplemented
-    
+
     def _matvec(self, x):
         return NotImplemented
 
@@ -99,11 +100,11 @@ class BaseFormat:
         Y = self._matmat(X)
 
         return Y
-    
+
     def matvec(self, x):
         # x = np.asanyarray(x)
         M, N = self.shape
-        if x.shape != (N,) and x.shape != (N, 1):
+        if x.shape != (N, ) and x.shape != (N, 1):
             raise ValueError('dimension mismatch')
 
         y = self._matvec(x)
@@ -125,14 +126,14 @@ class BaseFormat:
         #         xv = AVector.from_array(x)
         #     else:
         #         xv = AMatrix.from_array(x)
-        
+
         if x.ndim == 1 or x.ndim == 2 and x.shape[1] == 1:
             return self.matvec(x)
         elif x.ndim == 2:
             return self.matmat(x)
         else:
             raise ValueError
-    
+
     def _adjoint(self):
         return NotImplemented
 
@@ -145,28 +146,28 @@ class BaseFormat:
     def transpose(self):
         return self._transpose()
 
-    ''' LINALG SOLVING '''  
+    ''' LINALG SOLVING '''
     def _lu(self):
         raise NotImplementedError
-    
+
     def _chol(self):
         raise NotImplementedError
-    
+
     def _lusolve(self, b):
         raise NotImplementedError
-    
+
     def _cholsolve(self, b):
         raise NotImplementedError
 
     def lu(self):
         return self._lu()
-    
+
     def lusolve(self, b):
         return self._lusolve(b)
 
     def chol(self):
         return self._chol()
-    
+
     def cholsolve(self, b):
         return self._cholsolve(b)
 
@@ -175,7 +176,6 @@ class FullFormat(BaseFormat):
     '''
     Full (dense) matrix format, i.e. no compression
     '''
-
     ''' PROPERTIES '''
     @property
     def rows(self):
@@ -188,7 +188,7 @@ class FullFormat(BaseFormat):
     @property
     def size(self):
         return getsize_amatrix(self._mat)
-    
+
     @property
     def data(self):
         return np.array(self._mat.a)
@@ -250,22 +250,22 @@ class FullFormat(BaseFormat):
         if succ != 0:
             raise RuntimeError('failed to calculate LU decomposition')
         return FullFormat(LU)
-    
+
     def _chol(self):
         CH = clone_amatrix(self._mat)
         choldecomp_amatrix(CH)
         return FullFormat(CH)
-   
+
     def _lusolve(self, b):
         x = AVector.from_array(b)
         lrsolve_amatrix_avector(False, self._mat, x)
-        return np.array(x.v)   
+        return np.array(x.v)
 
     def _cholsolve(self, b):
         x = AVector.from_array(b)
         cholsolve_amatrix_avector(self._mat, x)
         return np.array(x.v)
-    
+
     def _triangularsolve(self, b):
         x = AVector.from_array(b)
         lrsolve_amatrix_avector(False, self._mat, x)
@@ -274,12 +274,10 @@ class FullFormat(BaseFormat):
         return np.array(x.v)
 
 
-
 class SparseFormat(BaseFormat):
     '''
     Sparse matrix format
     '''
-
     ''' PROPERTIES '''
     @property
     def rows(self):
@@ -292,7 +290,7 @@ class SparseFormat(BaseFormat):
     @property
     def size(self):
         return getsize_sparsematrix(self._mat)
-        
+
     @property
     def nnz(self):
         return self._mat.nz
@@ -335,12 +333,12 @@ class SparseFormat(BaseFormat):
 
     def _lu(self):
         raise NotImplementedError('operation not supported with this type')
-    
+
     def _chol(self):
         raise NotImplementedError('operation not supported with this type')
-   
+
     def _lusolve(self, b):
-        raise NotImplementedError('operation not supported with this type')  
+        raise NotImplementedError('operation not supported with this type')
 
     def _cholsolve(self, b):
         raise NotImplementedError('operation not supported with this type')
@@ -348,11 +346,13 @@ class SparseFormat(BaseFormat):
     ''' OTHER '''
     def _as_hformat(self, href):
         '''
-        Convert sparse format to hierarchical format using 
+        Convert sparse format to hierarchical format using
         the h-structure in href
         '''
         hm = clonestructure_hmatrix(href)
-        clear_hmatrix(hm)  # very important to clear hmatrix otherwise addition doesn't work properly
+        clear_hmatrix(
+            hm
+        )  # very important to clear hmatrix otherwise addition doesn't work properly
         copy_sparsematrix_hmatrix(self._mat, hm)
         return HFormat(hm)
 
@@ -361,12 +361,10 @@ class HFormat(BaseFormat):
     '''
     Hierarchical matrix format
     '''
-
     ''' DATA ATTRIBUTES '''
     eps_add = 1e-12
     eps_lu = 1e-12
     eps_chol = 1e-12
-
     ''' PROPERTIES '''
     @property
     def rows(self):
@@ -391,7 +389,8 @@ class HFormat(BaseFormat):
             B = clone_hmatrix(self._mat)
             tm = new_releucl_truncmode()
             # sparse format is converted to hformat prior to addition
-            add_hmatrix(1, (x._as_hformat(self._mat))._mat, tm, self.eps_add, B)
+            add_hmatrix(1, (x._as_hformat(self._mat))._mat, tm, self.eps_add,
+                        B)
             return HFormat(B)
         elif isinstance(x, HFormat):
             B = clone_hmatrix(self._mat)
@@ -412,14 +411,15 @@ class HFormat(BaseFormat):
 
     def _matmat(self, x):
         if isinstance(x, FullFormat):
-            raise NotImplementedError('operation not supported with this type')     
+            raise NotImplementedError('operation not supported with this type')
         elif isinstance(x, SparseFormat):
-            raise NotImplementedError('operation not supported with this type') 
+            raise NotImplementedError('operation not supported with this type')
         elif isinstance(x, HFormat):
             C = clonestructure_hmatrix(self._mat)
             clear_hmatrix(C)
             tm = new_releucl_truncmode()
-            addmul_hmatrix(1.0, False, x._mat, False, self._mat, tm, self.eps_add, C)
+            addmul_hmatrix(1.0, False, x._mat, False, self._mat, tm,
+                           self.eps_add, C)
             return HFormat(C)
         else:
             raise ValueError('operation with unrecognized type')
@@ -443,11 +443,11 @@ class HFormat(BaseFormat):
         tm = new_releucl_truncmode()
         choldecomp_hmatrix(CHOL, tm, self.eps_chol)
         return HFormat(CHOL)
-   
+
     def _lusolve(self, b):
         x = AVector.from_array(b)
         lrsolve_hmatrix_avector(False, self._mat, x)
-        return np.array(x.v)   
+        return np.array(x.v)
 
     def _cholsolve(self, b):
         x = AVector.from_array(b)
@@ -475,19 +475,28 @@ class HFormat(BaseFormat):
 
             x0, y0, x1, y1 = bbox
             width, height = x1 - x0, y1 - y0
-            sq = patches.Rectangle((x0, y0), width, height, edgecolor='black', fill=fill, facecolor='black')
+            sq = patches.Rectangle((x0, y0),
+                                   width,
+                                   height,
+                                   edgecolor='black',
+                                   fill=fill,
+                                   facecolor='black')
             ax.add_patch(sq)
-            if rk: 
+            if rk:
                 fontsize = int(round((112 - 6) * width + 6))
-                if width > 0.03: ax.text(x0 + 0.05 * width, y0 + 0.95 * height, rk, fontsize=fontsize)
-        
+                if width > 0.03:
+                    ax.text(x0 + 0.05 * width,
+                            y0 + 0.95 * height,
+                            rk,
+                            fontsize=fontsize)
+
         else:
             rmax, cmax = maxidx
             x0, y0, x1, y1 = bbox
 
             rsidx = (0, 1, 0, 1)
             csidx = (0, 0, 1, 1)
-            
+
             width0 = len(hm.son[0].cc.idx) / cmax
             height0 = len(hm.son[0].rc.idx) / rmax
 
@@ -498,9 +507,9 @@ class HFormat(BaseFormat):
                 xnew = x0 if csidx[i] == 0 else x0 + width0
                 ynew = y0 if rsidx[i] == 0 else y0 + height0
 
-                if csidx[i] == 0: 
+                if csidx[i] == 0:
                     xnew = x0
-                else: 
+                else:
                     xnew = x0 + width0
                 if rsidx[i] == 0:
                     ynew = y0
@@ -509,12 +518,12 @@ class HFormat(BaseFormat):
 
                 bbox = xnew, ynew, xnew + width, ynew + height
                 self._draw_hmatrix(s, bbox, maxidx, ax)
-    
+
     def draw(self):
         hm = self._mat
         maxidx = len(hm.rc.idx), len(hm.cc.idx)
 
-        fig, ax = plt.subplots(figsize=(9,9))
+        fig, ax = plt.subplots(figsize=(9, 9))
         ax.set_xlim(0, 1)
         ax.set_ylim(0, 1)
         ax.invert_yaxis()
@@ -562,12 +571,11 @@ def _z_repr(self):
 
 
 class MbkFullMatrix(FullFormat):
-
     def __init__(self, array):
-        
+
         if issparse(array):
             array = array.toarray()
-        
+
         start = timer()
         MBK = AMatrix.from_array(array)
         time_assemble = timer() - start
@@ -583,7 +591,6 @@ class MbkFullMatrix(FullFormat):
 
 
 class MbkSparseMatrix(SparseFormat):
-
     def __init__(self, array):
 
         array = csr_matrix(array)
@@ -603,7 +610,6 @@ class MbkSparseMatrix(SparseFormat):
 
 
 class ZFullMatrix(FullFormat):
-
     def __init__(self, mesh, k, basis='linear', q_reg=2, q_sing=4, **kwargs):
 
         if basis.lower() in ['constant']:
@@ -613,7 +619,8 @@ class ZFullMatrix(FullFormat):
         else:
             raise TypeError
 
-        bem = new_slp_helmholtz_bem3d(k, mesh.surface3d, q_reg, q_sing, _basis, _basis)
+        bem = new_slp_helmholtz_bem3d(k, mesh.surface3d, q_reg, q_sing, _basis,
+                                      _basis)
 
         Z = AMatrix(len(mesh.vertices), len(mesh.vertices))
 
@@ -633,9 +640,21 @@ class ZFullMatrix(FullFormat):
 
 
 class ZHMatrix(HFormat):
-
-    def __init__(self, mesh, k, basis='linear', m=4, q_reg=2, q_sing=4, aprx='paca', 
-        admis='2', eta=1.0, eps_aca=1e-2, strict=False, clf=16, rk=0, **kwargs):
+    def __init__(self,
+                 mesh,
+                 k,
+                 basis='linear',
+                 m=4,
+                 q_reg=2,
+                 q_sing=4,
+                 aprx='paca',
+                 admis='2',
+                 eta=1.0,
+                 eps_aca=1e-2,
+                 strict=False,
+                 clf=16,
+                 rk=0,
+                 **kwargs):
 
         if basis.lower() in ['constant']:
             _basis = basisfunctionbem3d.CONSTANT
@@ -643,8 +662,9 @@ class ZHMatrix(HFormat):
             _basis = basisfunctionbem3d.LINEAR
         else:
             raise TypeError
-        
-        bem = new_slp_helmholtz_bem3d(k, mesh.surface3d, q_reg, q_sing, _basis, _basis)
+
+        bem = new_slp_helmholtz_bem3d(k, mesh.surface3d, q_reg, q_sing, _basis,
+                                      _basis)
         root = build_bem3d_cluster(bem, clf, _basis)
 
         if strict:
@@ -656,7 +676,7 @@ class ZHMatrix(HFormat):
             setup_hmatrix_aprx_inter_row_bem3d(bem, root, root, broot, m)
         elif aprx.lower() in ['paca']:
             setup_hmatrix_aprx_paca_bem3d(bem, root, root, broot, eps_aca)
-        elif aprx.lower() in  ['hca']:
+        elif aprx.lower() in ['hca']:
             setup_hmatrix_aprx_hca_bem3d(bem, root, root, broot, m, eps_aca)
         elif aprx.lower() in ['inter_row']:
             setup_hmatrix_aprx_inter_row_bem3d(bem, root, root, broot, m)
@@ -673,13 +693,12 @@ class ZHMatrix(HFormat):
         # important! don't ref bem and broot otherwise processes fail to terminate (not sure why)
         # self._bem = bem
         self._broot = broot
-    
+
     def __del__(self):
         del self._mat
         del self._root
         # del self._bem
         del self._broot
-        
 
     @property
     def time_assemble(self):

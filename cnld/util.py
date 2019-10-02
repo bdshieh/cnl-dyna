@@ -1,28 +1,28 @@
 '''
 Utility functions.
-''' 
+'''
+import argparse
+import functools
+import itertools
+import os
+import sqlite3 as sql
+from contextlib import closing
+from copy import deepcopy
+from itertools import repeat
 
 import numpy as np
 import pandas as pd
 import scipy as sp
-import scipy.signal
 import scipy.fftpack
-from scipy.spatial.distance import cdist
-import itertools
-from contextlib import closing
-from itertools import repeat
-import sqlite3 as sql
-import argparse
-from copy import deepcopy
-import functools
+import scipy.signal
 from cnld import abstract
-import os
-
-
+from scipy.spatial.distance import cdist
 ''' GEOMETRY-RELATED FUNCTIONS '''
 
-def meshview(v1, v2, v3, mode='cartesian', as_list=True):
 
+def meshview(v1, v2, v3, mode='cartesian', as_list=True):
+    '''
+    '''
     if mode.lower() in ('cart', 'cartesian'):
         x, y, z = np.meshgrid(v1, v2, v3, indexing='ij')
 
@@ -45,7 +45,8 @@ def meshview(v1, v2, v3, mode='cartesian', as_list=True):
 
 
 def sec2cart(r, alpha, beta):
-
+    '''
+    '''
     z = r / np.sqrt(np.tan(alpha)**2 + np.tan(beta)**2 + 1)
     x = z * np.tan(alpha)
     y = z * np.tan(beta)
@@ -65,7 +66,8 @@ def sec2cart(r, alpha, beta):
 
 
 def cart2sec(x, y, z):
-
+    '''
+    '''
     r = np.sqrt(x**2 + y**2 + z**2)
     alpha = np.arccos(z / (np.sqrt(x**2 + z**2))) * np.sign(x)
     beta = np.arccos(z / (np.sqrt(y**2 + z**2))) * np.sign(y)
@@ -79,7 +81,8 @@ def cart2sec(x, y, z):
 
 
 def sph2cart(r, theta, phi):
-
+    '''
+    '''
     x = r * np.cos(theta) * np.sin(phi)
     y = r * np.sin(theta) * np.sin(phi)
     z = r * np.cos(phi)
@@ -88,7 +91,8 @@ def sph2cart(r, theta, phi):
 
 
 def cart2sph(x, y, z):
-
+    '''
+    '''
     r = np.sqrt(x**2 + y**2 + z**2)
     theta = np.arctan(y / x)
     phi = np.arccos(z / r)
@@ -97,7 +101,8 @@ def cart2sph(x, y, z):
 
 
 def cart2dp(x, y, z):
-
+    '''
+    '''
     r = np.sqrt(x**2 + y**2 + z**2)
     alpha = np.arccos((np.sqrt(y**2 + z**2) / r))
     beta = np.arccos((np.sqrt(x**2 + z**2) / r))
@@ -106,7 +111,8 @@ def cart2dp(x, y, z):
 
 
 def dp2cart(r, alpha, beta):
-
+    '''
+    '''
     z = r * (1 - np.sin(alpha)**2 - np.sin(beta)**2)
     x = r * np.sin(alpha)
     y = r * np.sin(beta)
@@ -115,7 +121,8 @@ def dp2cart(r, alpha, beta):
 
 
 def rotation_matrix(vec, angle):
-
+    '''
+    '''
     if isinstance(vec, str):
         string = vec.lower()
         if string == 'x':
@@ -149,19 +156,24 @@ def rotation_matrix(vec, angle):
 
 
 def rotate_nodes(nodes, vec, angle):
-
+    '''
+    '''
     rmatrix = rotation_matrix(vec, angle)
     return rmatrix.dot(nodes.T).T
 
 
 def distance(*args):
+    '''
+    '''
     return cdist(*np.atleast_2d(*args))
 
 
 ''' SIGNAL PROCESSING AND RF DATA FUNCTIONS '''
 
-def gausspulse(fc, fbw, fs):
 
+def gausspulse(fc, fbw, fs):
+    '''
+    '''
     cutoff = scipy.signal.gausspulse('cutoff', fc=fc, bw=fbw, tpr=-100, bwr=-3)
     adj_cutoff = np.ceil(cutoff * fs) / fs
 
@@ -172,45 +184,38 @@ def gausspulse(fc, fbw, fs):
 
 
 def nextpow2(n):
-    return 2 ** int(np.ceil(np.log2(n)))
+    '''
+    '''
+    return 2**int(np.ceil(np.log2(n)))
 
 
 def envelope(rf_data, N=None, axis=-1):
+    '''
+    '''
     return np.abs(scipy.signal.hilbert(np.atleast_2d(rf_data), N, axis=axis))
 
 
 def qbutter(x, fn, fs=1, btype='lowpass', n=4, plot=False, axis=-1):
-
+    '''
+    '''
     wn = fn / (fs / 2.)
     b, a = sp.signal.butter(n, wn, btype)
-
-    # if plot:
-    #     w, h = freqz(b, a)
-    #
-    #     fig = plt.figure()
-    #     ax1 = fig.add_subplot(111)
-    #
-    #     ax1.plot(w / (2 * np.pi) * fs, 20 * np.log10(np.abs(h)), 'b')
-    #     ax1.set_xlabel('Frequency (Hz)')
-    #     ax1.set_ylabel('Amplitude (dB)')
-    #     ax1.set_title('Butterworth filter response')
-    #
-    #     ax2 = ax1.twinx()
-    #     ax2.plot(w / (2 * np.pi) * fs, np.unwrap(np.angle(h)), 'g')
-    #     ax2.set_ylabel('Phase (radians)')
-    #
-    #     plt.grid()
-    #     plt.axis('tight')
-    #
-    #     fig.show()
 
     fx = sp.signal.lfilter(b, a, x, axis=axis)
 
     return fx
 
 
-def qfirwin(x, fn, fs=1, btype='lowpass', ntaps=80, plot=False, axis=-1,
+def qfirwin(x,
+            fn,
+            fs=1,
+            btype='lowpass',
+            ntaps=80,
+            plot=False,
+            axis=-1,
             window='hamming'):
+    '''
+    '''
     if btype.lower() in ('lowpass', 'low'):
         pass_zero = 1
     elif btype.lower() in ('bandpass', 'band'):
@@ -286,6 +291,7 @@ def qfft(s, nfft=None, fs=1, dr=100, fig=None, **kwargs):
 
 ''' JOB-RELATED FUNCTIONS '''
 
+
 def chunks(iterable, n):
 
     res = []
@@ -350,6 +356,7 @@ def create_jobs(*args, mode='zip', is_complete=None):
 
 ''' DATABASE FUNCTIONS '''
 
+
 def open_db(f):
     def decorator(firstarg, *args, **kwargs):
         if isinstance(firstarg, sql.Connection):
@@ -360,6 +367,7 @@ def open_db(f):
                 return f(con, *args, **kwargs)
             # else:
             #     raise IOError
+
     return decorator
 
 
@@ -373,6 +381,7 @@ def read_db(f):
                     return f(con, *args, **kwargs)
             else:
                 raise IOError('File does not exist')
+
     return decorator
 
 
@@ -380,7 +389,7 @@ def read_db(f):
 def table_exists(con, name):
 
     query = '''SELECT count(*) FROM sqlite_master WHERE type='table' and name=?'''
-    return con.execute(query, (name,)).fetchone()[0] != 0
+    return con.execute(query, (name, )).fetchone()[0] != 0
 
 
 @open_db
@@ -388,7 +397,10 @@ def create_metadata_table(con, **kwargs):
 
     table = [[str(v) for v in list(kwargs.values())]]
     columns = list(kwargs.keys())
-    pd.DataFrame(table, columns=columns, dtype=str).to_sql('metadata', con, if_exists='replace', index=False)
+    pd.DataFrame(table, columns=columns, dtype=str).to_sql('metadata',
+                                                           con,
+                                                           if_exists='replace',
+                                                           index=False)
 
 
 @open_db
@@ -396,9 +408,11 @@ def create_progress_table(con, njobs):
 
     with con:
         # create table
-        con.execute('CREATE TABLE progress (job_id INTEGER PRIMARY KEY, is_complete boolean)')
+        con.execute(
+            'CREATE TABLE progress (job_id INTEGER PRIMARY KEY, is_complete boolean)')
         # insert values
-        con.executemany('INSERT INTO progress (is_complete) VALUES (?)', repeat((False,), njobs))
+        con.executemany('INSERT INTO progress (is_complete) VALUES (?)',
+                        repeat((False, ), njobs))
 
 
 @open_db
@@ -416,10 +430,13 @@ def get_progress(con):
 def update_progress(con, job_id):
 
     with con:
-        con.execute('UPDATE progress SET is_complete=1 WHERE job_id=?', [job_id,])
+        con.execute('UPDATE progress SET is_complete=1 WHERE job_id=?', [
+            job_id,
+        ])
 
 
 ''' SCRIPTING FUNCTIONS '''
+
 
 def script_parser(main, config_def):
     '''
@@ -438,7 +455,7 @@ def script_parser(main, config_def):
             abstract.dump(Config(), args.file)
         else:
             print(Config())
-            
+
     # run subcommand will load the config file and pass to main
     def run(args):
         if args.config:
@@ -482,11 +499,11 @@ def script_parser2(main, config_def):
         if args.show_config:
             print(Config())
             return
-        
+
         if args.generate_config:
             abstract.dump(Config(), args.generate_config)
             return
-        
+
         if args.file:
             if args.config:
                 cfg = Config(**abstract.load(args.config))
@@ -510,6 +527,7 @@ def script_parser2(main, config_def):
 
 ''' MISC FUNCTIONS '''
 
+
 def memoize_old(func):
     '''
     Simple memoizer to cache repeated function calls.
@@ -520,7 +538,7 @@ def memoize_old(func):
         except TypeError:
             return False
         return True
-    
+
     def make_hashable(obj):
         if not ishashable(obj):
             # use tostring on ndarray since str returns truncated output
@@ -533,15 +551,17 @@ def memoize_old(func):
         return obj
 
     memo = {}
+
     @functools.wraps(func)
     def decorator(*args, **kwargs):
         # key = tuple(make_hashable(a) for a in args)
-        key = (tuple(make_hashable(a) for a in args), 
-            tuple((k, make_hashable(v)) for k, v in sorted(kwargs.items())))
+        key = (tuple(make_hashable(a) for a in args),
+               tuple((k, make_hashable(v)) for k, v in sorted(kwargs.items())))
         if key not in memo:
             memo[key] = func(*args, **kwargs)
         # return a deep copy to avoid issues with mutable return objects
-        return deepcopy(memo[key]) 
+        return deepcopy(memo[key])
+
     return decorator
 
 
@@ -555,7 +575,7 @@ def memoize(func, maxsize=20):
         except TypeError:
             return False
         return True
-    
+
     def make_hashable(obj):
         if hasattr(obj, '_memoize'):
             return obj._memoize()
@@ -570,28 +590,29 @@ def memoize(func, maxsize=20):
         return obj
 
     func.memo = {}
+
     @functools.wraps(func)
     def decorator(*args, **kwargs):
         # key = tuple(make_hashable(a) for a in args)
-        key = (tuple(make_hashable(a) for a in args), 
-            tuple((k, make_hashable(v)) for k, v in sorted(kwargs.items())))
+        key = (tuple(make_hashable(a) for a in args),
+               tuple((k, make_hashable(v)) for k, v in sorted(kwargs.items())))
         if key not in func.memo:
             if len(func.memo) > maxsize:
                 return func(*args, **kwargs)
             else:
                 func.memo[key] = func(*args, **kwargs)
         # return a deep copy to avoid issues with mutable return objects
-        return deepcopy(func.memo[key]) 
+        return deepcopy(func.memo[key])
+
     return decorator
 
 
 class Counter:
-
     def __init__(self):
         self.count = 0
-    
+
     def increment(self, *args, **kwargs):
         self.count += 1
-    
+
     def decrement(self, *args, **kwargs):
         self.count -= 1

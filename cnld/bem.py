@@ -51,17 +51,23 @@ def z_linear_operators(array, refn, f, c, rho, *args, **kwargs):
         p = Z * x
         p[ob] = 0
         return -omg**2 * rho * 2 * p
-    linop = sps.linalg.LinearOperator((nnodes, nnodes), dtype=np.complex128, matvec=mv)
+
+    linop = sps.linalg.LinearOperator((nnodes, nnodes),
+                                      dtype=np.complex128,
+                                      matvec=mv)
 
     def inv_mv(x):
         x[ob] = 0
         p = Z_LU._triangularsolve(x)
         p[ob] = 0
         return -omg**2 * rho * 2 * p
-    linop_inv = sps.linalg.LinearOperator((nnodes, nnodes), dtype=np.complex128, matvec=inv_mv)
-    
+
+    linop_inv = sps.linalg.LinearOperator((nnodes, nnodes),
+                                          dtype=np.complex128,
+                                          matvec=inv_mv)
+
     return linop, linop_inv
-    
+
 
 # def gauss_quadrature(n, type=1):
 #     '''
@@ -80,7 +86,6 @@ def z_linear_operators(array, refn, f, c, rho, *args, **kwargs):
 #         elif type == 2:
 #             return [[1/3, 1/3], [2/15, 11/15], [2/15, 2/15], [11/15, 2/15]] ,[-27/48, 25/48, 25/48, 25/48]
 
-
 # # def kernel_helmholtz(k, x1, y1, z1, x2, y2, z2):
 # #     '''
 # #     Helmholtz kernel for acoustic waves.
@@ -88,10 +93,8 @@ def z_linear_operators(array, refn, f, c, rho, *args, **kwargs):
 # #     r = cmath.sqrt((x2 - x1)**2 + (y2 - y1)**2 + (z2 - z1)**2)
 # #     return cmath.exp(-1j * k * r) / (4 * cmath.pi * r)
 
-
 # cdef extern from "complex.h":
 #     double complex cexp(double complex)
-
 
 # @cython.boundscheck(False)
 # @cython.wraparound(False)
@@ -103,7 +106,6 @@ def z_linear_operators(array, refn, f, c, rho, *args, **kwargs):
 
 #     r = libc.math.sqrt((x2 - x1)**2 + (y2 - y1)**2 + (z2 - z1)**2)
 #     return cexp(-1j * k * r) / (4 * np.pi * r)
-
 
 # def mesh_pres_vector(amesh, r, k, c, rho, gn=2):
 #     '''
@@ -130,7 +132,7 @@ def z_linear_operators(array, refn, f, c, rho, *args, **kwargs):
 #         da = triangle_areas[tt]
 
 #         for (xi, eta), w in zip(gr, gw):
-            
+
 #             xs = x1 * (1 - xi - eta) + x2 * xi + x3 * eta
 #             ys = y1 * (1 - xi - eta) + y2 * xi + y3 * eta
 #             zs = 0
@@ -141,7 +143,6 @@ def z_linear_operators(array, refn, f, c, rho, *args, **kwargs):
 #             p[tri[2]] += eta * cfac
 
 #     return -(k * c)**2 * rho * 2 * p
-
 
 # def array_patch_pres_imp_resp(array, refn, db_file, r, c, rho, use_kkr=False, mult=2):
 #     '''

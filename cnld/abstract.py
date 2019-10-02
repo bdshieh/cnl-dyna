@@ -1,34 +1,41 @@
 '''
 Abstract representation and manipulation of CMUT and PMUT arrays.
 '''
-__all__ = ['SquareCmutMembrane', 'CircularCmutMembrane', 'Patch', 'Element', 'Array', 
-           'move_membrane', 'translate_membrane', 'rotate_membrane', 'move_element', 'translate_element',
-           'rotate_element', 'element_position_from_membranes', 'focus_element', 'dump', 'dumps',
-           'bias_element', 'activate_element', 'deactivate_element', 'move_array', 'load', 'loads',
-           'translate_array', 'rotate_array', 'get_element_positions_from_array', 
-           'get_membrane_positions_from_array', 'focus_array', 'get_element_count', 'get_patch_count', 
-           'register_type', 'array_position_from_vertices']
-
-from namedlist import namedlist, FACTORY
-from collections import OrderedDict
-import sys
+import collections
 import inspect
 import json
-import numpy as np
 import math
-import collections
+import sys
+from collections import OrderedDict
 from copy import copy
 
+import numpy as np
 from cnld import util
+from namedlist import FACTORY, namedlist
+
+__all__ = [
+    'SquareCmutMembrane', 'CircularCmutMembrane', 'Patch', 'Element', 'Array',
+    'move_membrane', 'translate_membrane', 'rotate_membrane', 'move_element',
+    'translate_element', 'rotate_element', 'element_position_from_membranes',
+    'focus_element', 'dump', 'dumps', 'bias_element', 'activate_element',
+    'deactivate_element', 'move_array', 'load', 'loads', 'translate_array',
+    'rotate_array', 'get_element_positions_from_array',
+    'get_membrane_positions_from_array', 'focus_array', 'get_element_count',
+    'get_patch_count', 'register_type', 'array_position_from_vertices'
+]
 
 
 def _is_abstract_type(obj):
-    '''Hacky method to determine if object is instance of namedlist'''
+    '''
+    Method to determine if object is instance of namedlist.
+    '''
     return hasattr(obj, '_asdict')
 
 
 def _generate_dict_with_name_attr(obj):
-    '''Converts abstract object into a nested dictionary with __name__ attribute'''
+    '''
+    Converts abstract object into a nested dictionary with __name__ attribute.
+    '''
     name = type(obj).__name__
     # for abstract objects and dicts, add __name__ attr
     # if name in names or name is 'dict':
@@ -48,7 +55,9 @@ def _generate_dict_with_name_attr(obj):
 
 
 def _generate_object_from_json(js):
-    '''Convert json object to abstract object'''
+    '''
+    Convert json object to abstract object.
+    '''
     if isinstance(js, dict):
         name = js.pop('__name__')
         d = {}
@@ -69,7 +78,9 @@ def _generate_object_from_json(js):
 
 
 class ObjectFactory:
-    '''Instantiates abstract types defined in module namespace'''
+    '''
+    Instantiates abstract types defined in module namespace.
+    '''
     @staticmethod
     def create(name, *args, **kwargs):
         return globals()[name](*args, **kwargs)
@@ -105,22 +116,37 @@ def _memoize(self):
 
 
 def dump(obj, fp, indent=1, mode='w+', *args, **kwargs):
-    ''''''
-    json.dump(_generate_dict_with_name_attr(obj), open(fp, mode), indent=indent, *args, **kwargs)
+    '''
+    Dumps abstract object to JSON.
+    '''
+    json.dump(_generate_dict_with_name_attr(obj),
+              open(fp, mode),
+              indent=indent,
+              *args,
+              **kwargs)
 
 
 def dumps(obj, indent=1, *args, **kwargs):
-    ''''''
-    return json.dumps(_generate_dict_with_name_attr(obj), indent=indent, *args, **kwargs)
+    '''
+    Dumps abstract object to a JSON string.
+    '''
+    return json.dumps(_generate_dict_with_name_attr(obj),
+                      indent=indent,
+                      *args,
+                      **kwargs)
 
 
 def load(fp, *args, **kwargs):
-    ''' '''
+    '''
+    Load JSON and convert to abstract object.
+    '''
     return _generate_object_from_json(json.load(open(fp, 'r'), *args, **kwargs))
 
 
 def loads(s, *args, **kwargs):
-    ''''''
+    '''
+    Load JSON string and convert to abstract object.
+    '''
     return _generate_object_from_json(json.loads(s, *args, **kwargs))
 
 
@@ -143,7 +169,9 @@ def register_type(*args, excl=None, **kwargs):
 
 
 def pretty(obj, indent=0):
-    '''Pretty print abstract objects'''
+    '''
+    Pretty print abstract objects.
+    '''
     strings = []
     # if type(obj).__name__ in names:
     if _is_abstract_type(obj):
@@ -160,7 +188,7 @@ def pretty(obj, indent=0):
                 strings += [' ' * (indent + 1), str(key), ': ', str(val), '\n']
     elif isinstance(obj, (list, tuple)):
         if len(obj) == 0:
-            strings += [' ' * indent , '[]', '\n']
+            strings += [' ' * indent, '[]', '\n']
         # elif type(obj[0]).__name__ in names:
         elif _is_abstract_type(obj[0]):
             for val in obj:
@@ -183,10 +211,10 @@ _SquareCmutMembrane['length_x'] = 40e-6
 _SquareCmutMembrane['length_y'] = 40e-6
 _SquareCmutMembrane['electrode_x'] = 40e-6
 _SquareCmutMembrane['electrode_y'] = 40e-6
-_SquareCmutMembrane['thickness'] = (2e-6,)
-_SquareCmutMembrane['density'] = (2040,)
-_SquareCmutMembrane['y_modulus'] = (110e9,)
-_SquareCmutMembrane['p_ratio'] = (0.22,)
+_SquareCmutMembrane['thickness'] = (2e-6, )
+_SquareCmutMembrane['density'] = (2040, )
+_SquareCmutMembrane['y_modulus'] = (110e9, )
+_SquareCmutMembrane['p_ratio'] = (0.22, )
 _SquareCmutMembrane['isolation'] = 200e-9
 _SquareCmutMembrane['permittivity'] = 6.3
 _SquareCmutMembrane['gap'] = 50e-9
@@ -197,8 +225,9 @@ _SquareCmutMembrane['damping_mode_b'] = 4
 _SquareCmutMembrane['damping_ratio_a'] = 0.0
 _SquareCmutMembrane['damping_ratio_b'] = 0.0
 _SquareCmutMembrane['patches'] = FACTORY(list)
-SquareCmutMembrane = register_type('SquareCmutMembrane', _SquareCmutMembrane, 
-    excl=['id', 'position', 'patches'])
+SquareCmutMembrane = register_type('SquareCmutMembrane',
+                                   _SquareCmutMembrane,
+                                   excl=['id', 'position', 'patches'])
 
 _CircularCmutMembrane = OrderedDict()
 _CircularCmutMembrane['id'] = None
@@ -206,10 +235,10 @@ _CircularCmutMembrane['position'] = None
 _CircularCmutMembrane['shape'] = 'circle'
 _CircularCmutMembrane['radius'] = 40e-6 / 2
 _CircularCmutMembrane['electrode_r'] = 40e-6 / 2
-_CircularCmutMembrane['thickness'] = (2e-6,)
-_CircularCmutMembrane['density'] = (2040,)
-_CircularCmutMembrane['y_modulus'] = (110e9,)
-_CircularCmutMembrane['p_ratio'] = (0.22,)
+_CircularCmutMembrane['thickness'] = (2e-6, )
+_CircularCmutMembrane['density'] = (2040, )
+_CircularCmutMembrane['y_modulus'] = (110e9, )
+_CircularCmutMembrane['p_ratio'] = (0.22, )
 _CircularCmutMembrane['isolation'] = 200e-9
 _CircularCmutMembrane['permittivity'] = 6.3
 _CircularCmutMembrane['gap'] = 50e-9
@@ -220,8 +249,9 @@ _CircularCmutMembrane['damping_mode_b'] = 4
 _CircularCmutMembrane['damping_ratio_a'] = 0.0
 _CircularCmutMembrane['damping_ratio_b'] = 0.0
 _CircularCmutMembrane['patches'] = FACTORY(list)
-CircularCmutMembrane = register_type('CircularCmutMembrane', _CircularCmutMembrane, 
-    excl=['id', 'position', 'patches'])
+CircularCmutMembrane = register_type('CircularCmutMembrane',
+                                     _CircularCmutMembrane,
+                                     excl=['id', 'position', 'patches'])
 
 _Patch = OrderedDict()
 _Patch['id'] = None
@@ -252,12 +282,13 @@ _Array['position'] = None
 _Array['delay'] = 0
 _Array['elements'] = FACTORY(list)
 Array = register_type('Array', _Array)
-
-
 ''' DECORATORS '''
 
+
 def vectorize(f):
-    '''Allows function to be called with either a single abstract object or list/tuple of them'''
+    '''
+    Allows function to be called with either a single abstract object or list/tuple of them.
+    '''
     def decorator(m, *args, **kwargs):
 
         if isinstance(m, (list, tuple)):
@@ -268,11 +299,11 @@ def vectorize(f):
         else:
 
             return f(m, *args, **kwargs)
+
     return decorator
 
 
 ''' MEMBRANE MANIPLUATIONS '''
-
 @vectorize
 def move_membrane(m, pos):
     '''
@@ -306,7 +337,6 @@ def rotate_membrane(m, origin, vec, angle):
 
 
 ''' ELEMENT MANIPULATIONS '''
-
 @vectorize
 def move_element(e, pos):
     '''
@@ -396,7 +426,6 @@ def deactivate_element(e):
 
 
 ''' ARRAY MANIPLUATIONS '''
-
 @vectorize
 def move_array(a, pos):
     '''
@@ -426,7 +455,6 @@ def rotate_array(a, vec, angle, origin=None):
     newpos = util.rotation_matrix(vec, angle).dot(pos - org) + org
     a.position = newpos.tolist()
 
-
     # rotate elements
     for e in a.elements:
         rotate_element(e, origin, vec, angle)
@@ -451,9 +479,15 @@ def focus_array(a, pos, sound_speed, quantization=None, kind=None):
     '''
     '''
     if kind.lower() in ['tx', 'transmit']:
-        elements = [e for e in a.elements if e['kind'].lower() in ['tx', 'transmit', 'both', 'txrx']]
+        elements = [
+            e for e in a.elements
+            if e['kind'].lower() in ['tx', 'transmit', 'both', 'txrx']
+        ]
     elif kind.lower() in ['rx', 'receive']:
-        elements = [e for e in a.elements if e['kind'].lower() in ['rx', 'receive', 'both', 'txrx']]
+        elements = [
+            e for e in a.elements
+            if e['kind'].lower() in ['rx', 'receive', 'both', 'txrx']
+        ]
     elif kind.lower() in ['txrx', 'both'] or kind is None:
         elements = a.elements
 
@@ -476,9 +510,15 @@ def get_element_count(a, kind=None):
     if kind is None:
         return len(a.elements)
     elif kind.lower() in ['tx', 'transmit']:
-        return len([e for e in a.elements if e['kind'].lower() in ['tx', 'transmit', 'both', 'txrx']])
+        return len([
+            e for e in a.elements
+            if e['kind'].lower() in ['tx', 'transmit', 'both', 'txrx']
+        ])
     elif kind.lower() in ['rx', 'receive']:
-        return len([e for e in a.elements if e['kind'].lower() in ['rx', 'receive', 'both', 'txrx']])
+        return len([
+            e for e in a.elements
+            if e['kind'].lower() in ['rx', 'receive', 'both', 'txrx']
+        ])
     elif kind.lower() in ['txrx', 'both']:
         return len([e for e in a.elements if e['kind'].lower() in ['both', 'txrx']])
 
@@ -489,38 +529,51 @@ def get_membrane_count(a):
     '''
     return sum([len(e.membranes) for e in a.elements])
 
+
 @vectorize
 def get_patch_count(a):
     '''
     '''
     return sum([len(m.patches) for e in a.elements for m in e.membranes])
-    
+
 
 @vectorize
 def get_elements_from_array(array, kind='both'):
-
+    '''
+    '''
     if kind.lower() in ['both']:
         elements = [e for e in array.elements if e.kind.lower() in ['both', 'txrx']]
     elif kind.lower() in ['tx', 'transmit']:
-        elements = [e for e in array.elements if e.kind.lower() in ['tx', 'transmit', 'both', 'txrx']]
+        elements = [
+            e for e in array.elements
+            if e.kind.lower() in ['tx', 'transmit', 'both', 'txrx']
+        ]
     elif kind.lower() in ['rx', 'receive']:
-        elements = [e for e in array.elements if e.kind.lower() in ['rx', 'receive', 'both', 'txrx']]
+        elements = [
+            e for e in array.elements
+            if e.kind.lower() in ['rx', 'receive', 'both', 'txrx']
+        ]
     return elements
 
 
 @vectorize
 def get_patches_from_array(array):
+    '''
+    '''
     return [p for e in array.elements for m in e.membranes for p in m.patches]
- 
 
 
 @vectorize
 def get_membranes_from_array(array):
+    '''
+    '''
     return [m for m in e.membranes for e in array.elements]
 
 
 @vectorize
 def array_position_from_vertices(a):
+    '''
+    '''
     a.position = np.mean(np.array(a.vertices), axis=0).tolist()
 
 

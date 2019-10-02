@@ -1,38 +1,72 @@
 '''
 '''
 import numpy as np
+cimport numpy as np
+import cython
+cimport cython
 import scipy as sp
 import scipy.signal
 from scipy.constants import epsilon_0 as e_0
 from scipy.interpolate import interp1d
-import warnings
-import numpy.linalg
-
-from cnld import abstract, fem, mesh, impulse_response, compensation, database
 
 
-# @util.memoize
-# def mem_collapse_voltage(mem, maxdc=100, atol=1e-10,  maxiter=100):
-#     '''
-#     '''
-#     for i in range(1, maxdc):
-#         _, is_collapsed = mem_static_disp(K, e_mask, i, h_eff, tol)
-        
-#         if is_collapsed:
-#             return i
-#     raise('Could not find collapse voltage')
+from cnld import abstract, impulse_response, compensation, database, fem
 
 
-def pressure_es2(v, x, fc):
+def pressure_es2(v, x, fc, gap, fcol):
     '''
     '''
-    return [f(xi) * v**2 for f, xi in zip(fc, x)]
+    pes = np.array([f(xi) * v**2 for f, xi in zip(fc, x)])
+
+    is_collapsed = x <= -gap
+    is_less_than_fcol = pes <= -fcol
+    mask = np.logical_and(is_collapsed, is_less_than_fcol)
+    pes[mask] = -fcol[mask]
+
+    return pes
 
 
 def pressure_es(v, x, g_eff):
     '''
     '''
     return -e_0 / 2 * v**2 / (x + g_eff)**2
+
+
+kstiff = 1e17
+
+def pressure_es3(v, x, g_eff, gap):
+    '''
+    '''
+    p = -e_0 / 2 * v**2 / (x + g_eff)**2
+    xc = gap + x
+    # p[x <= -gap] = 0
+    p[xc < 0] += -kstiff * xc[xc < 0]
+    return p
+
+
+def electrostat_press3(v, x, xdot, g_eff, gap, cont_stiff, cont_damp):
+    '''
+    '''
+    p = -e_0 / 2 * v**2 / (x + g_eff)**2
+    is_collapsed = x < -gap
+    xc = x - gap
+
+    p[is_collapsed] = -cont_stiff[is_collapsed] * xc[is_collapsed] + cont_damp[is_collapsed] * xdot[is_collapsed]
+
+    return p
+
+
+def pressure_es4(v, x, g_eff, gap, fcol):
+    '''
+    '''
+    pes = -e_0 / 2 * v**2 / (x + g_eff)**2
+
+    is_collapsed = x <= -gap
+    is_less_than_fcol = pes <= -fcol
+    mask = np.logical_and(is_collapsed, is_less_than_fcol)
+    pes[mask] = -fcol[mask]
+
+    return pes
 
 
 def firconvolve(fir, p, fs, offset):
@@ -59,9 +93,39 @@ def firconvolve(fir, p, fs, offset):
     return x
 
 
+@cython.boundscheck(False)
+@cython.wraparound(False)
+cpdef np.ndarray firconvolve_cy(double[:,:,:] fir, double[:,:] p, double fs, int offset):
+    '''
+    '''
+    cdef int nsrc = fir.shape[0]
+    cdef int ndest = fir.shape[1]
+    cdef int nfir = fir.shape[2]
+    cdef int nsample = p.shape[0]
+    cdef double[:] x = np.zeros(ndest, dtype=np.float64)
+    cdef double c, s
+    cdef int i, j, k
+
+    for j in range(ndest):
+
+        c = 0
+        for i in range(nsrc):
+            # f = p[:,i]
+            # frev = f[::-1]
+            s = 0
+            for k in range(min(nsample, nfir - offset)):
+                s += fir[i, j, k + offset] * p[nsample - 1 - k, i]  # frev[k]
+
+            c += s
+
+        x[j] = c / fs
+
+    return np.asarray(x)
+
+
 class CompensatingFixedStepSolver:
     
-    def __init__(self, fir_t, fir, v_t, v, gaps, gaps_eff, t_start, t_stop, fcomp, atol=1e-10, maxiter=5):
+    def __init__(self, fir_t, fir, v_t, v, gaps, t_start, t_stop, fcol, fcomp, atol=1e-10, maxiter=5):
 
         # define minimum step size
         self.min_step = fir_t[1] - fir_t[0]
@@ -78,8 +142,8 @@ class CompensatingFixedStepSolver:
 
         # create gaps and gaps eff lookup
         self._gaps = np.array(gaps)
-        self._gaps_eff = np.array(gaps_eff)
         self._fcomp = fcomp
+        self._fcol = fcol
 
         # create state variables and set initial state
         self._time = [t_start,]
@@ -87,7 +151,7 @@ class CompensatingFixedStepSolver:
         self._displacement = [x0,]
         v0 = self._voltagef(t_start)
         self._voltage = [v0,]
-        p0 = pressure_es2(self._voltagef(t_start), x0, fcomp)
+        p0 = pressure_es2(self._voltagef(t_start), x0, fcomp, self._gaps, self._fcol)
         self._pressure = [p0,]
 
         # create other variables
@@ -104,17 +168,16 @@ class CompensatingFixedStepSolver:
 
         # create gaps and gaps eff
         gaps = []
-        gaps_eff = []
         for elem in array.elements:
             for mem in elem.membranes:
                 for pat in mem.patches:
                     gaps.append(mem.gap)
-                    gaps_eff.append(mem.gap + mem.isolation / mem.permittivity)
-        
-        # fcomp = compensation.fcomp_from_abstract(array, refn)
+
+                    fcol, _ = fem.mem_patch_fcol_vector(mem, refn)
+
         fcomp = compensation.array_patch_fcomp_funcs(array, refn)
-        
-        return cls(fir_t, fir, v_t, v, gaps, gaps_eff, t_start, t_stop, fcomp, atol, maxiter)
+
+        return cls(fir_t, fir, v_t, v, gaps, t_start, t_stop, fcol, fcomp, atol, maxiter)
 
     @property
     def time(self):
@@ -148,8 +211,8 @@ class CompensatingFixedStepSolver:
 
         tn1 = tn + self.min_step
         vn1 = self._voltagef(tn1)
-        xn1 = self._check_gaps(firconvolve(self._fir, pn, fs, offset=1))
-        pn1 = pressure_es2(vn1, xn1, self._fcomp)
+        xn1 = self._check_gaps(firconvolve_cy(self._fir, pn, fs, offset=1))
+        pn1 = pressure_es2(vn1, xn1, self._fcomp, self._gaps, self._fcol)
 
         return tn1, xn1, pn1
         
@@ -158,7 +221,7 @@ class CompensatingFixedStepSolver:
         pall = np.array(self._pressure + [p,])
         fs = 1 / self.min_step
 
-        xref = self._check_gaps(firconvolve(self._fir, pall, fs, offset=0))
+        xref = self._check_gaps(firconvolve_cy(self._fir, pall, fs, offset=0))
         err = np.max(np.abs(x - xref))
 
         return xref, err
@@ -187,7 +250,7 @@ class CompensatingFixedStepSolver:
                 break
 
             xn1 = xr1
-            pn1 = pressure_es2(vn1, xn1, self._fcomp)
+            pn1 = pressure_es2(vn1, xn1, self._fcomp, self._gaps, self._fcol)
             xr1, err = self._check_accuracy_of_step(xn1, pn1)
             i += 1
 
@@ -195,7 +258,7 @@ class CompensatingFixedStepSolver:
         self._iters.append(i)
 
         xn1 = xr1
-        pn1 = pressure_es2(vn1, xn1, self._fcomp)
+        pn1 = pressure_es2(vn1, xn1, self._fcomp, self._gaps, self._fcol)
         self._save_step(tn1, xn1, pn1, vn1)
 
     def solve(self):
@@ -212,7 +275,7 @@ class CompensatingFixedStepSolver:
         self._time = [t_start,]
         x0 = np.zeros(self.npatch)
         self._displacement = [x0,]
-        p0 = pressure_es2(self._voltagef(t_start), x0, fcomp)
+        p0 = pressure_es2(self._voltagef(t_start), x0, self._fcomp, self._gaps, self._fcol)
         self._pressure = [p0,]
 
         # create other variables
@@ -222,8 +285,7 @@ class CompensatingFixedStepSolver:
 
 class FixedStepSolver:
     
-    # def __init__(self, fir_t, fir, v_t, v, gaps, gaps_eff, t_start, t_stop, fcomp, atol=1e-10, maxiter=5):
-    def __init__(self, fir_t, fir, v_t, v, gaps, gaps_eff, t_start, t_stop, atol=1e-10, maxiter=5):
+    def __init__(self, fir_t, fir, v_t, v, gaps, gaps_eff, t_start, t_stop, fcol, atol=1e-10, maxiter=5):
         # define minimum step size
         self.min_step = fir_t[1] - fir_t[0]
         self.maxiter = maxiter
@@ -240,7 +302,8 @@ class FixedStepSolver:
         # create gaps and gaps eff lookup
         self._gaps = np.array(gaps)
         self._gaps_eff = np.array(gaps_eff)
-        # self._fcomp = fcomp
+        self._fcol = np.array(fcol)
+        # self._ups = np.array(fcol[1])
 
         # create state variables and set initial state
         self._time = [t_start,]
@@ -249,7 +312,8 @@ class FixedStepSolver:
         v0 = self._voltagef(t_start)
         self._voltage = [v0,]
         # p0 = pressure_es2(self._voltagef(t_start), x0, fcomp)
-        p0 = pressure_es(self._voltagef(t_start), x0, gaps_eff)
+        p0 = pressure_es3(self._voltagef(t_start), x0, self._gaps_eff, self._gaps)
+        # p0 = pressure_es4(self._voltagef(t_start), x0, self._gaps_eff, self._gaps, self._fcol)
         self._pressure = [p0,]
 
         # create other variables
@@ -270,8 +334,10 @@ class FixedStepSolver:
                 for pat in mem.patches:
                     gaps.append(mem.gap)
                     gaps_eff.append(mem.gap + mem.isolation / mem.permittivity)
+                
+                fcol, _ = fem.mem_patch_fcol_vector(mem, 9)
         
-        return cls(fir_t, fir, v_t, v, gaps, gaps_eff, t_start, t_stop, atol, maxiter)
+        return cls(fir_t, fir, v_t, v, gaps, gaps_eff, t_start, t_stop, fcol, atol, maxiter)
 
     @property
     def time(self):
@@ -305,8 +371,9 @@ class FixedStepSolver:
 
         tn1 = tn + self.min_step
         vn1 = self._voltagef(tn1)
-        xn1 = self._check_gaps(firconvolve(self._fir, pn, fs, offset=1))
-        pn1 = pressure_es(vn1, xn1, self._gaps_eff)
+        xn1 = self._check_gaps(firconvolve_cy(self._fir, pn, fs, offset=1))
+        pn1 = pressure_es3(vn1, xn1, self._gaps_eff, self._gaps)
+        # pn1 = pressure_es4(vn1, xn1, self._gaps_eff, self._gaps, self._fcol)
 
         return tn1, xn1, pn1
         
@@ -315,7 +382,7 @@ class FixedStepSolver:
         pall = np.array(self._pressure + [p,])
         fs = 1 / self.min_step
 
-        xref = self._check_gaps(firconvolve(self._fir, pall, fs, offset=0))
+        xref = self._check_gaps(firconvolve_cy(self._fir, pall, fs, offset=0))
         err = np.max(np.abs(x - xref))
 
         return xref, err
@@ -328,8 +395,10 @@ class FixedStepSolver:
         self._voltage.append(v)
     
     def _check_gaps(self, x):
-        mask = x < -1 * self._gaps
-        x[mask] = -1 * self._gaps[mask]
+        # mask = x < -1 * (self._gaps + 1e-9)
+        # x[mask] = -1 * (self._gaps[mask] + 1e-9)
+        # mask = x < -1 * (self._gaps)
+        # x[mask] = -1 * (self._gaps[mask])
         return x
 
     def step(self):
@@ -344,7 +413,8 @@ class FixedStepSolver:
                 break
 
             xn1 = xr1
-            pn1 = pressure_es(vn1, xn1, self._gaps_eff)
+            pn1 = pressure_es3(vn1, xn1, self._gaps_eff, self._gaps)
+            # pn1 = pressure_es4(vn1, xn1, self._gaps_eff, self._gaps, self._fcol)
             xr1, err = self._check_accuracy_of_step(xn1, pn1)
             i += 1
 
@@ -352,7 +422,8 @@ class FixedStepSolver:
         self._iters.append(i)
 
         xn1 = xr1
-        pn1 = pressure_es(vn1, xn1, self._gaps_eff)
+        pn1 = pressure_es3(vn1, xn1, self._gaps_eff, self._gaps)
+        # pn1 = pressure_es4(vn1, xn1, self._gaps_eff, self._gaps, self._fcol)
         self._save_step(tn1, xn1, pn1, vn1)
 
     def solve(self):
@@ -369,98 +440,14 @@ class FixedStepSolver:
         self._time = [t_start,]
         x0 = np.zeros(self.npatch)
         self._displacement = [x0,]
-        p0 = pressure_es(self._voltagef(t_start), x0, self._gaps_eff)
+        p0 = pressure_es3(self._voltagef(t_start), x0, self._gaps_eff, self._gaps)
+        # p0 = pressure_es4(self._voltagef(t_start), x0, self._gaps_eff, self._gaps, self._fcol)
         # p0 = pressure_es2(self._voltagef(t_start), x0, fcomp)
         self._pressure = [p0,]
 
         # create other variables
         self._error = []
         self._iters = []
-
-
-class VariableStepSolver(FixedStepSolver):
-
-    def _blind_stepk(self, k):
-
-        tn = self._time[-1]
-        pn = self.pressure
-        fs = 1 / self.min_step
-
-        tnk = tn + self.min_step * k
-        vnk = self._voltagef(tnk)
-        xnk = self._check_gaps(firconvolve(self._fir, pn, fs, offset=k))
-        pnk = pressure_es(vnk, xnk, self._gaps_eff)
-
-        return tnk, xnk, pnk
-
-    def _interpolate_states(self, k, tnk, xnk, pnk):
-
-        tn = self._time[-1]
-        xn = self._displacement[-1]
-        if len(self._time) < 2:
-            tn_1 = tn - self.min_step
-            xn_1 = xn
-        else:
-            tn_1 = self._time[-2]
-            xn_1 = self._displacement[-2]
-        
-        fxi = interp1d([tn_1, tn, tnk], [xn_1, xn, xnk], axis=0, kind='cubic')
-        
-        t = []
-        x = []
-        p = []
-        for i in range(k):
-            tt = tn + self.min_step * (i + 1)
-
-            xt = self._check_gaps(fxi(tt))
-            vt = self._voltagef(tt)
-            pt = pressure_es(vt, xt, self._gaps_eff)
-
-            t.append(tt)
-            x.append(xt)
-            p.append(pt)
-            
-        return t, x, p
-
-    def _check_accuracy_of_step(self, x, p):
-        
-        pall = np.array(self._pressure + [p,])
-        fs = 1 / self.min_step
-
-        xref = self._check_gaps(firconvolve(self._fir, pall, fs, offset=0))
-        err = np.max(np.abs(x - xref))
-
-        return xref, err
-
-    def _save_steps(self, ts, xs, ps):
-
-        self._time += ts
-        self._displacement += xs
-        self._pressure += ps
-
-    def stepk(self, k):
-
-        tnk, xnk, pnk = self._blind_stepk(k)
-        vnk = self._voltagef(tnk)
-        ts, xs, ps = self._interpolate_states(k, tnk, xnk, pnk)
-        xrk, err = self._check_accuracy_of_step(xs, ps)
-
-        for i in range(self.maxiter):
-            if err <= self.atol:
-                break
-
-            xnk = xrk
-            pnk = pressure_es(vnk, xnk, self._gaps_eff)
-            ts, xs, ps = self._interpolate_states(k, tnk, xnk, pnk)
-            xrk, err = self._check_accuracy_of_step(xs, ps)
-
-        self._error.append(err)
-        self._iters.append(i)
-
-        if i == (self.maxiter):
-            warnings.warn(f'Max iterations reached with error={float(err)}')
-
-        self._save_steps(ts, xs, ps)
 
 
 def gaussian_pulse(fc, fbw, fs, td=0, tpr=-60, antisym=True):

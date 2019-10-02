@@ -8,7 +8,6 @@ import numpy.linalg
 
 from cnld import abstract, mesh, fem, util
 
-
 # @util.memoize
 # def mem_patch_fcomp_funcs(mem, refn):
 #     '''
@@ -49,7 +48,6 @@ from cnld import abstract, mesh, fem, util
 #         fcomps.append(fcomp)
 
 #     return fcomps
-
 
 # @util.memoize
 # def mem_patch_fcomp_funcs2(mem, refn):
@@ -102,7 +100,6 @@ from cnld import abstract, mesh, fem, util
 
 #     # return fcomps, fcomps_data
 #     return fcomps
-
 
 # @util.memoize
 # def mem_patch_fcomp_funcs3(mem, refn, cont_stiff=None):
@@ -176,7 +173,6 @@ from cnld import abstract, mesh, fem, util
 #                             'f_cont': f_cont})
 
 #     return fcomps, fcomps_data
-
 
 # @util.memoize
 # def mem_patch_fcomp_funcs4(mem, refn, pmax, damping):
@@ -258,7 +254,6 @@ from cnld import abstract, mesh, fem, util
 
 
 def make_p_es_func(xmin, pmin, cs):
-
     def _p_es(x, v):
 
         if x < xmin:
@@ -270,9 +265,8 @@ def make_p_es_func(xmin, pmin, cs):
 
 
 def make_xmax_func(xmin, xmaxmin, cs):
-
     def _xmax(x):
-        
+
         if x < xmin:
             return xmaxmin
         else:
@@ -282,9 +276,8 @@ def make_xmax_func(xmin, xmaxmin, cs):
 
 
 def make_p_cont_spr_func(k, n, x0):
-
     def _p_cont_spr(x):
-        
+
         if x >= x0:
             return 0
         else:
@@ -294,9 +287,8 @@ def make_p_cont_spr_func(k, n, x0):
 
 
 def make_p_cont_dmp_func(lmbd, n, x0):
-
     def _p_cont_dmp(x, xdot):
-        
+
         if x >= x0:
             return 0
         else:
@@ -367,9 +359,12 @@ def mem_patch_comp_funcs(mem, refn, lmbd, k, n, x0=None):
 
         p_cont_dmp_func = make_p_cont_dmp_func(lmbd, n, x0)
 
-        comp_funcs.append({'p_es': p_es_func, 'xmax': xmax_func,
-                           'p_cont_spr': p_cont_spr_func,
-                           'p_cont_dmp': p_cont_dmp_func})
+        comp_funcs.append({
+            'p_es': p_es_func,
+            'xmax': xmax_func,
+            'p_cont_spr': p_cont_spr_func,
+            'p_cont_dmp': p_cont_dmp_func
+        })
 
     return comp_funcs
 
@@ -379,7 +374,7 @@ def mem_static_x_vector(mem, refn, vdc, k, x0, atol=1e-10, maxiter=100):
     '''
     '''
     def pes(v, x, g_eff):
-        return -e_0 / 2 * v ** 2 / (g_eff + x) ** 2
+        return -e_0 / 2 * v**2 / (g_eff + x)**2
 
     if isinstance(mem, abstract.SquareCmutMembrane):
         amesh = mesh.square(mem.length_x, mem.length_y, refn)
@@ -407,6 +402,7 @@ def mem_static_x_vector(mem, refn, vdc, k, x0, atol=1e-10, maxiter=100):
 
     is_collapsed = True
     return x, p, is_collapsed
+
 
 @util.memoize
 def mem_patch_comp_funcs2(mem, refn, lmbd, k, n, x0=None):
@@ -470,9 +466,12 @@ def mem_patch_comp_funcs2(mem, refn, lmbd, k, n, x0=None):
 
         p_cont_dmp_func = make_p_cont_dmp_func(lmbd, n, x0)
 
-        comp_funcs.append({'p_es': p_es_func, 'xmax': xmax_func,
-                           'p_cont_spr': p_cont_spr_func,
-                           'p_cont_dmp': p_cont_dmp_func})
+        comp_funcs.append({
+            'p_es': p_es_func,
+            'xmax': xmax_func,
+            'p_cont_spr': p_cont_spr_func,
+            'p_cont_dmp': p_cont_dmp_func
+        })
 
     return comp_funcs
 

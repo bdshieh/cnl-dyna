@@ -1,10 +1,10 @@
 '''
 '''
-import numpy as np
 import sqlite3 as sql
-import pandas as pd
 from contextlib import closing
 
+import numpy as np
+import pandas as pd
 from cnld import util
 
 # register adapters for sqlite to convert numpy types
@@ -14,8 +14,6 @@ sql.register_adapter(np.int64, int)
 sql.register_adapter(np.int32, int)
 sql.register_adapter(np.uint64, int)
 sql.register_adapter(np.uint32, int)
-
-
 ''' TABLE DEFINITIONS '''
 
 NODE = '''
@@ -84,30 +82,31 @@ source_patch, dest_patch, time
 # PROGRESS =
 # '''
 # CREATE TABLE progress (
-# job_id integer primary key, 
+# job_id integer primary key,
 # is_complete boolean
 # )
 # '''
-
-
 ''' CREATING DATABASE '''
-
 @util.open_db
 def create_table(con, table_defn, index_defn=None):
-
+    '''
+    '''
     with con:
         con.execute(table_defn)
         if index_defn is not None:
             con.execute(index_defn)
 
-            
+
 @util.open_db
 def create_metadata_table(con, **kwargs):
     table = [[str(v) for v in list(kwargs.values())]]
     columns = list(kwargs.keys())
-    pd.DataFrame(table, columns=columns, dtype=str).to_sql('metadata', con, if_exists='replace', index=False)
-    
-    
+    pd.DataFrame(table, columns=columns, dtype=str).to_sql('metadata',
+                                                           con,
+                                                           if_exists='replace',
+                                                           index=False)
+
+
 @util.open_db
 def create_db(con, **kwargs):
 
@@ -120,7 +119,6 @@ def create_db(con, **kwargs):
 
 
 ''' UPDATING DATABASE '''
-
 @util.read_db
 def append_node(con, **kwargs):
 
@@ -135,8 +133,10 @@ def append_node(con, **kwargs):
 @util.read_db
 def append_patch_to_patch_freq_resp(con, **kwargs):
 
-    row_keys = ['source_patch', 'dest_patch', 'frequency', 'wavenumber', 'displacement_real', 
-        'displacement_imag', 'time_solve']
+    row_keys = [
+        'source_patch', 'dest_patch', 'frequency', 'wavenumber', 'displacement_real',
+        'displacement_imag', 'time_solve'
+    ]
     row_data = tuple([kwargs[k] for k in row_keys])
 
     with con:
@@ -147,8 +147,10 @@ def append_patch_to_patch_freq_resp(con, **kwargs):
 @util.read_db
 def append_patch_to_node_freq_resp(con, **kwargs):
 
-    row_keys = ['source_patch', 'node_id', 'x', 'y', 'z', 'frequency', 'wavenumber',  
-        'displacement_real', 'displacement_imag']
+    row_keys = [
+        'source_patch', 'node_id', 'x', 'y', 'z', 'frequency', 'wavenumber',
+        'displacement_real', 'displacement_imag'
+    ]
     row_data = tuple([kwargs[k] for k in row_keys])
 
     with con:
@@ -172,8 +174,6 @@ def append_patch_to_patch_imp_resp(con, **kwargs):
 
 #     with con:
 #         con.execute('UPDATE progress SET is_complete=1 WHERE job_id=?', [job_id,])
-
-
 ''' READ FROM DATABASE '''
 
 # @util.open_db
@@ -186,6 +186,7 @@ def append_patch_to_patch_imp_resp(con, **kwargs):
 
 #     return is_complete, ijob
 
+
 @util.read_db
 def read_metadata(con, as_dict=False):
     with con:
@@ -194,7 +195,7 @@ def read_metadata(con, as_dict=False):
                 FROM metadata
                 '''
         table = pd.read_sql(query, con)
-        
+
     if as_dict:
         return {k: v for k, v in zip(table.columns, table.iloc[0])}
     else:
@@ -210,7 +211,7 @@ def read_node(con):
                 ORDER BY node_id
                 '''
         table = pd.read_sql(query, con)
-        
+
     return np.array([table['x'], table['y'], table['z']])
 
 
@@ -218,12 +219,12 @@ def read_node(con):
 def read_patch_to_patch_freq_resp(con):
     with con:
         query = '''
-                SELECT source_patch, dest_patch, frequency, displacement_real, displacement_imag 
+                SELECT source_patch, dest_patch, frequency, displacement_real, displacement_imag
                 FROM patch_to_patch_freq_resp
                 ORDER BY source_patch, dest_patch, frequency
                 '''
         table = pd.read_sql(query, con)
-        
+
     source_patch_ids = np.unique(table['source_patch'].values)
     dest_patch_ids = np.unique(table['dest_patch'].values)
     freqs = np.unique(table['frequency'].values)
@@ -232,7 +233,8 @@ def read_patch_to_patch_freq_resp(con):
     ndest = len(dest_patch_ids)
     nfreq = len(freqs)
 
-    disp = np.array(table['displacement_real'] + 1j * table['displacement_imag']).reshape((nsource, ndest, nfreq))
+    disp = np.array(table['displacement_real'] +
+                    1j * table['displacement_imag']).reshape((nsource, ndest, nfreq))
     return freqs, disp
 
 
@@ -240,23 +242,24 @@ def read_patch_to_patch_freq_resp(con):
 def read_patch_to_node_freq_resp(con):
     with con:
         query = '''
-                SELECT source_patch, node_id, x, y, z, frequency, displacement_real, displacement_imag 
+                SELECT source_patch, node_id, x, y, z, frequency, displacement_real, displacement_imag
                 FROM patch_to_node_freq_resp
                 ORDER BY source_patch, node_id, frequency
                 '''
         table = pd.read_sql(query, con)
-        
+
     source_patch_ids = np.unique(table['source_patch'].values)
     freqs = np.unique(table['frequency'].values)
     select1 = table[table['source_patch'] == 0]
     select2 = select1[select1['frequency'] == freqs[0]]
     nodes = np.array(select2[['x', 'y', 'z']])
-    
+
     nsource = len(source_patch_ids)
     nnodes = len(nodes)
     nfreq = len(freqs)
 
-    disp = np.array(table['displacement_real'] + 1j * table['displacement_imag']).reshape((nsource, nnodes, nfreq))
+    disp = np.array(table['displacement_real'] +
+                    1j * table['displacement_imag']).reshape((nsource, nnodes, nfreq))
     return freqs, disp, nodes
 
 
@@ -264,12 +267,12 @@ def read_patch_to_node_freq_resp(con):
 def read_patch_to_patch_imp_resp(con):
     with con:
         query = '''
-                SELECT source_patch, dest_patch, time, displacement 
+                SELECT source_patch, dest_patch, time, displacement
                 FROM patch_to_patch_imp_resp
                 ORDER BY source_patch, dest_patch, time
                 '''
         table = pd.read_sql(query, con)
-        
+
     source_patches = np.unique(table['source_patch'].values)
     dest_patches = np.unique(table['dest_patch'].values)
     times = np.unique(table['time'].values)
