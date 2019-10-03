@@ -226,26 +226,6 @@ def qfirwin(x,
     wn = fn / (fs / 2.)
     b = sp.signal.firwin(ntaps, wn, pass_zero=pass_zero, window=window)
 
-    # if plot:
-    #     w, h = freqz(b)
-    #
-    #     fig = plt.figure()
-    #     ax1 = fig.add_subplot(111)
-    #
-    #     ax1.plot(w / (2 * np.pi) * fs, 20 * np.log10(np.abs(h)), 'b')
-    #     ax1.set_xlabel('Frequency (Hz)')
-    #     ax1.set_ylabel('Amplitude (dB)')
-    #     ax1.set_title('FIR filter response')
-    #
-    #     ax2 = ax1.twinx()
-    #     ax2.plot(w / (2 * np.pi) * fs, np.unwrap(np.angle(h)), 'g')
-    #     ax2.set_ylabel('Phase (radians)')
-    #
-    #     plt.grid()
-    #     plt.axis('tight')
-    #
-    #     fig.show()
-
     fx = np.apply_along_axis(lambda x: np.convolve(x, b), axis, x)
 
     return fx
@@ -306,8 +286,9 @@ def chunks(iterable, n):
 
 def create_jobs(*args, mode='zip', is_complete=None):
     '''
-    Convenience function for creating jobs (sets of input arguments) for multiprocessing Pool. Supports zip and product
-    combinations, and automatic chunking of iterables.
+    Convenience function for creating jobs (sets of input arguments) for
+    multiprocessing Pool. Supports zip and product combinations, and automatic chunking
+    of iterables.
     '''
     static_args = list()
     static_idx = list()

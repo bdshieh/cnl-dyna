@@ -1,5 +1,5 @@
 '''
-Data-sparse (compressed) formats for matrices using h2lib
+Data-sparse (compressed) formats for matrices using H2Lib data structures.
 '''
 from timeit import default_timer as timer
 
@@ -174,7 +174,7 @@ class BaseFormat:
 
 class FullFormat(BaseFormat):
     '''
-    Full (dense) matrix format, i.e. no compression
+    Full (dense) matrix format, i.e. no compression.
     '''
     ''' PROPERTIES '''
     @property
@@ -276,7 +276,7 @@ class FullFormat(BaseFormat):
 
 class SparseFormat(BaseFormat):
     '''
-    Sparse matrix format
+    Sparse matrix format.
     '''
     ''' PROPERTIES '''
     @property
@@ -359,7 +359,7 @@ class SparseFormat(BaseFormat):
 
 class HFormat(BaseFormat):
     '''
-    Hierarchical matrix format
+    Hierarchical matrix format.
     '''
     ''' DATA ATTRIBUTES '''
     eps_add = 1e-12
@@ -389,8 +389,7 @@ class HFormat(BaseFormat):
             B = clone_hmatrix(self._mat)
             tm = new_releucl_truncmode()
             # sparse format is converted to hformat prior to addition
-            add_hmatrix(1, (x._as_hformat(self._mat))._mat, tm, self.eps_add,
-                        B)
+            add_hmatrix(1, (x._as_hformat(self._mat))._mat, tm, self.eps_add, B)
             return HFormat(B)
         elif isinstance(x, HFormat):
             B = clone_hmatrix(self._mat)
@@ -418,8 +417,7 @@ class HFormat(BaseFormat):
             C = clonestructure_hmatrix(self._mat)
             clear_hmatrix(C)
             tm = new_releucl_truncmode()
-            addmul_hmatrix(1.0, False, x._mat, False, self._mat, tm,
-                           self.eps_add, C)
+            addmul_hmatrix(1.0, False, x._mat, False, self._mat, tm, self.eps_add, C)
             return HFormat(C)
         else:
             raise ValueError('operation with unrecognized type')
@@ -571,6 +569,9 @@ def _z_repr(self):
 
 
 class MbkFullMatrix(FullFormat):
+    '''
+    Mass, Stiffness, and Damping matrix in full format.
+    '''
     def __init__(self, array):
 
         if issparse(array):
@@ -591,6 +592,9 @@ class MbkFullMatrix(FullFormat):
 
 
 class MbkSparseMatrix(SparseFormat):
+    '''
+    Mass, Stiffness, and Damping matrix in sparse format.
+    '''
     def __init__(self, array):
 
         array = csr_matrix(array)
@@ -610,6 +614,9 @@ class MbkSparseMatrix(SparseFormat):
 
 
 class ZFullMatrix(FullFormat):
+    '''
+    Impedance matrix in full format.
+    '''
     def __init__(self, mesh, k, basis='linear', q_reg=2, q_sing=4, **kwargs):
 
         if basis.lower() in ['constant']:
@@ -619,8 +626,7 @@ class ZFullMatrix(FullFormat):
         else:
             raise TypeError
 
-        bem = new_slp_helmholtz_bem3d(k, mesh.surface3d, q_reg, q_sing, _basis,
-                                      _basis)
+        bem = new_slp_helmholtz_bem3d(k, mesh.surface3d, q_reg, q_sing, _basis, _basis)
 
         Z = AMatrix(len(mesh.vertices), len(mesh.vertices))
 
@@ -640,6 +646,9 @@ class ZFullMatrix(FullFormat):
 
 
 class ZHMatrix(HFormat):
+    '''
+    Impedance matrix in hierarchical format.
+    '''
     def __init__(self,
                  mesh,
                  k,
@@ -663,8 +672,7 @@ class ZHMatrix(HFormat):
         else:
             raise TypeError
 
-        bem = new_slp_helmholtz_bem3d(k, mesh.surface3d, q_reg, q_sing, _basis,
-                                      _basis)
+        bem = new_slp_helmholtz_bem3d(k, mesh.surface3d, q_reg, q_sing, _basis, _basis)
         root = build_bem3d_cluster(bem, clf, _basis)
 
         if strict:

@@ -1,8 +1,8 @@
-## cnld / cli.py
-
+'''
+Command line interface.
+'''
 import argparse
 import subprocess
-
 
 scripts = {}
 scripts["matrix-array"] = "cnld.scripts.matrix_array"
@@ -19,4 +19,3 @@ parser.set_defaults(lookup=scripts)
 def main():
     args, unknown_args = parser.parse_known_args()
     subprocess.call(["python", "-m", args.lookup[args.script_name]] + unknown_args)
-

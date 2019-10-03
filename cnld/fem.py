@@ -1315,7 +1315,7 @@ def array_mbk_spmatrix(array, refn, f, inv=False):
         return sps.block_diag(blocks, format='csr')
 
 
-def array_mbk_linops(array, refn, f):
+def array_mbk_linop(array, refn, f):
     '''
     Mass, Damping, and Stiffness linear operator in sparse format for an array.
     '''

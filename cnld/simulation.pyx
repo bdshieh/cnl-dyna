@@ -1,4 +1,5 @@
 '''
+Routines for time-domain simulation.
 '''
 import cython
 import numpy as np
@@ -22,6 +23,7 @@ def p_es_pp(v, x, g_eff):
 
 def fir_conv_py(fir, p, fs, offset):
     '''
+    Convolve input with LTI system, Python implementation.
     '''
     p = np.array(p)
     nsrc, ndest, nfir = fir.shape
@@ -46,8 +48,10 @@ def fir_conv_py(fir, p, fs, offset):
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-cpdef np.ndarray fir_conv_cy(const double[:,:,:] fir, const double[:,:] p, double dt, int offset):
+cpdef np.ndarray fir_conv_cy(const double[:, :, :] fir, const double[:, :] p, double dt,
+                             int offset):
     '''
+    Convolve input with LTI system, Cython implementation.
     '''
     cdef int nsrc = fir.shape[0]
     cdef int ndest = fir.shape[1]
@@ -74,6 +78,9 @@ cpdef np.ndarray fir_conv_cy(const double[:,:,:] fir, const double[:,:] p, doubl
 
 
 def make_p_cont_spr(k, n, x0):
+    '''
+    Generate contact spring function.
+    '''
     def _p_cont_spr(x):
         if x >= x0:
             return 0
@@ -82,6 +89,9 @@ def make_p_cont_spr(k, n, x0):
 
 
 def make_p_cont_dmp(lmbd, n, x0):
+    '''
+    Generate contact damper function.
+    '''
     def _p_cont_dmp(x, xdot):
         if x >= x0:
             return 0
@@ -90,8 +100,11 @@ def make_p_cont_dmp(lmbd, n, x0):
 
 
 class StateDB:
-
-    State = namedlist('State', 'i t x u v p_tot p_es p_cont_spr p_cont_dmp', default=None)
+    '''
+    Simple database to store state variables.
+    '''
+    State = namedlist('State', 'i t x u v p_tot p_es p_cont_spr p_cont_dmp',
+                      default=None)
 
     def __init__(self, t_lim, t_v, npatch):
 
@@ -105,7 +118,8 @@ class StateDB:
         # define voltage array (with interpolation)
         if v.ndim <= 1:
             v = np.tile(v, (npatch, 1)).T
-        fi_voltage = interp1d(v_t, v, axis=0, fill_value=(v[0,:], v[-1,:]), bounds_error=False, kind='linear', assume_sorted=True)
+        fi_voltage = interp1d(v_t, v, axis=0, fill_value=(v[0, :], v[-1, :]),
+                              bounds_error=False, kind='linear', assume_sorted=True)
         voltage = fi_voltage(t)
 
         self._i = np.arange(nt)
@@ -120,87 +134,133 @@ class StateDB:
 
     @property
     def i(self):
+        '''
+        Sample index.
+        '''
         arr = self._i.view()
         # arr.flags.writeable = False
         return arr
 
     @property
     def t(self):
+        '''
+        Time.
+        '''
         arr = self._t.view()
         # arr.flags.writeable = False
         return arr
 
     @property
     def v(self):
+        '''
+        Voltage.
+        '''
         arr = self._v.view()
         # arr.flags.writeable = False
         return arr
 
     @property
     def x(self):
+        '''
+        Displacement.
+        '''
         arr = self._x.view()
         # arr.flags.writeable = False
         return arr
 
     @property
     def u(self):
+        '''
+        Velocity.
+        '''
         arr = self._u.view()
         # arr.flags.writeable = False
         return arr
 
     @property
     def p_es(self):
+        '''
+        Electrostatic pressure.
+        '''
         arr = self._p_es.view()
         # arr.flags.writeable = False
         return arr
 
     @property
     def p_cont_spr(self):
+        '''
+        Contact spring pressure.
+        '''
         arr = self._p_cont_spr.view()
         # arr.flags.writeable = False
         return arr
 
     @property
     def p_cont_dmp(self):
+        '''
+        Contact damper pressure.
+        '''
         arr = self._p_cont_dmp.view()
         # arr.flags.writeable = False
         return arr
 
     @property
     def p_tot(self):
+        '''
+        Total pressure.
+        '''
         arr = self._p_tot.view()
         # arr.flags.writeable = False
         return arr
 
     def get_state_i(self, i):
-        return self.State(i=self.i[i], t=self.t[i], v=self.v[i, :], x=self.x[i, :], u=self.u[i, :], p_es=self.p_es[i, :],
-                          p_cont_spr=self.p_cont_spr[i, :], p_cont_dmp=self.p_cont_dmp[i, :],
+        '''
+        Return state at index i.
+        '''
+        return self.State(i=self.i[i], t=self.t[i], v=self.v[i, :], x=self.x[i, :],
+                          u=self.u[i, :], p_es=self.p_es[i, :],
+                          p_cont_spr=self.p_cont_spr[i, :],
+                          p_cont_dmp=self.p_cont_dmp[i, :],
                           p_tot=self.p_tot[i, :])
 
     def get_state_t(self, t):
-
+        '''
+        Return state at time t.
+        '''
         i = int(np.argmin(np.abs(t - self.t)))
         return self.get_state_i(i)
 
     def set_state_i(self, s):
-
+        '''
+        Set state at index i.
+        '''
         i = s.i
 
-        if s.x is not None: self._x[i, :] = s.x
-        if s.u is not None: self._u[i, :] = s.u
-        if s.p_es is not None: self._p_es[i, :] = s.p_es
-        if s.p_cont_spr is not None: self._p_cont_spr[i, :] = s.p_cont_spr
-        if s.p_cont_dmp is not None: self._p_cont_dmp[i, :] = s.p_cont_dmp
-        if s.p_tot is not None: self._p_tot[i, :] = s.p_tot
+        if s.x is not None:
+            self._x[i, :] = s.x
+        if s.u is not None:
+            self._u[i, :] = s.u
+        if s.p_es is not None:
+            self._p_es[i, :] = s.p_es
+        if s.p_cont_spr is not None:
+            self._p_cont_spr[i, :] = s.p_cont_spr
+        if s.p_cont_dmp is not None:
+            self._p_cont_dmp[i, :] = s.p_cont_dmp
+        if s.p_tot is not None:
+            self._p_tot[i, :] = s.p_tot
 
     def set_state_t(self, s):
-
+        '''
+        Set state at time t.
+        '''
         t = s.t
         i = int(np.min(np.abs(t - self._t)))
         self.set_state_i(i)
 
     def clear(self):
-
+        '''
+        Clear database.
+        '''
         nt, npatch = self._x.shape
 
         self._x = np.zeros((nt, npatch))
@@ -212,10 +272,13 @@ class StateDB:
 
 
 class FixedStepSolver:
-
+    '''
+    Time-domain solver using fixed time steps.
+    '''
     Properties = namedlist('Properties', 'gap gap_eff')
 
-    def __init__(self, t_fir, t_v, gap, gap_eff, t_lim, k, n, x0, lmbd, atol=1e-10, maxiter=5):
+    def __init__(self, t_fir, t_v, gap, gap_eff, t_lim, k, n, x0, lmbd, atol=1e-10,
+                 maxiter=5):
 
         fir_t, fir = t_fir
         t_start, t_stop, t_step = t_lim
@@ -249,9 +312,11 @@ class FixedStepSolver:
         self._update_all(self.get_previous_state(), self.get_previous_state())
 
     @classmethod
-    def from_array_and_db(cls, array, dbfile, t_v, t_lim, k, n, x0, lmbd, atol=1e-10, maxiter=5,
-        calc_fir=False, use_kkr=True, interp=4):
-
+    def from_array_and_db(cls, array, dbfile, t_v, t_lim, k, n, x0, lmbd, atol=1e-10,
+                          maxiter=5, calc_fir=False, use_kkr=True, interp=4):
+        '''
+        Initialize solver from array object and its corresponding database.
+        '''
         if calc_fir:
             # postprocess and convert frequency response to impulse response
             freqs, ppfr = database.read_patch_to_patch_freq_resp(dbfile)
@@ -270,7 +335,8 @@ class FixedStepSolver:
                     gap.append(mem.gap)
                     gap_eff.append(mem.gap + mem.isolation / mem.permittivity)
 
-        return cls((fir_t, fir), t_v, gap, gap_eff, t_lim, k, n, x0, lmbd, atol, maxiter)
+        return cls((fir_t, fir), t_v, gap, gap_eff, t_lim, k, n, x0, lmbd, atol,
+                   maxiter)
 
     @property
     def time(self):
@@ -332,16 +398,19 @@ class FixedStepSolver:
         return self._db.get_state_t(t)
 
     def _fir_conv(self, p, offset):
+        # convolves input with LTI system
         return fir_conv_cy(self._fir, p, self.min_step, offset=offset)
 
     def _fir_conv_base(self, p):
+        # convolves input with LTI system for all previous time steps
         return fir_conv_cy(self._fir, p[:-1, :], self.min_step, offset=1)
 
     def _fir_conv_add(self, p):
+        # convolves input with LTI system for only the current time step
         return fir_conv_cy(self._fir, p[-1:, :], self.min_step, offset=0)
 
     def _update_all(self, state, state_prev):
-
+        # update all state variables for the given state
         db = self._db
         props = self.props
 
@@ -353,19 +422,20 @@ class FixedStepSolver:
                                 p_tot=p_tot))
 
     def _update_cont_dmp(self, state):
-
+        # update contact damper pressure for the given state
         db = self._db
 
         p_cont_dmp = self._p_cont_dmp(state.x, state.u)
         db.set_state_i(db.State(i=state.i, p_cont_dmp=p_cont_dmp))
 
     def _update_x(self, conv_base=None):
-
+        # update displacement via fixed-point iteration
         db = self._db
         state = self.get_current_state()
 
         p = self._db.p_tot[:self.current_step + 1, :]
 
+        # conv_base is calculated only once to reduce computations drastically
         if conv_base is None:
             conv_base = self._fir_conv_base(p)
 
@@ -374,10 +444,10 @@ class FixedStepSolver:
         err = np.max(np.abs(state.x - xnew))
         db.set_state_i(db.State(i=state.i, x=xnew))
 
-        return  err, conv_base
+        return err, conv_base
 
     def _blind_x(self):
-
+        # blind estiamte of displacement
         db = self._db
         state = self.get_current_state()
         state_prev = self.get_previous_state()
@@ -387,7 +457,9 @@ class FixedStepSolver:
         self._update_all(state, state_prev)
 
     def step(self):
-
+        '''
+        Step solver in time by one sample.
+        '''
         db = self._db
         state = self.get_current_state()
         state_prev = self.get_previous_state()
@@ -431,7 +503,9 @@ class FixedStepSolver:
         self.current_step += 1
 
     def solve(self):
-
+        '''
+        Solve for all time samples.
+        '''
         stop = len(self._time) - 1
         while True:
             self.step()
@@ -440,7 +514,9 @@ class FixedStepSolver:
                 break
 
     def reset(self):
-
+        '''
+        Reset solver to initial state.
+        '''
         # reset state
         self._db.clear()
         self._error = []
@@ -464,14 +540,19 @@ class FixedStepSolver:
 
 
 class CompensationSolver(FixedStepSolver):
-
-    def __init__(self, t_fir, t_v, gap, gap_eff, t_lim, comp_funcs, atol=1e-10, maxiter=5):
+    '''
+    *Experimental* Time-domain solver with deflection profile compensation.
+    '''
+    def __init__(self, t_fir, t_v, gap, gap_eff, t_lim, comp_funcs, atol=1e-10,
+                 maxiter=5):
 
         self._comp_funcs = comp_funcs
-        super().__init__(t_fir, t_v, gap, gap_eff, t_lim, 0, 0, 0, 0, atol=atol, maxiter=maxiter)
+        super().__init__(t_fir, t_v, gap, gap_eff, t_lim, 0, 0, 0, 0, atol=atol,
+                         maxiter=maxiter)
 
     @classmethod
-    def from_array_and_db(cls, array, refn, dbfile, t_v, t_lim, lmbd, k, n=1, atol=1e-10, maxiter=5, **kwargs):
+    def from_array_and_db(cls, array, refn, dbfile, t_v, t_lim, lmbd, k, n=1,
+                          atol=1e-10, maxiter=5, **kwargs):
 
         # read fir database
         fir_t, fir = database.read_patch_to_patch_imp_resp(dbfile)
@@ -485,7 +566,8 @@ class CompensationSolver(FixedStepSolver):
                     gap.append(mem.gap)
                     gap_eff.append(mem.gap + mem.isolation / mem.permittivity)
 
-        comp_funcs = compensation.array_patch_comp_funcs(array, refn, lmbd, k, n, **kwargs)
+        comp_funcs = compensation.array_patch_comp_funcs(array, refn, lmbd, k, n,
+                                                         **kwargs)
 
         return cls((fir_t, fir), t_v, gap, gap_eff, t_lim, comp_funcs, atol, maxiter)
 
@@ -536,36 +618,8 @@ class CompensationSolver(FixedStepSolver):
         return xmax
 
 
-class StaticSolver(FixedStepSolver):
+''' Signal generation routines'''
 
-    def __init__(self, t_fir, t_v, gap, gap_eff, t_lim, lmbd, atol=1e-10, maxiter=5):
-        super().__init__(t_fir, t_v, gap, gap_eff, t_lim, 0, 0, 0, 0, atol=atol, maxiter=maxiter)
-
-        def p_cont_dmp(x, xdot):
-            return -lmbd * xdot
-
-        self._p_cont_dmp = np.vectorize(p_cont_dmp)
-
-    @classmethod
-    def from_array_and_db(cls, array, dbfile, t_v, t_lim, lmbd, atol=1e-10, maxiter=5, **kwargs):
-
-        # read fir database
-        fir_t, fir = database.read_patch_to_patch_imp_resp(dbfile)
-
-        # create gap and gap eff
-        gap = []
-        gap_eff = []
-        for elem in array.elements:
-            for mem in elem.membranes:
-                for pat in mem.patches:
-                    gap.append(mem.gap)
-                    gap_eff.append(mem.gap + mem.isolation / mem.permittivity)
-
-        return cls((fir_t, fir), t_v, gap, gap_eff, t_lim, lmbd, atol, maxiter)
-
-
-# A numerical model for CMUT contact dynamics
-# A scalable numerical model for CMUT non-linear dynamics and contact mechanics
 
 def gaussian_pulse(fc, fbw, fs, td=0, tpr=-60, antisym=True):
     '''

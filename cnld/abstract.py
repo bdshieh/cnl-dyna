@@ -115,6 +115,14 @@ def _memoize(self):
     return json.dumps(d)
 
 
+def __getitem__(self, key):
+    return self._asdict().__getitem__(key)
+
+
+def keys(self):
+    return self._asdict().keys()
+
+
 def dump(obj, fp, indent=1, mode='w+', *args, **kwargs):
     '''
     Dumps abstract object to JSON.
@@ -152,6 +160,8 @@ def loads(s, *args, **kwargs):
 
 def register_type(*args, excl=None, **kwargs):
     '''
+    Creates a new abstract type with the given properties. Properties specified in excl
+    will be excluded from the memoization key.
     '''
     if excl is None:
         excl = []
@@ -164,6 +174,8 @@ def register_type(*args, excl=None, **kwargs):
     cls.copy = copy
     cls._memoize = _memoize
     cls._memoize_excl = excl
+    cls.__getitem__ = __getitem__
+    cls.keys = keys
 
     return cls
 
@@ -287,7 +299,8 @@ Array = register_type('Array', _Array)
 
 def vectorize(f):
     '''
-    Allows function to be called with either a single abstract object or list/tuple of them.
+    Allows function to be called with either a single abstract object or list/tuple of
+    them.
     '''
     def decorator(m, *args, **kwargs):
 
@@ -575,8 +588,3 @@ def array_position_from_vertices(a):
     '''
     '''
     a.position = np.mean(np.array(a.vertices), axis=0).tolist()
-
-
-if __name__ == '__main__':
-
-    pass
