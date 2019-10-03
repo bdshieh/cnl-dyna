@@ -1,5 +1,5 @@
-## cnl-dyna / setup.py
 '''
+Cnld setup script.
 '''
 from setuptools import setup, find_packages
 from setuptools.extension import Extension
@@ -8,7 +8,7 @@ import os
 
 import numpy as np
 
-
+# yapf: disable
 ext_opts = {
     'include_dirs': ['include', np.get_include()],
     # 'libraries':['h2', 'blas', 'lapack', 'gfortran'],
@@ -111,8 +111,8 @@ ext_modules = [
         **ext_opts
     ),
     Extension(
-        name='cnld.pressure_response',
-        sources=['cnld/pressure_response.pyx'],
+        name='cnld.bem_pressure',
+        sources=['cnld/bem_pressure.pyx'],
         **ext_opts
     ),
     Extension(
@@ -129,7 +129,7 @@ setup(
     packages=find_packages(),
     entry_points={
         'console_scripts': [
-            'cnld = cnld.cli:main'
+            'cnld = cnld.cli2:main'
         ]
     },
     setup_requires=[

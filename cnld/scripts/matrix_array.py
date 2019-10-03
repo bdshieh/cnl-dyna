@@ -1,14 +1,16 @@
-''' 
-Abstract representation of a matrix array.
+'''
+Creates an abstract object representing an array with elements arranged on a cartesian
+grid.
 '''
 import numpy as np
-
-from cnld.abstract import *
 from cnld import util
+from cnld.abstract import *
 
 
 def main(cfg, args):
-
+    '''
+    Script entry point.
+    '''
     if cfg.shape.lower() in ['square', 's']:
         square = True
     elif cfg.shape.lower() in ['circle', 'circular', 'c']:
@@ -55,38 +57,42 @@ def main(cfg, args):
     if square:
         patchpitch_x = length_x / npatch_x
         patchpitch_y = length_y / npatch_y
-        xx, yy, zz = np.meshgrid(np.linspace(0, (npatch_x - 1) * patchpitch_x, npatch_x),
-                                np.linspace(0, (npatch_y - 1) * patchpitch_y, npatch_y),
-                                0)
-        patch_pos = np.c_[xx.ravel(), yy.ravel(), zz.ravel()] - [(npatch_x - 1) * patchpitch_x / 2,
-                                                            (npatch_y - 1) * patchpitch_y / 2,
-                                                            0]
+        xx, yy, zz = np.meshgrid(
+            np.linspace(0, (npatch_x - 1) * patchpitch_x, npatch_x),
+            np.linspace(0, (npatch_y - 1) * patchpitch_y, npatch_y), 0)
+        patch_pos = np.c_[xx.ravel(), yy.ravel(), zz.ravel()] - [
+            (npatch_x - 1) * patchpitch_x / 2, (npatch_y - 1) * patchpitch_y / 2, 0
+        ]
     else:
         # patchpitch_r = radius / npatch_r
         # patchpitch_theta = 2 * np.pi / npatch_theta
         patch_r = np.linspace(0, radius, npatch_r + 1)
         patch_theta = np.linspace(-np.pi, np.pi, npatch_theta + 1)
         patch_rmin = [patch_r[i] for i in range(npatch_r) for j in range(npatch_theta)]
-        patch_rmax = [patch_r[i + 1] for i in range(npatch_r) for j in range(npatch_theta)]
-        patch_thetamin = [patch_theta[j] for i in range(npatch_r) for j in range(npatch_theta)]
-        patch_thetamax = [patch_theta[j + 1] for i in range(npatch_r) for j in range(npatch_theta)]
+        patch_rmax = [
+            patch_r[i + 1] for i in range(npatch_r) for j in range(npatch_theta)
+        ]
+        patch_thetamin = [
+            patch_theta[j] for i in range(npatch_r) for j in range(npatch_theta)
+        ]
+        patch_thetamax = [
+            patch_theta[j + 1] for i in range(npatch_r) for j in range(npatch_theta)
+        ]
         patch_pos = np.array([0, 0, 0])
 
     # calculate membrane positions
     xx, yy, zz = np.meshgrid(np.linspace(0, (nmem_x - 1) * mempitch_x, nmem_x),
-                             np.linspace(0, (nmem_y - 1) * mempitch_y, nmem_y),
-                             0)
-    mem_pos = np.c_[xx.ravel(), yy.ravel(), zz.ravel()] - [(nmem_x - 1) * mempitch_x / 2,
-                                                           (nmem_y - 1) * mempitch_y / 2,
-                                                           0]
+                             np.linspace(0, (nmem_y - 1) * mempitch_y, nmem_y), 0)
+    mem_pos = np.c_[xx.ravel(), yy.ravel(), zz.ravel()] - [
+        (nmem_x - 1) * mempitch_x / 2, (nmem_y - 1) * mempitch_y / 2, 0
+    ]
 
     # calculate element positions
     xx, yy, zz = np.meshgrid(np.linspace(0, (nelem_x - 1) * elempitch_x, nelem_x),
-                             np.linspace(0, (nelem_y - 1) * elempitch_y, nelem_y),
-                             0)
-    elem_pos = np.c_[xx.ravel(), yy.ravel(), zz.ravel()] - [(nelem_x - 1) * elempitch_x / 2,
-                                                           (nelem_y - 1) * elempitch_y / 2,
-                                                           0]
+                             np.linspace(0, (nelem_y - 1) * elempitch_y, nelem_y), 0)
+    elem_pos = np.c_[xx.ravel(), yy.ravel(), zz.ravel()] - [
+        (nelem_x - 1) * elempitch_x / 2, (nelem_y - 1) * elempitch_y / 2, 0
+    ]
 
     # construct element list
     elements = []
@@ -121,7 +127,8 @@ def main(cfg, args):
                     p.radius_max = patch_rmax[i]
                     p.theta_min = patch_thetamin[i]
                     p.theta_max = patch_thetamax[i]
-                    p.area = (p.radius_max**2 - p.radius_min**2) * (p.theta_max - p.theta_min) / 2
+                    p.area = (p.radius_max**2 - p.radius_min**2) * (p.theta_max -
+                                                                    p.theta_min) / 2
 
                     patches.append(p)
                     patch_counter += 1
@@ -165,10 +172,18 @@ _Config['length'] = [40e-6, 40e-6]
 _Config['electrode'] = [40e-6, 40e-6]
 _Config['radius'] = 40e-6 / 2
 _Config['electrode_r'] = 40e-6 / 2
-_Config['thickness'] = [2e-6,]
-_Config['density'] = [2040,]
-_Config['y_modulus'] = [110e9,]
-_Config['p_ratio'] = [0.22,]
+_Config['thickness'] = [
+    2e-6,
+]
+_Config['density'] = [
+    2040,
+]
+_Config['y_modulus'] = [
+    110e9,
+]
+_Config['p_ratio'] = [
+    0.22,
+]
 _Config['isolation'] = 200e-9
 _Config['permittivity'] = 6.3
 _Config['gap'] = 50e-9
@@ -177,13 +192,11 @@ _Config['damping_mode_b'] = 4
 _Config['damping_ratio_a'] = 0.1
 _Config['damping_ratio_b'] = 0.1
 _Config['npatch'] = [2, 4]
-# array properties
 _Config['mempitch'] = [60e-6, 60e-6]
 _Config['nmem'] = [1, 1]
 _Config['elempitch'] = [60e-6, 60e-6]
 _Config['nelem'] = [2, 2]
 Config = register_type('Config', _Config)
-
 
 if __name__ == '__main__':
 
@@ -200,4 +213,3 @@ if __name__ == '__main__':
             dump(array, args.file)
         else:
             print(array)
-    

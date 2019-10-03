@@ -1,14 +1,16 @@
-''' 
-Abstract representation of a matrix array.
+'''
+Creates an abstract object representing an array with elements arranged on a hexagonal
+grid.
 '''
 import numpy as np
-
-from cnld.abstract import *
 from cnld import util
+from cnld.abstract import *
 
 
 def main(cfg, args):
-
+    '''
+    Script entry point.
+    '''
     radius = cfg.radius
     electrode_r = cfg.electrode_r
     npatch_r, npatch_theta = cfg.npatch
@@ -36,8 +38,12 @@ def main(cfg, args):
     patch_theta = np.linspace(-np.pi, np.pi, npatch_theta + 1)
     patch_rmin = [patch_r[i] for i in range(npatch_r) for j in range(npatch_theta)]
     patch_rmax = [patch_r[i + 1] for i in range(npatch_r) for j in range(npatch_theta)]
-    patch_thetamin = [patch_theta[j] for i in range(npatch_r) for j in range(npatch_theta)]
-    patch_thetamax = [patch_theta[j + 1] for i in range(npatch_r) for j in range(npatch_theta)]
+    patch_thetamin = [
+        patch_theta[j] for i in range(npatch_r) for j in range(npatch_theta)
+    ]
+    patch_thetamax = [
+        patch_theta[j + 1] for i in range(npatch_r) for j in range(npatch_theta)
+    ]
     patch_pos = np.array([0, 0, 0])
 
     # calculate element positions
@@ -46,14 +52,12 @@ def main(cfg, args):
     offset_y = pitch / 2
 
     xx, yy, zz = np.meshgrid(np.linspace(0, (nx - 1) * pitch_x, nx),
-                             np.linspace(0, (ny - 1) * pitch_y, ny),
-                             0)
+                             np.linspace(0, (ny - 1) * pitch_y, ny), 0)
     yy[:, ::2, :] += offset_y / 2
     yy[:, 1::2, :] -= offset_y / 2
 
     elem_pos = np.c_[xx.ravel(), yy.ravel(), zz.ravel()] - [(nx - 1) * pitch_x / 2,
-                                                           (ny - 1) * pitch_y / 2,
-                                                           0]
+                                                            (ny - 1) * pitch_y / 2, 0]
 
     # construct element list
     elements = []
@@ -74,7 +78,8 @@ def main(cfg, args):
             p.radius_max = patch_rmax[i]
             p.theta_min = patch_thetamin[i]
             p.theta_max = patch_thetamax[i]
-            p.area = (p.radius_max**2 - p.radius_min**2) * (p.theta_max - p.theta_min) / 2
+            p.area = (p.radius_max**2 - p.radius_min**2) * (p.theta_max -
+                                                            p.theta_min) / 2
 
             patches.append(p)
             patch_counter += 1
@@ -112,10 +117,18 @@ _Config = {}
 # membrane properties
 _Config['radius'] = 40e-6 / 2
 _Config['electrode_r'] = 40e-6 / 2
-_Config['thickness'] = [2e-6,]
-_Config['density'] = [2040,]
-_Config['y_modulus'] = [110e9,]
-_Config['p_ratio'] = [0.22,]
+_Config['thickness'] = [
+    2e-6,
+]
+_Config['density'] = [
+    2040,
+]
+_Config['y_modulus'] = [
+    110e9,
+]
+_Config['p_ratio'] = [
+    0.22,
+]
 _Config['isolation'] = 200e-9
 _Config['permittivity'] = 6.3
 _Config['gap'] = 50e-9
@@ -124,11 +137,9 @@ _Config['damping_mode_b'] = 4
 _Config['damping_ratio_a'] = 0.0
 _Config['damping_ratio_b'] = 0.0
 _Config['npatch'] = [2, 4]
-# array properties
 _Config['elempitch'] = 60e-6
 _Config['nelem'] = [2, 2]
 Config = register_type('Config', _Config)
-
 
 if __name__ == '__main__':
 
@@ -145,4 +156,3 @@ if __name__ == '__main__':
             dump(array, args.file)
         else:
             print(array)
-    

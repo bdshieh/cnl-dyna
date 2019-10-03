@@ -1,5 +1,5 @@
 '''
-Generates patch-to-patch impulse responses (in time domain) database for an array of CMUT membranes.
+Generates patch-to-patch and patch-to-node database for an array.
 '''
 import multiprocessing
 import os
@@ -18,6 +18,9 @@ from tqdm import tqdm
 
 
 def init_process(_write_lock, _cfg, _file):
+    '''
+    Initializes namespace of each process prior to doing work.
+    '''
     global write_lock, cfg, file
     write_lock = _write_lock
     cfg = Config(**abstract.loads(_cfg))
@@ -26,6 +29,7 @@ def init_process(_write_lock, _cfg, _file):
 
 def process(job):
     '''
+    Process which executes a job.
     '''
     job_id, (f, k) = job
 
@@ -127,6 +131,9 @@ def process(job):
 
 
 def run_process(*args, **kwargs):
+    '''
+    Runs process and catches Exceptions for debugging purposes.
+    '''
     try:
         return process(*args, **kwargs)
     except:
@@ -134,7 +141,9 @@ def run_process(*args, **kwargs):
 
 
 def postprocess(file, interp):
-
+    '''
+    Postprocess generated database by calculating impulse responses from frequency data.
+    '''
     # postprocess and convert frequency response to impulse response
     freqs, ppfr = database.read_patch_to_patch_freq_resp(file)
     t, ppir = impulse_response.fft_to_fir(freqs,
@@ -155,11 +164,10 @@ def postprocess(file, interp):
     database.append_patch_to_patch_imp_resp(file, **data)
 
 
-''' ENTRY POINT '''
-
-
 def main(cfg, args):
-    ''''''
+    '''
+    Script entry point.
+    '''
     # get parameters from config and args
     file = args.file
     write_over = args.write_over
@@ -242,28 +250,30 @@ def main(cfg, args):
         pool.terminate()
 
 
-# define default configuration for this script
+'''
+Config abstract type defines default configuration parameters for this script.
+'''
 _Config = {}
-_Config['freqs'] = 0, 50e6, 200e3
-_Config['sound_speed'] = 1500.
-_Config['fluid_rho'] = 1000.
-_Config['array_config'] = 'array.json'
-_Config['mesh_refn'] = 11
-_Config['use_fluid'] = True
-_Config['format'] = 'HFormat'
-_Config['aprx'] = 'paca'
-_Config['basis'] = 'linear'
-_Config['admis'] = '2'
-_Config['eta'] = 0.8
-_Config['eps'] = 1e-12
-_Config['m'] = 4
-_Config['clf'] = 16
-_Config['eps_aca'] = 1e-2
-_Config['rk'] = 0
-_Config['q_reg'] = 2
-_Config['q_sing'] = 4
-_Config['strict'] = True
-_Config['freq_interp'] = 2
+_Config['freqs'] = 0, 50e6, 200e3  # frequencies as start, stop, step
+_Config['sound_speed'] = 1500.  # fluid sound speed
+_Config['fluid_rho'] = 1000.  # fluid density
+_Config['array_config'] = 'array.json'  # name of array object file
+_Config['mesh_refn'] = 11  # mesh refinement factor
+_Config['use_fluid'] = True  # whether fluid loading should be used
+_Config['format'] = 'HFormat'  # format to store impedance matrix
+_Config['aprx'] = 'paca'  # method for approximation
+_Config['basis'] = 'linear'  # shape function type
+_Config['admis'] = '2'  # admissibility condition type
+_Config['eta'] = 0.8  # admissibility condition parameter
+_Config['eps'] = 1e-12  # ? not used
+_Config['m'] = 4  # ? not sure
+_Config['clf'] = 16  # maximum cluster leaf size
+_Config['eps_aca'] = 1e-2  # tolerance in ACA, affects overall hmatrix accuracy
+_Config['rk'] = 0  # ? not sure
+_Config['q_reg'] = 2  # number of quadrature points for integration
+_Config['q_sing'] = 4  # number of quadrature points for singular integrals
+_Config['strict'] = True  # whether to use strict or non strict block tree
+_Config['freq_interp'] = 2  # interpolation factor in frequency domain
 Config = abstract.register_type('Config', _Config)
 
 if __name__ == '__main__':
@@ -272,9 +282,6 @@ if __name__ == '__main__':
     from cnld import util
 
     # get script parser and parse arguments
-    # parser, run_parser = util.script_parser(main, Config)
-    # args = parser.parse_args()
-    # args.func(args)
     parser = util.script_parser2(main, Config)
     args = parser.parse_args()
     args.func(args)
