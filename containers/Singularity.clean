@@ -1,5 +1,5 @@
 BootStrap: docker
-From: continuumio/miniconda3:latest
+From: ubuntu:latest
 
 %runscript
 	echo "This is what happens when you run the container..."	
@@ -19,13 +19,19 @@ From: continuumio/miniconda3:latest
 
 %post
 	# install linux tools & prequisites
-	apt-get update
+	apt-get update --fix-missing
 	apt-get install -y vim nano wget bzip2 git build-essential libblas-dev liblapack-dev gfortran libomp-dev
 	apt-get clean
 	
-	# setup miniconda python
-	export PATH=/opt/conda/bin:${PATH}
-	conda init bash
+	# install and setup miniconda python
+	wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-4.5.11-Linux-x86_64.sh -O ~/miniconda.sh && \
+	/bin/bash ~/miniconda.sh -b -p /opt/conda && \
+	rm ~/miniconda.sh && \
+	/opt/conda/bin/conda clean -tipsy && \
+	ln -s /opt/conda/etc/profile.d/conda.sh /etc/profile.d/conda.sh && \
+	echo ". /opt/conda/etc/profile.d/conda.sh" >> ~/.bashrc && \
+	echo "conda activate base" >> ~/.bashrc
+	export PATH="/opt/conda/bin:$PATH"
 	
 	# install conda packages
 	conda update -y conda
