@@ -1,6 +1,4 @@
-'''
-Routines for generation of triangular surface meshes.
-'''
+'''Routines for generation of triangular surface meshes.'''
 import numpy as np
 from cnld import abstract, util
 from cnld.h2lib import *
@@ -13,15 +11,35 @@ eps = np.finfo(np.float64).eps
 class Mesh:
     '''
     2D triangular mesh class using H2Lib datastructures.
+
+    Returns
+    -------
+    [type]
+        [description]
     '''
     _surface = None
 
     def __init__(self):
+        '''
+        [summary]
+        '''
         self._surface = None
 
     @classmethod
     def from_surface3d(cls, surf):
+        '''
+        [summary]
 
+        Parameters
+        ----------
+        surf : [type]
+            [description]
+
+        Returns
+        -------
+        [type]
+            [description]
+        '''
         obj = cls()
         obj._surface = surf
         obj._update_properties()
@@ -29,6 +47,23 @@ class Mesh:
 
     @classmethod
     def from_macrosurface3d(cls, ms, center=(0, 0, 0), refn=2):
+        '''
+        [summary]
+
+        Parameters
+        ----------
+        ms : [type]
+            [description]
+        center : tuple, optional
+            [description], by default (0, 0, 0)
+        refn : int, optional
+            [description], by default 2
+
+        Returns
+        -------
+        [type]
+            [description]
+        '''
         # mesh must be refined at least once, otherwise h2lib throws exception
         assert refn > 1
 
@@ -38,7 +73,25 @@ class Mesh:
 
     @classmethod
     def from_geometry(cls, vertices, edges, triangles, triangle_edges):
+        '''
+        [summary]
 
+        Parameters
+        ----------
+        vertices : [type]
+            [description]
+        edges : [type]
+            [description]
+        triangles : [type]
+            [description]
+        triangle_edges : [type]
+            [description]
+
+        Returns
+        -------
+        [type]
+            [description]
+        '''
         surf = Surface3d(len(vertices), len(edges), len(triangles))
         surf.x[:] = vertices
         surf.e[:] = edges
@@ -49,20 +102,22 @@ class Mesh:
 
     @classmethod
     def from_abstract(cls, array, refn=1, **kwargs):
+        '''
+        [summary]
+
+        Parameters
+        ----------
+        array : [type]
+            [description]
+        refn : int, optional
+            [description], by default 1
+
+        Returns
+        -------
+        [type]
+            [description]
+        '''
         return _from_abstract(cls, array, refn, **kwargs)
-
-    # @classmethod
-    # def from_geometry(cls, vertices, edges, triangles, triangle_edges, center=(0,0,0),
-    #     refn=2, parametrization='square'):
-
-    #     ms = Macrosurface3d(len(vertices), len(edges), len(triangles))
-    #     ms.x[:] = vertices
-    #     ms.e[:] = edges
-    #     ms.t[:] = triangles
-    #     ms.s[:] = triangle_edges
-    #     ms.set_parametrization(parametrization)
-
-    #     return cls.from_macrosurface3d(ms, center=center, refn=refn)
 
     def __add__(self, other):
         surf1 = self._surface
@@ -175,13 +230,32 @@ class Mesh:
         plt.show()
 
     def _memoize():
-        return (self.nvertices, self.triangles.tostring(), self.edges.tostring(),
-                self.triangle_edges.tostring())
+        return (self.nvertices, self.triangles.tostring(),
+                self.edges.tostring(), self.triangle_edges.tostring())
 
 
 def _from_abstract(cls, array, refn=1, **kwargs):
     '''
     Generate mesh from abstract representation of an array.
+
+    Parameters
+    ----------
+    array : [type]
+        [description]
+    refn : int, optional
+        [description], by default 1
+
+    Returns
+    -------
+    [type]
+        [description]
+
+    Raises
+    ------
+    TypeError
+        [description]
+    TypeError
+        [description]
     '''
     # generate geometry in terms of vertices, edges, and triangles with refinement
     # (much faster to construct mesh from entire geometry once instead of membrane by
@@ -194,7 +268,9 @@ def _from_abstract(cls, array, refn=1, **kwargs):
         for mem in elem.membranes:
 
             if isinstance(mem, abstract.SquareCmutMembrane):
-                v, e, t, s = geometry_square(mem.length_x, mem.length_y, refn=refn)
+                v, e, t, s = geometry_square(mem.length_x,
+                                             mem.length_y,
+                                             refn=refn)
             elif isinstance(mem, abstract.CircularCmutMembrane):
                 v, e, t, s = geometry_circle(mem.radius, n=4, refn=refn)
             else:
@@ -258,8 +334,10 @@ def _from_abstract(cls, array, refn=1, **kwargs):
                 xmax = mem_x + length_x / 2  # + 2 * eps
                 ymin = mem_y - length_y / 2  # - 2 * eps
                 ymax = mem_y + length_y / 2  # + 2 * eps
-                mask_x = np.logical_and(x >= xmin - 2 * eps, x <= xmax + 2 * eps)
-                mask_y = np.logical_and(y >= ymin - 2 * eps, y <= ymax + 2 * eps)
+                mask_x = np.logical_and(x >= xmin - 2 * eps,
+                                        x <= xmax + 2 * eps)
+                mask_y = np.logical_and(y >= ymin - 2 * eps,
+                                        y <= ymax + 2 * eps)
                 mem_mask = np.logical_and(mask_x, mask_y)
                 membrane_ids[mem_mask] = mem.id
                 element_ids[mem_mask] = elem.id
@@ -269,7 +347,8 @@ def _from_abstract(cls, array, refn=1, **kwargs):
                 mask2 = np.abs(x[mem_mask] - xmax) <= 2 * eps
                 mask3 = np.abs(y[mem_mask] - ymin) <= 2 * eps
                 mask4 = np.abs(y[mem_mask] - ymax) <= 2 * eps
-                mesh.on_boundary[mem_mask] = np.any(np.c_[mask1, mask2, mask3, mask4],
+                mesh.on_boundary[mem_mask] = np.any(np.c_[mask1, mask2, mask3,
+                                                          mask4],
                                                     axis=1)
 
             elif isinstance(mem, abstract.CircularCmutMembrane):
@@ -307,6 +386,27 @@ def geometry_square(xl, yl, refn=1, type=1):
     '''
     Creates a square mesh geometry (vertices, triangles etc.) which can be used to
     construct a mesh object.
+
+    Parameters
+    ----------
+    xl : [type]
+        [description]
+    yl : [type]
+        [description]
+    refn : int, optional
+        [description], by default 1
+    type : int, optional
+        [description], by default 1
+
+    Returns
+    -------
+    [type]
+        [description]
+
+    Raises
+    ------
+    ValueError
+        [description]
     '''
     if type == 1:
         # vertices
@@ -384,67 +484,27 @@ def geometry_square(xl, yl, refn=1, type=1):
     return v, e, t, s
 
 
-# @util.memoize
-# def geometry_circle(rl, refn=1):
-#     '''
-#     Creates a circle mesh geometry (vertices, triangles etc.) which can be used to
-#     construct a mesh object.
-#     '''
-#     #  vertices
-#     v = np.zeros((5, 3), dtype=np.float64)
-#     v[0,:] = -rl, 0.0, 0.0 # left
-#     v[1,:] = 0.0, -rl, 0.0 # bottom
-#     v[2,:] = rl, 0.0, 0.0  # right
-#     v[3,:] = 0.0, rl, 0.0 # top
-#     v[4,:] = 0.0, 0.0, 0.0 # center
-#     #  edges
-#     e = np.zeros((8, 2), dtype=np.uint32)
-#     e[0,:] = 0, 1  # bottom left
-#     e[1,:] = 1, 2  # bottom right
-#     e[2,:] = 2, 3  # top right
-#     e[3,:] = 3, 0  # top left
-#     e[4,:] = 0, 4  # left horizontal
-#     e[5,:] = 1, 4  # bottom vertical
-#     e[6,:] = 2, 4  # right horizontal
-#     e[7,:] = 3, 4  # right vertical
-#     #  triangles and triangle edges
-#     t = np.zeros((4, 3), dtype=np.uint32)
-#     s = np.zeros((4, 3), dtype=np.uint32)
-#     t[0, :] = 0, 1, 4  # bottom left
-#     s[0, :] = 5, 4, 0
-#     t[1, :] = 1, 2, 4  # bottom right
-#     s[1, :] = 6, 5, 1
-#     t[2, :] = 2, 3, 4  # top right
-#     s[2, :] = 7, 6, 2
-#     t[3, :] = 3, 0, 4  # top left
-#     s[3, :] = 4, 7, 3
-
-#     # refine geometry using h2lib macrosurface3d -> surface3d procedure
-#     if refn > 1:
-#         msurf = Macrosurface3d(len(v), len(e), len(t))
-#         msurf.x[:] = v
-#         msurf.e[:] = e
-#         msurf.t[:] = t
-#         msurf.s[:] = s
-#         msurf.set_parametrization('circle')
-#         surf = build_from_macrosurface3d_surface3d(msurf, refn)
-
-#         # copy arrays from surf
-#         v = np.array(surf.x, copy=True)
-#         e = np.array(surf.e, copy=True)
-#         t = np.array(surf.t, copy=True)
-#         s = np.array(surf.s, copy=True)
-
-#     # translate geometry
-#     # v += np.array(center)
-#     return v, e, t, s
-
-
 @util.memoize
 def geometry_circle(rl, n=4, refn=1):
     '''
     Creates a circle mesh geometry (vertices, triangles etc.) which can be used to
     construct a mesh object.
+
+    Parameters
+    ----------
+    rl : [type]
+        [description]
+    n : int, optional
+        [description], by default 4
+    refn : int, optional
+        [description], by default 1
+
+    Returns
+    -------
+    [type]
+        [description]
+    ''' '''
+
     '''
     #  vertices
     v = np.zeros((n + 1, 3), dtype=np.float64)
@@ -504,6 +564,25 @@ def geometry_circle(rl, n=4, refn=1):
 
 def square(xl, yl, refn=1, type=1, center=(0, 0, 0)):
     '''
+    [summary]
+
+    Parameters
+    ----------
+    xl : [type]
+        [description]
+    yl : [type]
+        [description]
+    refn : int, optional
+        [description], by default 1
+    type : int, optional
+        [description], by default 1
+    center : tuple, optional
+        [description], by default (0, 0, 0)
+
+    Returns
+    -------
+    [type]
+        [description]
     '''
     v, e, t, s = geometry_square(xl, yl, refn=refn, type=type)
     v += np.array(center)
@@ -521,6 +600,21 @@ def square(xl, yl, refn=1, type=1, center=(0, 0, 0)):
 
 def circle(rl, refn=1, center=(0, 0, 0)):
     '''
+    [summary]
+
+    Parameters
+    ----------
+    rl : [type]
+        [description]
+    refn : int, optional
+        [description], by default 1
+    center : tuple, optional
+        [description], by default (0, 0, 0)
+
+    Returns
+    -------
+    [type]
+        [description]
     '''
     v, e, t, s = geometry_circle(rl, n=4, refn=refn)
     v += np.array(center)
@@ -537,6 +631,18 @@ def circle(rl, refn=1, center=(0, 0, 0)):
 def geometry_square3(xl, yl):
     '''
     Prototype mesh (type 3) for square membranes; suitable for 3 by 3 patches.
+
+    Parameters
+    ----------
+    xl : [type]
+        [description]
+    yl : [type]
+        [description]
+
+    Returns
+    -------
+    [type]
+        [description]
     '''
     # vertices
     v = np.zeros((25, 3), dtype=np.float64)
@@ -681,25 +787,49 @@ def triangle_edges_from_triangles(triangles, edges):
     '''
     Assign edges to triangles based on triangle vertices. Edges must be on opposite side of
     their corresponding vertex.
+
+    Parameters
+    ----------
+    triangles : [type]
+        [description]
+    edges : [type]
+        [description]
+
+    Returns
+    -------
+    [type]
+        [description]
+
+    Raises
+    ------
+    RuntimeError
+        [description]
+    RuntimeError
+        [description]
+    RuntimeError
+        [description]
     '''
     triangle_edges = np.zeros_like(triangles)
     for t, tri in enumerate(triangles):
         a, b, c = tri
 
         e0 = np.where(
-            np.logical_and(np.any(edges == b, axis=1), np.any(edges == c, axis=1)))[0]
+            np.logical_and(np.any(edges == b, axis=1),
+                           np.any(edges == c, axis=1)))[0]
         if len(e0) == 0 or len(e0) > 1:
             raise RuntimeError(
                 f'could not determine corresponding edge for triangle {tri}')
 
         e1 = np.where(
-            np.logical_and(np.any(edges == c, axis=1), np.any(edges == a, axis=1)))[0]
+            np.logical_and(np.any(edges == c, axis=1),
+                           np.any(edges == a, axis=1)))[0]
         if len(e1) == 0 or len(e1) > 1:
             raise RuntimeError(
                 f'could not determine corresponding edge for triangle {tri}')
 
         e2 = np.where(
-            np.logical_and(np.any(edges == a, axis=1), np.any(edges == b, axis=1)))[0]
+            np.logical_and(np.any(edges == a, axis=1),
+                           np.any(edges == b, axis=1)))[0]
         if len(e2) == 0 or len(e2) > 1:
             raise RuntimeError(
                 f'could not determine corresponding edge for triangle {tri}')
@@ -712,6 +842,28 @@ def triangle_edges_from_triangles(triangles, edges):
 def matrix_array(nx, ny, pitchx, pitchy, xl, yl, refn=1, **kwargs):
     '''
     Convenience function for a mesh representing a matrix array.
+
+    Parameters
+    ----------
+    nx : [type]
+        [description]
+    ny : [type]
+        [description]
+    pitchx : [type]
+        [description]
+    pitchy : [type]
+        [description]
+    xl : [type]
+        [description]
+    yl : [type]
+        [description]
+    refn : int, optional
+        [description], by default 1
+
+    Returns
+    -------
+    [type]
+        [description]
     '''
     lengthx, lengthy = pitchx * (nx - 1), pitchy * (ny - 1)
     xv = np.linspace(-lengthx / 2, lengthx / 2, nx)
@@ -762,7 +914,8 @@ def matrix_array(nx, ny, pitchx, pitchy, xl, yl, refn=1, **kwargs):
         mask2 = np.abs(x[mem_mask] - xmax) <= 2 * eps
         mask3 = np.abs(y[mem_mask] - ymin) <= 2 * eps
         mask4 = np.abs(y[mem_mask] - ymax) <= 2 * eps
-        mesh.on_boundary[mem_mask] = np.any(np.c_[mask1, mask2, mask3, mask4], axis=1)
+        mesh.on_boundary[mem_mask] = np.any(np.c_[mask1, mask2, mask3, mask4],
+                                            axis=1)
 
     return mesh
 
@@ -770,31 +923,32 @@ def matrix_array(nx, ny, pitchx, pitchy, xl, yl, refn=1, **kwargs):
 def linear_array():
     '''
     Convenience function for a mesh representing a linear array.
+
+    Raises
+    ------
+    NotImplementedError
+        [description]
     '''
     raise NotImplementedError
-
-
-# def calc_refn_square(lx, ly, wavelen, step_per_wavelen=5, maxrefn=20):
-#     '''
-#     '''
-#     refn = 2
-
-#     while True:
-#         if refn > maxrefn:
-#             raise Exception('Mesh refinement limit reached')
-
-#         hmax = square(lx, ly, refn=refn).hmax
-#         if wavelen / hmax > step_per_wavelen:
-#             break
-#         else:
-#             refn += 1
-
-#     return refn
 
 
 def interpolator(mesh, func, function='cubic'):
     '''
     Returns an interpolator for function f defined on the nodes of the given mesh.
+
+    Parameters
+    ----------
+    mesh : [type]
+        [description]
+    func : [type]
+        [description]
+    function : str, optional
+        [description], by default 'cubic'
+
+    Returns
+    -------
+    [type]
+        [description]
     '''
     if isinstance(mesh, Mesh):
         return Rbf(mesh.vertices[:, 0],
@@ -809,5 +963,20 @@ def interpolator(mesh, func, function='cubic'):
 
 def integrator(mesh, func, function='linear'):
     '''
+    [summary]
+
+    Parameters
+    ----------
+    mesh : [type]
+        [description]
+    func : [type]
+        [description]
+    function : str, optional
+        [description], by default 'linear'
+
+    Raises
+    ------
+    NotImplementedError
+        [description]
     '''
     raise NotImplementedError

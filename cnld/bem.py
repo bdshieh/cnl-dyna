@@ -1,6 +1,5 @@
-'''
-Routines implementing the boundary element method.
-'''
+'''Routines for the boundary element method.'''
+
 import cmath
 
 import numpy as np
@@ -16,6 +15,20 @@ from scipy.io import loadmat
 def mem_z_matrix(mem, refn, k, *args, **kwargs):
     '''
     Impedance matrix in FullFormat for a membrane.
+
+    Parameters
+    ----------
+    mem : [type]
+        [description]
+    refn : [type]
+        [description]
+    k : [type]
+        [description]
+
+    Returns
+    -------
+    [type]
+        [description]
     '''
     if isinstance(mem, abstract.SquareCmutMembrane):
         amesh = mesh.square(mem.length_x, mem.length_y, refn)
@@ -28,6 +41,22 @@ def mem_z_matrix(mem, refn, k, *args, **kwargs):
 def array_z_matrix(array, refn, k, format='HFormat', *args, **kwargs):
     '''
     Impedance matrix in either FullFormat or HFormat for an array.
+
+    Parameters
+    ----------
+    array : [type]
+        [description]
+    refn : [type]
+        [description]
+    k : [type]
+        [description]
+    format : str, optional
+        [description], by default 'HFormat'
+
+    Returns
+    -------
+    [type]
+        [description]
     '''
     amesh = mesh.Mesh.from_abstract(array, refn)
 
@@ -40,6 +69,24 @@ def array_z_matrix(array, refn, k, format='HFormat', *args, **kwargs):
 def array_z_linop(array, refn, f, c, rho, *args, **kwargs):
     '''
     Impedance matrix linear operators for an array.
+
+    Parameters
+    ----------
+    array : [type]
+        [description]
+    refn : [type]
+        [description]
+    f : [type]
+        [description]
+    c : [type]
+        [description]
+    rho : [type]
+        [description]
+
+    Returns
+    -------
+    [type]
+        [description]
     '''
     k = 2 * np.pi * f / c
     omg = 2 * np.pi * f
@@ -57,7 +104,9 @@ def array_z_linop(array, refn, f, c, rho, *args, **kwargs):
         p[ob] = 0
         return -omg**2 * rho * 2 * p
 
-    linop = sps.linalg.LinearOperator((nnodes, nnodes), dtype=np.complex128, matvec=mv)
+    linop = sps.linalg.LinearOperator((nnodes, nnodes),
+                                      dtype=np.complex128,
+                                      matvec=mv)
 
     def inv_mv(x):
         x[ob] = 0

@@ -1,6 +1,4 @@
-'''
-Data-sparse (compressed) formats for matrices using H2Lib data structures.
-'''
+'''Data-sparse (compressed) formats for matrices using H2Lib data structures.'''
 from timeit import default_timer as timer
 
 import numpy as np
@@ -23,6 +21,7 @@ class BaseFormat:
             del self._mat
 
     ''' PROPERTIES '''
+
     @property
     def rows(self):
         return
@@ -44,6 +43,7 @@ class BaseFormat:
         return self.__class__.__name__
 
     ''' MAGIC OPERATIONS '''
+
     def _add(self, x):
         return NotImplemented
 
@@ -80,6 +80,7 @@ class BaseFormat:
         return self.__sub__(x) * -1
 
     ''' LINALG OPERATIONS '''
+
     def _smul(self, x):
         raise NotImplementedError
 
@@ -147,6 +148,7 @@ class BaseFormat:
         return self._transpose()
 
     ''' LINALG SOLVING '''
+
     def _lu(self):
         raise NotImplementedError
 
@@ -194,6 +196,7 @@ class FullFormat(BaseFormat):
         return np.array(self._mat.a)
 
     ''' INDEXING '''
+
     def __getitem__(self, key):
         return self._mat.a[key]
 
@@ -201,6 +204,7 @@ class FullFormat(BaseFormat):
         self._mat.a[key] = val
 
     ''' OPERATIONS '''
+
     def _add(self, x):
         if isinstance(x, FullFormat):
             B = clone_amatrix(self._mat)
@@ -308,6 +312,7 @@ class SparseFormat(BaseFormat):
         return self._mat.coeff
 
     ''' OPERATIONS '''
+
     def _add(self, x):
         return NotImplemented
 
@@ -344,6 +349,7 @@ class SparseFormat(BaseFormat):
         raise NotImplementedError('operation not supported with this type')
 
     ''' OTHER '''
+
     def _as_hformat(self, href):
         '''
         Convert sparse format to hierarchical format using
@@ -379,6 +385,7 @@ class HFormat(BaseFormat):
         return getsize_hmatrix(self._mat)
 
     ''' OPERATIONS '''
+
     def _add(self, x):
         if isinstance(x, FullFormat):
             B = clone_hmatrix(self._mat)
@@ -389,7 +396,8 @@ class HFormat(BaseFormat):
             B = clone_hmatrix(self._mat)
             tm = new_releucl_truncmode()
             # sparse format is converted to hformat prior to addition
-            add_hmatrix(1, (x._as_hformat(self._mat))._mat, tm, self.eps_add, B)
+            add_hmatrix(1, (x._as_hformat(self._mat))._mat, tm, self.eps_add,
+                        B)
             return HFormat(B)
         elif isinstance(x, HFormat):
             B = clone_hmatrix(self._mat)
@@ -417,7 +425,8 @@ class HFormat(BaseFormat):
             C = clonestructure_hmatrix(self._mat)
             clear_hmatrix(C)
             tm = new_releucl_truncmode()
-            addmul_hmatrix(1.0, False, x._mat, False, self._mat, tm, self.eps_add, C)
+            addmul_hmatrix(1.0, False, x._mat, False, self._mat, tm,
+                           self.eps_add, C)
             return HFormat(C)
         else:
             raise ValueError('operation with unrecognized type')
@@ -460,6 +469,7 @@ class HFormat(BaseFormat):
         return np.array(x.v)
 
     ''' OTHER '''
+
     def _draw_hmatrix(self, hm, bbox, maxidx, ax):
         if len(hm.son) == 0:
             if hm.r:
@@ -626,7 +636,8 @@ class ZFullMatrix(FullFormat):
         else:
             raise TypeError
 
-        bem = new_slp_helmholtz_bem3d(k, mesh.surface3d, q_reg, q_sing, _basis, _basis)
+        bem = new_slp_helmholtz_bem3d(k, mesh.surface3d, q_reg, q_sing, _basis,
+                                      _basis)
 
         Z = AMatrix(len(mesh.vertices), len(mesh.vertices))
 
@@ -672,7 +683,8 @@ class ZHMatrix(HFormat):
         else:
             raise TypeError
 
-        bem = new_slp_helmholtz_bem3d(k, mesh.surface3d, q_reg, q_sing, _basis, _basis)
+        bem = new_slp_helmholtz_bem3d(k, mesh.surface3d, q_reg, q_sing, _basis,
+                                      _basis)
         root = build_bem3d_cluster(bem, clf, _basis)
 
         if strict:

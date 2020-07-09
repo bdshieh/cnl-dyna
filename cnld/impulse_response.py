@@ -1,6 +1,4 @@
-'''
-Routines for calculating impulse responses from frequency response data.
-'''
+'''Routines for calculating impulse responses from frequency response data.'''
 import numpy as np
 from cnld import util
 from scipy.fftpack import fft, fftfreq, fftshift, ifft, ifftshift
@@ -12,6 +10,22 @@ def one_to_two(f, s, axis=-1, odd=False):
     '''
     Converts a one-sided FFT (of a real-valued signal) to a two-sided FFT.
     Energy is not halved by this function.
+
+    Parameters
+    ----------
+    f : [type]
+        [description]
+    s : [type]
+        [description]
+    axis : int, optional
+        [description], by default -1
+    odd : bool, optional
+        [description], by default False
+
+    Returns
+    -------
+    [type]
+        [description]
     '''
     def func1d(s):
 
@@ -50,6 +64,20 @@ def two_to_one(f, s, axis=-1):
     '''
     Converts a two-sided FFT (of a real-valued signal) to a one-sided FFT.
     Energy is not doubled by this function.
+
+    Parameters
+    ----------
+    f : [type]
+        [description]
+    s : [type]
+        [description]
+    axis : int, optional
+        [description], by default -1
+
+    Returns
+    -------
+    [type]
+        [description]
     '''
     def func1d(s):
         # index into spectrum
@@ -74,6 +102,20 @@ def kramers_kronig1(f, s, axis=-1):
     '''
     Reconstructs spectrum based on the Kramers-Kronig relations using
     magnitude (gain)-phase relation and front delay estimation.
+
+    Parameters
+    ----------
+    f : [type]
+        [description]
+    s : [type]
+        [description]
+    axis : int, optional
+        [description], by default -1
+
+    Returns
+    -------
+    [type]
+        [description]
     '''
     def func1d(s):
         # mag = np.abs(s)
@@ -116,6 +158,20 @@ def kramers_kronig2(f, s, axis=-1):
     '''
     Reconstructs spectrum based on the Kramers-Kronig relations using
     real-imaginary relation. Does not account for front delay.
+
+    Parameters
+    ----------
+    f : [type]
+        [description]
+    s : [type]
+        [description]
+    axis : int, optional
+        [description], by default -1
+
+    Returns
+    -------
+    [type]
+        [description]
     '''
     def func1d(s):
         re = np.real(s)
@@ -129,6 +185,20 @@ def kramers_kronig3(f, s, axis=-1):
     '''
     Reconstructs spectrum based on the Kramers-Kronig relations using
     real-imaginary relation and front-delay estimation.
+
+    Parameters
+    ----------
+    f : [type]
+        [description]
+    s : [type]
+        [description]
+    axis : int, optional
+        [description], by default -1
+
+    Returns
+    -------
+    [type]
+        [description]
     '''
     def func1d(s):
 
@@ -161,6 +231,22 @@ def kramers_kronig3(f, s, axis=-1):
 def interp_fft(f, s, n, axis=-1):
     '''
     Frequency interpolation of FFT by magnitude and phase.
+
+    Parameters
+    ----------
+    f : [type]
+        [description]
+    s : [type]
+        [description]
+    n : [type]
+        [description]
+    axis : int, optional
+        [description], by default -1
+
+    Returns
+    -------
+    [type]
+        [description]
     '''
     if n == 1:
         return f, s
@@ -178,6 +264,24 @@ def interp_fft(f, s, n, axis=-1):
 def interp_time(t, s, n, kind='cubic', axis=-1):
     '''
     Time interpolation of a signal.
+
+    Parameters
+    ----------
+    t : [type]
+        [description]
+    s : [type]
+        [description]
+    n : [type]
+        [description]
+    kind : str, optional
+        [description], by default 'cubic'
+    axis : int, optional
+        [description], by default -1
+
+    Returns
+    -------
+    [type]
+        [description]
     '''
     if n == 1:
         return t, s
@@ -192,6 +296,24 @@ def fft_to_fir(f, s, interp=1, use_kkr=True, axis=-1):
     '''
     Convert a one-sided FFT to an impulse response representing a delay causal LTI
     system.
+
+    Parameters
+    ----------
+    f : [type]
+        [description]
+    s : [type]
+        [description]
+    interp : int, optional
+        [description], by default 1
+    use_kkr : bool, optional
+        [description], by default True
+    axis : int, optional
+        [description], by default -1
+
+    Returns
+    -------
+    [type]
+        [description]
     '''
     fi, si = interp_fft(f, s, n=interp, axis=axis)
     f2s, s2s = one_to_two(fi, si, axis=axis, odd=True)
@@ -209,6 +331,24 @@ def fft_to_fir(f, s, interp=1, use_kkr=True, axis=-1):
 def fft_to_sir(f, s, interp=1, use_kkr=False, axis=-1):
     '''
     Convert a one-sided FFT to a spatial impulse response.
+
+    Parameters
+    ----------
+    f : [type]
+        [description]
+    s : [type]
+        [description]
+    interp : int, optional
+        [description], by default 1
+    use_kkr : bool, optional
+        [description], by default False
+    axis : int, optional
+        [description], by default -1
+
+    Returns
+    -------
+    [type]
+        [description]
     '''
     fi, si = interp_fft(f, s, n=interp, axis=axis)
     f2s, s2s = one_to_two(fi, si, axis=axis, odd=True)

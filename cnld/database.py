@@ -1,6 +1,4 @@
-'''
-Database routines for storing and retrieving impulse/frequency response data.
-'''
+'''Database routines for storing and retrieving impulse/frequency response data.'''
 import sqlite3 as sql
 from contextlib import closing
 
@@ -102,6 +100,8 @@ source_patch, dest_patch, time
 # )
 # '''
 ''' CREATING DATABASE '''
+
+
 @util.open_db
 def create_table(con, table_defn, index_defn=None):
     '''
@@ -140,6 +140,8 @@ def create_db(con, **kwargs):
 
 
 ''' UPDATING DATABASE '''
+
+
 @util.read_db
 def append_node(con, **kwargs):
     '''
@@ -157,8 +159,8 @@ def append_patch_to_patch_freq_resp(con, **kwargs):
     '''
     '''
     row_keys = [
-        'source_patch', 'dest_patch', 'frequency', 'wavenumber', 'displacement_real',
-        'displacement_imag', 'time_solve'
+        'source_patch', 'dest_patch', 'frequency', 'wavenumber',
+        'displacement_real', 'displacement_imag', 'time_solve'
     ]
     row_data = tuple([kwargs[k] for k in row_keys])
 
@@ -194,22 +196,7 @@ def append_patch_to_patch_imp_resp(con, **kwargs):
         con.executemany(query, zip(*row_data))
 
 
-# @util.open_db
-# def update_progress(con, job_id):
-
-#     with con:
-#         con.execute('UPDATE progress SET is_complete=1 WHERE job_id=?', [job_id,])
 ''' READ FROM DATABASE '''
-
-# @util.open_db
-# def get_progress(con):
-
-#     table = pd.read_sql('SELECT is_complete FROM progress ORDER BY job_id', con)
-
-#     is_complete = np.array(table).squeeze()
-#     ijob = sum(is_complete) + 1
-
-#     return is_complete, ijob
 
 
 @util.read_db
@@ -265,7 +252,8 @@ def read_patch_to_patch_freq_resp(con):
     nfreq = len(freqs)
 
     disp = np.array(table['displacement_real'] +
-                    1j * table['displacement_imag']).reshape((nsource, ndest, nfreq))
+                    1j * table['displacement_imag']).reshape(
+                        (nsource, ndest, nfreq))
     return freqs, disp
 
 
@@ -292,7 +280,8 @@ def read_patch_to_node_freq_resp(con):
     nfreq = len(freqs)
 
     disp = np.array(table['displacement_real'] +
-                    1j * table['displacement_imag']).reshape((nsource, nnodes, nfreq))
+                    1j * table['displacement_imag']).reshape(
+                        (nsource, nnodes, nfreq))
     return freqs, disp, nodes
 
 

@@ -1,6 +1,4 @@
-'''
-Utility functions.
-'''
+'''Utility functions.'''
 import argparse
 import functools
 import itertools
@@ -22,20 +20,48 @@ from scipy.spatial.distance import cdist
 
 def meshview(v1, v2, v3, mode='cartesian', as_list=True):
     '''
+    [summary]
+
+    Parameters
+    ----------
+    v1 : [type]
+        [description]
+    v2 : [type]
+        [description]
+    v3 : [type]
+        [description]
+    mode : str, optional
+        [description], by default 'cartesian'
+    as_list : bool, optional
+        [description], by default True
+
+    Returns
+    -------
+    [type]
+        [description]
     '''
     if mode.lower() in ('cart', 'cartesian'):
         x, y, z = np.meshgrid(v1, v2, v3, indexing='ij')
 
     elif mode.lower() in ('sph', 'spherical'):
-        r, theta, phi = np.meshgrid(v1, np.deg2rad(v2), np.deg2rad(v3), indexing='ij')
+        r, theta, phi = np.meshgrid(v1,
+                                    np.deg2rad(v2),
+                                    np.deg2rad(v3),
+                                    indexing='ij')
         x, y, z = sph2cart(r, theta, phi)
 
     elif mode.lower() in ('sec', 'sector'):
-        r, alpha, beta = np.meshgrid(v1, np.deg2rad(v2), np.deg2rad(v3), indexing='ij')
+        r, alpha, beta = np.meshgrid(v1,
+                                     np.deg2rad(v2),
+                                     np.deg2rad(v3),
+                                     indexing='ij')
         x, y, z = sec2cart(r, alpha, beta)
 
     elif mode.lower() in ('dp', 'dpolar'):
-        r, alpha, beta = np.meshgrid(v1, np.deg2rad(v2), np.deg2rad(v3), indexing='ij')
+        r, alpha, beta = np.meshgrid(v1,
+                                     np.deg2rad(v2),
+                                     np.deg2rad(v3),
+                                     indexing='ij')
         x, y, z = dp2cart(r, alpha, beta)
 
     if as_list:
@@ -46,27 +72,46 @@ def meshview(v1, v2, v3, mode='cartesian', as_list=True):
 
 def sec2cart(r, alpha, beta):
     '''
+    [summary]
+
+    Parameters
+    ----------
+    r : [type]
+        [description]
+    alpha : [type]
+        [description]
+    beta : [type]
+        [description]
+
+    Returns
+    -------
+    [type]
+        [description]
     '''
     z = r / np.sqrt(np.tan(alpha)**2 + np.tan(beta)**2 + 1)
     x = z * np.tan(alpha)
     y = z * np.tan(beta)
-
-    # alpha_p = np.arctan(np.tan(alpha) * np.cos(beta))
-    # x = np.sin(alpha_p) * r
-    # y = -np.sin(beta) * r * np.cos(alpha_p)
-    # z = np.sqrt(r**2 - x**2 - y**2)
-
-    # px = -px
-    # pyp = np.arctan(np.cos(px) * np.sin(py) / np.cos(py))
-    # x = r * np.sin(pyp)
-    # y = -r * np.cos(pyp) * np.sin(px)
-    # z = r * np.cos(px) * np.cos(pyp)
 
     return x, y, z
 
 
 def cart2sec(x, y, z):
     '''
+    [summary]
+
+    Parameters
+    ----------
+    x : [type]
+        [description]
+    y : [type]
+        [description]
+    z : [type]
+        [description]
+
+    Returns
+    -------
+    [type]
+        [description]
     '''
     r = np.sqrt(x**2 + y**2 + z**2)
     alpha = np.arccos(z / (np.sqrt(x**2 + z**2))) * np.sign(x)
@@ -82,6 +127,21 @@ def cart2sec(x, y, z):
 
 def sph2cart(r, theta, phi):
     '''
+    [summary]
+
+    Parameters
+    ----------
+    r : [type]
+        [description]
+    theta : [type]
+        [description]
+    phi : [type]
+        [description]
+
+    Returns
+    -------
+    [type]
+        [description]
     '''
     x = r * np.cos(theta) * np.sin(phi)
     y = r * np.sin(theta) * np.sin(phi)
@@ -92,6 +152,21 @@ def sph2cart(r, theta, phi):
 
 def cart2sph(x, y, z):
     '''
+    [summary]
+
+    Parameters
+    ----------
+    x : [type]
+        [description]
+    y : [type]
+        [description]
+    z : [type]
+        [description]
+
+    Returns
+    -------
+    [type]
+        [description]
     '''
     r = np.sqrt(x**2 + y**2 + z**2)
     theta = np.arctan(y / x)
@@ -102,6 +177,21 @@ def cart2sph(x, y, z):
 
 def cart2dp(x, y, z):
     '''
+    [summary]
+
+    Parameters
+    ----------
+    x : [type]
+        [description]
+    y : [type]
+        [description]
+    z : [type]
+        [description]
+
+    Returns
+    -------
+    [type]
+        [description]
     '''
     r = np.sqrt(x**2 + y**2 + z**2)
     alpha = np.arccos((np.sqrt(y**2 + z**2) / r))
@@ -112,6 +202,21 @@ def cart2dp(x, y, z):
 
 def dp2cart(r, alpha, beta):
     '''
+    [summary]
+
+    Parameters
+    ----------
+    r : [type]
+        [description]
+    alpha : [type]
+        [description]
+    beta : [type]
+        [description]
+
+    Returns
+    -------
+    [type]
+        [description]
     '''
     z = r * (1 - np.sin(alpha)**2 - np.sin(beta)**2)
     x = r * np.sin(alpha)
@@ -122,6 +227,19 @@ def dp2cart(r, alpha, beta):
 
 def rotation_matrix(vec, angle):
     '''
+    [summary]
+
+    Parameters
+    ----------
+    vec : [type]
+        [description]
+    angle : [type]
+        [description]
+
+    Returns
+    -------
+    [type]
+        [description]
     '''
     if isinstance(vec, str):
         string = vec.lower()
@@ -157,6 +275,21 @@ def rotation_matrix(vec, angle):
 
 def rotate_nodes(nodes, vec, angle):
     '''
+    [summary]
+
+    Parameters
+    ----------
+    nodes : [type]
+        [description]
+    vec : [type]
+        [description]
+    angle : [type]
+        [description]
+
+    Returns
+    -------
+    [type]
+        [description]
     '''
     rmatrix = rotation_matrix(vec, angle)
     return rmatrix.dot(nodes.T).T
@@ -164,6 +297,12 @@ def rotate_nodes(nodes, vec, angle):
 
 def distance(*args):
     '''
+    [summary]
+
+    Returns
+    -------
+    [type]
+        [description]
     '''
     return cdist(*np.atleast_2d(*args))
 
@@ -173,6 +312,21 @@ def distance(*args):
 
 def gausspulse(fc, fbw, fs):
     '''
+    [summary]
+
+    Parameters
+    ----------
+    fc : [type]
+        [description]
+    fbw : [type]
+        [description]
+    fs : [type]
+        [description]
+
+    Returns
+    -------
+    [type]
+        [description]
     '''
     cutoff = scipy.signal.gausspulse('cutoff', fc=fc, bw=fbw, tpr=-100, bwr=-3)
     adj_cutoff = np.ceil(cutoff * fs) / fs
@@ -185,18 +339,67 @@ def gausspulse(fc, fbw, fs):
 
 def nextpow2(n):
     '''
+    [summary]
+
+    Parameters
+    ----------
+    n : [type]
+        [description]
+
+    Returns
+    -------
+    [type]
+        [description]
     '''
     return 2**int(np.ceil(np.log2(n)))
 
 
 def envelope(rf_data, N=None, axis=-1):
     '''
+    [summary]
+
+    Parameters
+    ----------
+    rf_data : [type]
+        [description]
+    N : [type], optional
+        [description], by default None
+    axis : int, optional
+        [description], by default -1
+
+    Returns
+    -------
+    [type]
+        [description]
     '''
     return np.abs(scipy.signal.hilbert(np.atleast_2d(rf_data), N, axis=axis))
 
 
 def qbutter(x, fn, fs=1, btype='lowpass', n=4, plot=False, axis=-1):
     '''
+    [summary]
+
+    Parameters
+    ----------
+    x : [type]
+        [description]
+    fn : function
+        [description]
+    fs : int, optional
+        [description], by default 1
+    btype : str, optional
+        [description], by default 'lowpass'
+    n : int, optional
+        [description], by default 4
+    plot : bool, optional
+        [description], by default False
+    axis : int, optional
+        [description], by default -1
+
+    Returns
+    -------
+    [type]
+        [description]
     '''
     wn = fn / (fs / 2.)
     b, a = sp.signal.butter(n, wn, btype)
@@ -215,6 +418,31 @@ def qfirwin(x,
             axis=-1,
             window='hamming'):
     '''
+    [summary]
+
+    Parameters
+    ----------
+    x : [type]
+        [description]
+    fn : function
+        [description]
+    fs : int, optional
+        [description], by default 1
+    btype : str, optional
+        [description], by default 'lowpass'
+    ntaps : int, optional
+        [description], by default 80
+    plot : bool, optional
+        [description], by default False
+    axis : int, optional
+        [description], by default -1
+    window : str, optional
+        [description], by default 'hamming'
+
+    Returns
+    -------
+    [type]
+        [description]
     '''
     if btype.lower() in ('lowpass', 'low'):
         pass_zero = 1
@@ -233,7 +461,25 @@ def qfirwin(x,
 
 def qfft(s, nfft=None, fs=1, dr=100, fig=None, **kwargs):
     '''
-    Quick FFT plot. Returns frequency bins and FFT in dB.
+    [summary]
+
+    Parameters
+    ----------
+    s : [type]
+        [description]
+    nfft : [type], optional
+        [description], by default None
+    fs : int, optional
+        [description], by default 1
+    dr : int, optional
+        [description], by default 100
+    fig : [type], optional
+        [description], by default None
+
+    Returns
+    -------
+    [type]
+        [description]
     '''
     s = np.atleast_2d(s)
 
@@ -273,7 +519,21 @@ def qfft(s, nfft=None, fs=1, dr=100, fig=None, **kwargs):
 
 
 def chunks(iterable, n):
+    '''
+    [summary]
 
+    Parameters
+    ----------
+    iterable : [type]
+        [description]
+    n : [type]
+        [description]
+
+    Yields
+    -------
+    [type]
+        [description]
+    '''
     res = []
     for el in iterable:
         res.append(el)
@@ -287,8 +547,22 @@ def chunks(iterable, n):
 def create_jobs(*args, mode='zip', is_complete=None):
     '''
     Convenience function for creating jobs (sets of input arguments) for
-    multiprocessing Pool. Supports zip and product combinations, and automatic chunking
+    multiprocessing Pool. 
+    
+    Supports zip and product combinations, and automatic chunking
     of iterables.
+
+    Parameters
+    ----------
+    mode : str, optional
+        [description], by default 'zip'
+    is_complete : [type], optional
+        [description], by default None
+
+    Yields
+    -------
+    [type]
+        [description]
     '''
     static_args = list()
     static_idx = list()
@@ -332,7 +606,8 @@ def create_jobs(*args, mode='zip', is_complete=None):
 
         res = r + p
         # reorder vals according to input order
-        yield job_id + 1, tuple(res[i] for i in np.argsort(static_idx + iterable_idx))
+        yield job_id + 1, tuple(res[i]
+                                for i in np.argsort(static_idx + iterable_idx))
 
 
 ''' DATABASE FUNCTIONS '''
@@ -390,7 +665,8 @@ def create_progress_table(con, njobs):
     with con:
         # create table
         con.execute(
-            'CREATE TABLE progress (job_id INTEGER PRIMARY KEY, is_complete boolean)')
+            'CREATE TABLE progress (job_id INTEGER PRIMARY KEY, is_complete boolean)'
+        )
         # insert values
         con.executemany('INSERT INTO progress (is_complete) VALUES (?)',
                         repeat((False, ), njobs))
@@ -399,7 +675,8 @@ def create_progress_table(con, njobs):
 @open_db
 def get_progress(con):
 
-    table = pd.read_sql('SELECT is_complete FROM progress ORDER BY job_id', con)
+    table = pd.read_sql('SELECT is_complete FROM progress ORDER BY job_id',
+                        con)
 
     is_complete = np.array(table).squeeze()
     ijob = sum(is_complete) + 1
@@ -509,46 +786,16 @@ def script_parser2(main, config_def):
 ''' MISC FUNCTIONS '''
 
 
-def memoize_old(func):
-    '''
-    Simple memoizer to cache repeated function calls.
-    '''
-    def ishashable(obj):
-        try:
-            hash(obj)
-        except TypeError:
-            return False
-        return True
-
-    def make_hashable(obj):
-        if not ishashable(obj):
-            # use tostring on ndarray since str returns truncated output
-            if isinstance(obj, np.ndarray):
-                return obj.tostring()
-            return str(obj)
-        # round float arguments to avoid round-off error affecting cache
-        if isinstance(obj, float):
-            return round(obj, 18)
-        return obj
-
-    memo = {}
-
-    @functools.wraps(func)
-    def decorator(*args, **kwargs):
-        # key = tuple(make_hashable(a) for a in args)
-        key = (tuple(make_hashable(a) for a in args),
-               tuple((k, make_hashable(v)) for k, v in sorted(kwargs.items())))
-        if key not in memo:
-            memo[key] = func(*args, **kwargs)
-        # return a deep copy to avoid issues with mutable return objects
-        return deepcopy(memo[key])
-
-    return decorator
-
-
 def memoize(func, maxsize=20):
     '''
     Simple memoizer to cache repeated function calls.
+
+    Parameters
+    ----------
+    func : [type]
+        [description]
+    maxsize : int, optional
+        [description], by default 20
     '''
     def ishashable(obj):
         try:

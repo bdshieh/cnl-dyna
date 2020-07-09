@@ -1,6 +1,5 @@
-'''
-Routines implementing the finite element method.
-'''
+'''Routines for the finite element method.'''
+
 import numpy as np
 import numpy.linalg
 from cnld import abstract, mesh, util
@@ -16,6 +15,26 @@ eps = np.finfo(np.float64).eps
 def mem_static_x_vector(mem, refn, vdc, type='bpt', atol=1e-10, maxiter=100):
     '''
     Static deflection of membrane calculated via fixed-point iteration.
+
+    Parameters
+    ----------
+    mem : [type]
+        [description]
+    refn : [type]
+        [description]
+    vdc : [type]
+        [description]
+    type : str, optional
+        [description], by default 'bpt'
+    atol : [type], optional
+        [description], by default 1e-10
+    maxiter : int, optional
+        [description], by default 100
+
+    Returns
+    -------
+    [type]
+        [description]
     '''
     def pes(v, x, g_eff):
         return -e_0 / 2 * v**2 / (g_eff + x)**2
@@ -49,6 +68,20 @@ def mem_static_x_vector(mem, refn, vdc, type='bpt', atol=1e-10, maxiter=100):
 def mem_k_matrix(mem, refn, type='bpt'):
     '''
     Stiffness matrix.
+
+    Parameters
+    ----------
+    mem : [type]
+        [description]
+    refn : [type]
+        [description]
+    type : str, optional
+        [description], by default 'bpt'
+
+    Returns
+    -------
+    [type]
+        [description]
     '''
     if type.lower() in [
             'bpt',
@@ -62,7 +95,22 @@ def mem_k_matrix(mem, refn, type='bpt'):
 def mem_k_matrix_bpt(mem, refn):
     '''
     Stiffness matrix based on 3-dof (rotation-free) basic plate triangle (BPT) elements.
-    Refer to E. Onate and F. Zarate, Int. J. Numer. Meth. Engng. 47, 557-603 (2000).
+
+    Parameters
+    ----------
+    mem : [type]
+        [description]
+    refn : [type]
+        [description]
+
+    Returns
+    -------
+    [type]
+        [description]
+
+    References
+    ----------
+    [1] E. Onate and F. Zarate, Int. J. Numer. Meth. Engng. 47, 557-603 (2000).
     '''
     def L(x1, y1, x2, y2):
         # calculates edge length
@@ -198,7 +246,24 @@ def mem_k_matrix_bpt(mem, refn):
 def mem_k_matrix_hpb(mem, refn, retmesh=False):
     '''
     Stiffness matrix based on 3-dof hinged plate bending (HPB) elements.
-    Refer to R. Phaal and C. R. Calladine, Int. J. Numer. Meth. Engng.,
+    
+    Parameters
+    ----------
+    mem : [type]
+        [description]
+    refn : [type]
+        [description]
+    retmesh : bool, optional
+        [description], by default False
+
+    Returns
+    -------
+    [type]
+        [description]
+
+    References
+    ----------
+    [1] R. Phaal and C. R. Calladine, Int. J. Numer. Meth. Engng.,
     vol. 35, no. 5, pp. 955–977, (1992).
     '''
     def norm(r1, r2):
@@ -393,8 +458,8 @@ def mem_k_matrix_hpb(mem, refn, retmesh=False):
             # non-boundary nodes index = 1, 2
 
             # modify row for mirrored node
-            K_be[4, 4] = (K_be[0, 0] + K_be[0, 4] + K_be[4, 0] + K_be[4, 4]
-                          )  #/ 2
+            K_be[4,
+                 4] = (K_be[0, 0] + K_be[0, 4] + K_be[4, 0] + K_be[4, 4])  #/ 2
             K_be[4, 1] = (K_be[4, 1] + K_be[0, 1])  #/ 2
             K_be[4, 2] = (K_be[4, 2] + K_be[0, 2])  #/ 2
             # K_be[4, 1] /= 2
@@ -429,8 +494,8 @@ def mem_k_matrix_hpb(mem, refn, retmesh=False):
             # non-boundary nodes index = 0, 2
 
             # modify row for mirrored node
-            K_be[5, 5] = (K_be[1, 1] + K_be[1, 5] + K_be[5, 1] + K_be[5, 5]
-                          )  #/ 2
+            K_be[5,
+                 5] = (K_be[1, 1] + K_be[1, 5] + K_be[5, 1] + K_be[5, 5])  #/ 2
             K_be[5, 0] = (K_be[5, 0] + K_be[1, 0])  #/ 2
             K_be[5, 2] = (K_be[5, 2] + K_be[1, 2])  #/ 2
             # K_be[5, 0] /= 2
@@ -465,8 +530,8 @@ def mem_k_matrix_hpb(mem, refn, retmesh=False):
             # non-boundary nodes index = 0, 1
 
             # modify row for mirrored node
-            K_be[3, 3] = (K_be[2, 2] + K_be[2, 3] + K_be[3, 2] + K_be[3, 3]
-                          )  #/ 2
+            K_be[3,
+                 3] = (K_be[2, 2] + K_be[2, 3] + K_be[3, 2] + K_be[3, 3])  #/ 2
             K_be[3, 0] = (K_be[3, 0] + K_be[2, 0])  #/ 2
             K_be[3, 1] = (K_be[3, 1] + K_be[2, 1])  #/ 2
             # K_be[3, 0] /= 2
@@ -509,6 +574,18 @@ def mem_k_matrix_hybrid(mem, refn):
     '''
     *Experimental* Stiffness matrix based on HPB for interior triangles and
     BPT for boundary triangles.
+
+    Parameters
+    ----------
+    mem : [type]
+        [description]
+    refn : [type]
+        [description]
+
+    Returns
+    -------
+    [type]
+        [description]
     '''
     def norm(r1, r2):
         # calculates edge length
@@ -780,6 +857,20 @@ def mem_m_matrix(mem, refn, mu=0.5):
     '''
     Mass matrix based on average of lumped and consistent mass matrix
     (lumped-consistent).
+
+    Parameters
+    ----------
+    mem : [type]
+        [description]
+    refn : [type]
+        [description]
+    mu : float, optional
+        [description], by default 0.5
+
+    Returns
+    -------
+    [type]
+        [description]
     '''
     DLM = mem_dlm_matrix(mem, refn)
     CMM = mem_cm_matrix(mem, refn)
@@ -792,6 +883,18 @@ def mem_cm_matrix(mem, refn):
     '''
     Mass matrix based on kinetic energy and linear shape functions
     (consistent).
+
+    Parameters
+    ----------
+    mem : [type]
+        [description]
+    refn : [type]
+        [description]
+
+    Returns
+    -------
+    [type]
+        [description]
     '''
     if isinstance(mem, abstract.SquareCmutMembrane):
         amesh = mesh.square(mem.length_x, mem.length_y, refn)
@@ -832,6 +935,18 @@ def mem_dlm_matrix(mem, refn):
     '''
     Mass matrix based on equal distribution of element mass to nodes
     (diagonally-lumped).
+
+    Parameters
+    ----------
+    mem : [type]
+        [description]
+    refn : [type]
+        [description]
+
+    Returns
+    -------
+    [type]
+        [description]
     '''
     if isinstance(mem, abstract.SquareCmutMembrane):
         amesh = mesh.square(mem.length_x, mem.length_y, refn)
@@ -865,6 +980,20 @@ def mem_b_matrix(mem, M, K):
     '''
     Damping matrix based on Rayleigh damping for damping ratios at two
     frequencies.
+
+    Parameters
+    ----------
+    mem : [type]
+        [description]
+    M : [type]
+        [description]
+    K : [type]
+        [description]
+
+    Returns
+    -------
+    [type]
+        [description]
     '''
     fa = mem.damping_freq_a
     fb = mem.damping_freq_b
@@ -885,6 +1014,18 @@ def mem_b_matrix(mem, M, K):
 def mem_eig(mem, refn):
     '''
     Returns the eigenfrequency (in Hz) and eigenmodes of a membrane.
+
+    Parameters
+    ----------
+    mem : [type]
+        [description]
+    refn : [type]
+        [description]
+
+    Returns
+    -------
+    [type]
+        [description]
     '''
     if isinstance(mem, abstract.SquareCmutMembrane):
         amesh = mesh.square(mem.length_x, mem.length_y, refn)
@@ -908,6 +1049,22 @@ def mem_b_matrix_eig(mem, refn, M, K):
     '''
     Damping matrix based on Rayleigh damping for damping ratios at two modal
     frequencies.
+
+    Parameters
+    ----------
+    mem : [type]
+        [description]
+    refn : [type]
+        [description]
+    M : [type]
+        [description]
+    K : [type]
+        [description]
+
+    Returns
+    -------
+    [type]
+        [description]
     '''
     ma = mem.damping_mode_a
     mb = mem.damping_mode_b
@@ -931,6 +1088,20 @@ def mem_f_vector(mem, refn, p):
     '''
     Pressure load vector based on equal distribution of pressure to element
     nodes.
+
+    Parameters
+    ----------
+    mem : [type]
+        [description]
+    refn : [type]
+        [description]
+    p : [type]
+        [description]
+
+    Returns
+    -------
+    [type]
+        [description]
     '''
     if isinstance(mem, abstract.SquareCmutMembrane):
         amesh = mesh.square(mem.length_x, mem.length_y, refn)
@@ -958,6 +1129,20 @@ def mem_f_vector(mem, refn, p):
 def mem_f_vector_arb_load(mem, refn, load_func):
     '''
     Pressure load vector based on an arbitrary load.
+
+    Parameters
+    ----------
+    mem : [type]
+        [description]
+    refn : [type]
+        [description]
+    load_func : [type]
+        [description]
+
+    Returns
+    -------
+    [type]
+        [description]
     '''
     if isinstance(mem, abstract.SquareCmutMembrane):
         amesh = mesh.square(mem.length_x, mem.length_y, refn)
@@ -1004,6 +1189,18 @@ def mem_f_vector_arb_load(mem, refn, load_func):
 def mem_patch_f_matrix(mem, refn):
     '''
     Load vector for a patch.
+
+    Parameters
+    ----------
+    mem : [type]
+        [description]
+    refn : [type]
+        [description]
+
+    Returns
+    -------
+    [type]
+        [description]
     '''
     if isinstance(mem, abstract.SquareCmutMembrane):
         amesh = mesh.square(mem.length_x,
@@ -1114,6 +1311,18 @@ def mem_patch_f_matrix(mem, refn):
 def mem_patch_avg_matrix(mem, refn):
     '''
     Averaging vector for a patch.
+
+    Parameters
+    ----------
+    mem : [type]
+        [description]
+    refn : [type]
+        [description]
+
+    Returns
+    -------
+    [type]
+        [description]
     '''
     if isinstance(mem, abstract.SquareCmutMembrane):
         amesh = mesh.square(mem.length_x,
@@ -1219,6 +1428,19 @@ def mem_patch_avg_matrix(mem, refn):
 @util.memoize
 def mem_patch_fcol_vector(mem, refn):
     '''
+    [summary]
+
+    Parameters
+    ----------
+    mem : [type]
+        [description]
+    refn : [type]
+        [description]
+
+    Returns
+    -------
+    [type]
+        [description]
     '''
     f = mem_patch_f_matrix(mem, refn)
     avg = mem_patch_avg_matrix(mem, refn)
@@ -1255,6 +1477,18 @@ def mem_patch_fcol_vector(mem, refn):
 def array_f_spmatrix(array, refn):
     '''
     Construct load vector based on patches of abstract array.
+
+    Parameters
+    ----------
+    array : [type]
+        [description]
+    refn : [type]
+        [description]
+
+    Returns
+    -------
+    [type]
+        [description]
     '''
     blocks = []
     for elem in array.elements:
@@ -1268,6 +1502,18 @@ def array_f_spmatrix(array, refn):
 def array_avg_spmatrix(array, refn):
     '''
     Construct load vector based on patches of abstract array.
+
+    Parameters
+    ----------
+    array : [type]
+        [description]
+    refn : [type]
+        [description]
+
+    Returns
+    -------
+    [type]
+        [description]
     '''
     blocks = []
     for elem in array.elements:
@@ -1282,6 +1528,16 @@ def array_avg_spmatrix(array, refn):
 def inv_block(a):
     '''
     Inverse of a dense block matrix.
+
+    Parameters
+    ----------
+    a : [type]
+        [description]
+
+    Returns
+    -------
+    [type]
+        [description]
     '''
     return np.linalg.inv(a)
 
@@ -1289,6 +1545,22 @@ def inv_block(a):
 def array_mbk_spmatrix(array, refn, f, inv=False):
     '''
     Mass, Damping, and Stiffness matrix in sparse format for an array.
+
+    Parameters
+    ----------
+    array : [type]
+        [description]
+    refn : [type]
+        [description]
+    f : [type]
+        [description]
+    inv : bool, optional
+        [description], by default False
+
+    Returns
+    -------
+    [type]
+        [description]
     '''
     omg = 2 * np.pi * f
     blocks = []
@@ -1318,6 +1590,20 @@ def array_mbk_spmatrix(array, refn, f, inv=False):
 def array_mbk_linop(array, refn, f):
     '''
     Mass, Damping, and Stiffness linear operator in sparse format for an array.
+
+    Parameters
+    ----------
+    array : [type]
+        [description]
+    refn : [type]
+        [description]
+    f : [type]
+        [description]
+
+    Returns
+    -------
+    [type]
+        [description]
     '''
     MBK, MBK_inv = array_mbk_spmatrix(array, refn, f, inv=True)
 

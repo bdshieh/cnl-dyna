@@ -1,6 +1,4 @@
-'''
-Routines for time-domain simulation.
-'''
+'''Routines for time-domain simulation.'''
 import cython
 import numpy as np
 import scipy as sp
@@ -17,6 +15,20 @@ cimport cython
 def p_es_pp(v, x, g_eff):
     '''
     Electrostatic pressure for parallel-plate capacitor.
+
+    Parameters
+    ----------
+    v : [type]
+        [description]
+    x : [type]
+        [description]
+    g_eff : [type]
+        [description]
+
+    Returns
+    -------
+    [type]
+        [description]
     '''
     return -e_0 / 2 * v**2 / (x + g_eff)**2
 
@@ -24,6 +36,22 @@ def p_es_pp(v, x, g_eff):
 def fir_conv_py(fir, p, fs, offset):
     '''
     Convolve input with LTI system, Python implementation.
+
+    Parameters
+    ----------
+    fir : [type]
+        [description]
+    p : [type]
+        [description]
+    fs : [type]
+        [description]
+    offset : [type]
+        [description]
+
+    Returns
+    -------
+    [type]
+        [description]
     '''
     p = np.array(p)
     nsrc, ndest, nfir = fir.shape
@@ -52,7 +80,27 @@ cpdef np.ndarray fir_conv_cy(const double[:, :, :] fir, const double[:, :] p, do
                              int offset):
     '''
     Convolve input with LTI system, Cython implementation.
-    '''
+
+    Parameters
+    ----------
+    ndest : [type]
+        [description]
+    constdouble : [type]
+        [description]
+    doubledt : [type]
+        [description]
+    intoffset : [type]
+        [description]
+    nfir : [type], optional
+        [description], by default fir.shapensample
+    _ : [type], optional
+        [description], 
+
+    Returns
+    -------
+    [type]
+        [description]
+    '''                             
     cdef int nsrc = fir.shape[0]
     cdef int ndest = fir.shape[1]
     cdef int nfir = fir.shape[2]
@@ -80,6 +128,15 @@ cpdef np.ndarray fir_conv_cy(const double[:, :, :] fir, const double[:, :] p, do
 def make_p_cont_spr(k, n, x0):
     '''
     Generate contact spring function.
+
+    Parameters
+    ----------
+    k : [type]
+        [description]
+    n : [type]
+        [description]
+    x0 : [type]
+        [description]
     '''
     def _p_cont_spr(x):
         if x >= x0:
@@ -274,12 +331,49 @@ class StateDB:
 class FixedStepSolver:
     '''
     Time-domain solver using fixed time steps.
+
+    Returns
+    -------
+    [type]
+        [description]
+
+    Raises
+    ------
+    StopIteration
+        [description]
     '''
     Properties = namedlist('Properties', 'gap gap_eff')
 
     def __init__(self, t_fir, t_v, gap, gap_eff, t_lim, k, n, x0, lmbd, atol=1e-10,
                  maxiter=5):
+        '''
+        [summary]
 
+        Parameters
+        ----------
+        t_fir : [type]
+            [description]
+        t_v : [type]
+            [description]
+        gap : [type]
+            [description]
+        gap_eff : [type]
+            [description]
+        t_lim : [type]
+            [description]
+        k : [type]
+            [description]
+        n : [type]
+            [description]
+        x0 : [type]
+            [description]
+        lmbd : [type]
+            [description]
+        atol : [type], optional
+            [description], by default 1e-10
+        maxiter : int, optional
+            [description], by default 5
+        '''
         fir_t, fir = t_fir
         t_start, t_stop, t_step = t_lim
         npatch = fir.shape[0]
@@ -542,10 +636,36 @@ class FixedStepSolver:
 class CompensationSolver(FixedStepSolver):
     '''
     *Experimental* Time-domain solver with deflection profile compensation.
+
+    Parameters
+    ----------
+    FixedStepSolver : [type]
+        [description]
     '''
     def __init__(self, t_fir, t_v, gap, gap_eff, t_lim, comp_funcs, atol=1e-10,
                  maxiter=5):
+        '''
+        [summary]
 
+        Parameters
+        ----------
+        t_fir : [type]
+            [description]
+        t_v : [type]
+            [description]
+        gap : [type]
+            [description]
+        gap_eff : [type]
+            [description]
+        t_lim : [type]
+            [description]
+        comp_funcs : [type]
+            [description]
+        atol : [type], optional
+            [description], by default 1e-10
+        maxiter : int, optional
+            [description], by default 5
+        '''
         self._comp_funcs = comp_funcs
         super().__init__(t_fir, t_v, gap, gap_eff, t_lim, 0, 0, 0, 0, atol=atol,
                          maxiter=maxiter)
@@ -624,6 +744,26 @@ class CompensationSolver(FixedStepSolver):
 def gaussian_pulse(fc, fbw, fs, td=0, tpr=-60, antisym=True):
     '''
     Gaussian pulse.
+
+    Parameters
+    ----------
+    fc : [type]
+        [description]
+    fbw : [type]
+        [description]
+    fs : [type]
+        [description]
+    td : int, optional
+        [description], by default 0
+    tpr : int, optional
+        [description], by default -60
+    antisym : bool, optional
+        [description], by default True
+
+    Returns
+    -------
+    [type]
+        [description]
     '''
     cutoff = scipy.signal.gausspulse('cutoff', fc=fc, bw=fbw, tpr=tpr, bwr=-3)
     adj_cutoff = np.ceil(cutoff * fs) / fs
@@ -641,6 +781,24 @@ def gaussian_pulse(fc, fbw, fs, td=0, tpr=-60, antisym=True):
 def logistic_ramp(tr, dt, td=0, tstop=None, tpr=-60):
     '''
     DC ramp defined by rise time using the logistic function.
+
+    Parameters
+    ----------
+    tr : [type]
+        [description]
+    dt : [type]
+        [description]
+    td : int, optional
+        [description], by default 0
+    tstop : [type], optional
+        [description], by default None
+    tpr : int, optional
+        [description], by default -60
+
+    Returns
+    -------
+    [type]
+        [description]
     '''
     k = 2 * np.log(10**(-tpr / 20)) / tr
     cutoff = np.ceil(tr / 2 / dt) * dt
@@ -657,6 +815,17 @@ def logistic_ramp(tr, dt, td=0, tstop=None, tpr=-60):
 def linear_ramp(tr, dt, td=0, tstop=None):
     '''
     DC linear ramp.
+
+    Parameters
+    ----------
+    tr : [type]
+        [description]
+    dt : [type]
+        [description]
+    td : int, optional
+        [description], by default 0
+    tstop : [type], optional
+        [description], by default None
     '''
     def f(t):
         if t > tr:
@@ -679,6 +848,22 @@ def linear_ramp(tr, dt, td=0, tstop=None):
 def winsin(f, ncycle, dt, td=0):
     '''
     Windowed sine.
+
+    Parameters
+    ----------
+    f : [type]
+        [description]
+    ncycle : [type]
+        [description]
+    dt : [type]
+        [description]
+    td : int, optional
+        [description], by default 0
+
+    Returns
+    -------
+    [type]
+        [description]
     '''
     cutoff = round(ncycle * 1 / f / 2 / dt) * dt
     t = np.arange(-cutoff, cutoff + dt / 2, dt)
@@ -693,6 +878,11 @@ def winsin(f, ncycle, dt, td=0):
 def sigadd(*args):
     '''
     Add multiple time signals together, zero-padding when necessary.
+
+    Returns
+    -------
+    [type]
+        [description]
     '''
     t0 = [t[0] for t, v in args]
     tmin = min(t0)
