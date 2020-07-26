@@ -1,17 +1,20 @@
 ''' Setup script.'''
 from setuptools import setup, find_packages
 from setuptools.extension import Extension
+from setuptools.command.build_py import build_py
 from Cython.Build import cythonize
 import os
+import subprocess
+import sys
 
 import numpy as np
 
 # yapf: disable
 ext_opts = {
-    'include_dirs': ['include', np.get_include()],
+    'include_dirs': ['H2Lib/Library', np.get_include()],
     # 'libraries':['h2', 'blas', 'lapack', 'gfortran'],
     'libraries': ['h2', 'gfortran', 'openblas', 'omp'],
-    'library_dirs': ['lib'],
+    'library_dirs': ['H2Lib'],
     'language': 'c',
     'extra_compile_args': ['-fPIC', '-DUSE_BLAS', '-DUSE_COMPLEX', '-DUSE_OPENMP', '-Wno-strict-prototypes'],
     # 'extra_objects':['./lib/libopenblas.a']
@@ -120,8 +123,15 @@ ext_modules = [
     ),
 ]
 
+
+class Build(build_py):
+    def run(self):
+        subprocess.check_call('make', cwd='H2Lib')
+        build_py.run(self)
+
+
 setup(
-    name='cnl-dyna',
+    name='cnld',
     version='0.9',
     ext_modules=cythonize(ext_modules),
     packages=find_packages(),
@@ -130,6 +140,7 @@ setup(
             'cnld = cnld.cli2:main'
         ]
     },
+    cmdclass={'build_py': Build},
     setup_requires=[
         'setuptools>=18.0',
         'cython>=0.25',
@@ -141,6 +152,8 @@ setup(
         'tqdm',
         'pandas',
         'namedlist',
-        'jupyterlab',
+        'pytest',
+        'jupyter',
+        'ipywidgets'
     ]
 )

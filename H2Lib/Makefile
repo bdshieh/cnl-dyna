@@ -135,58 +135,32 @@ PROGRAMS_tests := \
 	$(SOURCES_tests:.c=)
 
 # ------------------------------------------------------------
-# Example programs
-# ------------------------------------------------------------
-
-SOURCES_examples = \
-	Examples/example_dh2matrix.c \
-	Examples/example_visualize.c \
-	Examples/example_amatrix_bem3d.c \
-	Examples/example_hmatrix_bem3d.c \
-	Examples/example_h2matrix_bem3d.c\
-	Examples/example_fem_p1_harith.c\
-	Examples/example_fem_rt0_harith.c
-
-OBJECTS_examples = \
-	$(SOURCES_examples:.c=.o)
-
-DEPENDENCIES_examples = \
-	$(SOURCES_examples:.c=.d)
-
-PROGRAMS_examples = \
-	$(SOURCES_examples:.c=)
-
-# ------------------------------------------------------------
 # All files
 # ------------------------------------------------------------
 
 SOURCES := \
 	$(SOURCES_libh2) \
-	$(SOURCES_tests) \
-	$(SOURCES_examples)
+	$(SOURCES_tests) 
 
 HEADERS := \
 	$(HEADER_libh2)
 
 OBJECTS := \
 	$(OBJECTS_libh2) \
-	$(OBJECTS_tests) \
-	$(OBJECTS_examples)
+	$(OBJECTS_tests) 
 
 DEPENDENCIES := \
 	$(DEPENDENCIES_libh2) \
-	$(DEPENDENCIES_tests) \
-	$(DEPENDENCIES_examples)
+	$(DEPENDENCIES_tests) 
 
 PROGRAMS := \
-	$(PROGRAMS_tests) \
-	$(PROGRAMS_examples)
+	$(PROGRAMS_tests) 
 
 # ------------------------------------------------------------
 # Standard target
 # ------------------------------------------------------------
 
-all: $(PROGRAMS_tests) $(PROGRAMS_examples)
+all: $(PROGRAMS_tests)
 
 # ------------------------------------------------------------
 # OpenCL sources
@@ -262,33 +236,6 @@ endif
 
 -include $(DEPENDENCIES_tests) $(DEPENDENCIES_tools)
 $(OBJECTS_tests): Makefile
-
-# ------------------------------------------------------------
-# Rules for example programs
-# ------------------------------------------------------------
-
-$(PROGRAMS_examples): %: %.o
-ifdef BRIEF_OUTPUT
-	@echo Linking $@
-	@$(CC) $(LDFLAGS) $< -o $@ -lh2 $(LIBS) 
-else
-	$(CC) $(LDFLAGS) $< -o $@ -lh2 $(LIBS) 
-endif
-
-$(PROGRAMS_examples): libh2.a
-
-$(OBJECTS_examples): %.o: %.c
-ifdef BRIEF_OUTPUT
-	@echo Compiling $<
-	@$(GCC) -MT $@ -MM -I Library $< > $(<:%.c=%.d)
-	@$(CC) $(CFLAGS) -I Library -c $< -o $@
-else
-	@$(GCC) -MT $@ -MM -I Library $< > $(<:%.c=%.d)
-	$(CC) $(CFLAGS) -I Library -c $< -o $@
-endif
-
--include $(DEPENDENCIES_examples)
-$(OBJECTS_examples): Makefile
 
 # ------------------------------------------------------------
 # Rules for the Doxygen documentation
