@@ -4,16 +4,10 @@ from namedlist import namedlist
 import json
 from collections import OrderedDict
 
-LayoutData = namedlist(
-    'LayoutData',
-    OrderedDict(
-        id=None,
-        position=None,
-        shape=None,
-        lengthx=None,
-        lengthy=None,
-        radius=None,
-    ))
+LayoutData = namedlist('LayoutData', OrderedDict(
+    id=None,
+    position=None,
+))
 
 
 class Layout(object):
@@ -40,6 +34,13 @@ class Layout(object):
     def __iter__(self):
         return iter(self._data)
 
+    def __len__(self):
+        return len(self._data)
+
+    @property
+    def position(self):
+        return [v.position for v in self]
+
     @property
     def center(self):
         return [v.position for v in self]
@@ -47,22 +48,6 @@ class Layout(object):
     @property
     def id(self):
         return [v.id for v in self]
-
-    @property
-    def shape(self):
-        return [v.shape for v in self]
-
-    @property
-    def lengthx(self):
-        return [v.lengthx for v in self]
-
-    @property
-    def lengthy(self):
-        return [v.lengthy for v in self]
-
-    @property
-    def radius(self):
-        return [v.radius for v in self]
 
     @property
     def json(self):
@@ -87,11 +72,11 @@ def matrix_layout(nx, ny, pitchx, pitchy, **kwargs):
     cy -= (ny - 1) * pitchy / 2
     centers = np.c_[cx.ravel(), cy.ravel(), cz.ravel()]
 
-    layout = []
+    data = []
     for id, pos in enumerate(centers):
-        layout.append(LayoutData(id=id, position=list(pos), **kwargs))
+        data.append(LayoutData(id=id, position=list(pos), **kwargs))
 
-    return Layout(layout)
+    return Layout(data)
 
 
 def hexagonal_layout(nx, ny, pitch, **kwargs):
@@ -108,11 +93,11 @@ def hexagonal_layout(nx, ny, pitch, **kwargs):
 
     centers = np.c_[cx.ravel(), cy.ravel(), cz.ravel()]
 
-    layout = []
+    data = []
     for id, pos in enumerate(centers):
-        layout.append(LayoutData(id=id, position=list(pos), **kwargs))
+        data.append(LayoutData(id=id, position=list(pos), **kwargs))
 
-    return Layout(layout)
+    return Layout(data)
 
 
 def linear_layout(nelem, pitch):
