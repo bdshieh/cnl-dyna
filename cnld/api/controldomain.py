@@ -3,7 +3,7 @@ import numpy as np
 from namedlist import namedlist
 import json
 from collections import OrderedDict
-from itertools import repeat
+from itertools import cycle
 
 ControlDomainData = namedlist(
     'ControlDomainData',
@@ -105,7 +105,8 @@ def autogenerate_control_domain(layout,
                                 mapping=None):
 
     if mapping is None:
-        mapping = repeat(range(len(geometry)))
+        gid = cycle(range(len(geometry)))
+        mapping = [next(gid) for i in range(len(layout))]
 
     data = []
     cid = 0
@@ -124,12 +125,14 @@ def autogenerate_control_domain(layout,
 
             for c in centers:
                 data.append(
-                    ControlDomain(id=cid,
-                                  position=list(l.position + c),
-                                  shape='square',
-                                  lengthx=pitchx,
-                                  lengthy=pitchy,
-                                  area=pitchx * pitchy))
+                    ControlDomainData(
+                        id=cid,
+                        position=list(l.position + c),
+                        shape='square',
+                        lengthx=pitchx,
+                        lengthy=pitchy,
+                        area=pitchx * pitchy,
+                    ))
                 cid += 1
 
         elif g.shape == 'circle':
@@ -140,17 +143,21 @@ def autogenerate_control_domain(layout,
             rmax = [r[i + 1] for i in range(nr) for j in range(ntheta)]
             thetamin = [theta[j] for i in range(nr) for j in range(ntheta)]
             thetamax = [theta[j + 1] for i in range(nr) for j in range(ntheta)]
-            c = np.arange([0, 0, 0])
+            c = np.array([0, 0, 0])
 
             for j in range(nr * ntheta):
                 data.append(
-                    ControlDomain(id=cid,
-                                  position=list(l.position + c),
-                                  shape='circle',
-                                  radius_min=rmin[j],
-                                  radius_max=rmax[j],
-                                  theta_min=thetamin[j],
-                                  theta_max=thetamax[j]))
+                    ControlDomainData(
+                        id=cid,
+                        position=list(l.position + c),
+                        shape='circle',
+                        radius_min=rmin[j],
+                        radius_max=rmax[j],
+                        theta_min=thetamin[j],
+                        theta_max=thetamax[j],
+                        area=(rmax[j]**2 - rmin[j]**2) *
+                        (thetamax[j] - thetamin[j]) / 2,
+                    ))
                 cid += 1
         else:
             raise TypeError

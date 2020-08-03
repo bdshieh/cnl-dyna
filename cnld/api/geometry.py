@@ -3,28 +3,34 @@ import numpy as np
 from namedlist import namedlist
 import json
 from collections import OrderedDict
+# import warnings
 
 GeometryData = namedlist(
     'GeomData',
-    dict(id=None,
-         thickness=None,
-         shape=None,
-         lengthx=None,
-         lengthy=None,
-         radius=None,
-         rho=None,
-         ymod=None,
-         prat=None,
-         isol_thickness=None,
-         eps_r=None,
-         gap=None,
-         electrode_x=None,
-         electrode_y=None,
-         electrode_r=None))
+    dict(
+        id=None,
+        thickness=None,
+        shape=None,
+        lengthx=None,
+        lengthy=None,
+        radius=None,
+        rho=None,
+        ymod=None,
+        prat=None,
+        isol_thickness=None,
+        eps_r=None,
+        gap=None,
+        electrode_x=None,
+        electrode_y=None,
+        electrode_r=None,
+    ))
 
 
 class Geometry(object):
     def __init__(self, data):
+
+        if isinstance(data, GeometryData):
+            data = [data]
 
         if not isinstance(data, list):
             raise TypeError
@@ -40,15 +46,39 @@ class Geometry(object):
             _data[int(_v.id)] = _v
 
         self._data = data
+        self._align_id_with_index()
 
-    def __getitem__(self, id):
-        return self._data[id]
+    def __len__(self):
+        return len(self._data)
+
+    def __getitem__(self, key):
+        return self._data[key]
+
+    def __setitem__(self, key, **kwargs):
+        self._data[key] = GeometryData(**kwargs)
+
+    def __delitem__(self, key):
+        del self._data[key]
+        self._align_id_with_index()
 
     def __iter__(self):
         return iter(self._data)
 
-    def __len__(self):
-        return len(self._data)
+    def __add__(self, arg):
+        return Geometry(self._data + arg._data)
+
+    def _align_id_with_index(self):
+        for i, g in enumerate(self):
+            g.id = i
+
+    def append(self, *args, **kwargs):
+        if args:
+            if len(args) != 1:
+                raise ValueError
+            self._data.append(args[0])
+        elif kwargs:
+            self._data.append(GeometryData(**kwargs))
+            self._align_id_with_index()
 
     @property
     def id(self):
@@ -133,6 +163,10 @@ def square_cmut_1mhz_geometry(**kwargs):
                         electrode_x=35e-6,
                         electrode_y=35e-6)
 
+    for k, v in kwargs.items():
+        if k in data:
+            data[k] = v
+
     return Geometry([data])
 
 
@@ -149,5 +183,9 @@ def circle_cmut_1mhz_geometry(**kwargs):
                         gap=50e-9,
                         electrode_x=35e-6,
                         electrode_y=35e-6)
+
+    for k, v in kwargs.items():
+        if k in data:
+            data[k] = v
 
     return Geometry([data])
