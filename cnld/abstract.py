@@ -148,7 +148,8 @@ def load(fp, *args, **kwargs):
     '''
     Load JSON and convert to abstract object.
     '''
-    return _generate_object_from_json(json.load(open(fp, 'r'), *args, **kwargs))
+    return _generate_object_from_json(json.load(open(fp, 'r'), *args,
+                                                **kwargs))
 
 
 def loads(s, *args, **kwargs):
@@ -317,6 +318,8 @@ def vectorize(f):
 
 
 ''' MEMBRANE MANIPLUATIONS '''
+
+
 @vectorize
 def move_membrane(m, pos):
     '''
@@ -350,6 +353,8 @@ def rotate_membrane(m, origin, vec, angle):
 
 
 ''' ELEMENT MANIPULATIONS '''
+
+
 @vectorize
 def move_element(e, pos):
     '''
@@ -439,6 +444,8 @@ def deactivate_element(e):
 
 
 ''' ARRAY MANIPLUATIONS '''
+
+
 @vectorize
 def move_array(a, pos):
     '''
@@ -533,7 +540,8 @@ def get_element_count(a, kind=None):
             if e['kind'].lower() in ['rx', 'receive', 'both', 'txrx']
         ])
     elif kind.lower() in ['txrx', 'both']:
-        return len([e for e in a.elements if e['kind'].lower() in ['both', 'txrx']])
+        return len(
+            [e for e in a.elements if e['kind'].lower() in ['both', 'txrx']])
 
 
 @vectorize
@@ -555,7 +563,9 @@ def get_elements_from_array(array, kind='both'):
     '''
     '''
     if kind.lower() in ['both']:
-        elements = [e for e in array.elements if e.kind.lower() in ['both', 'txrx']]
+        elements = [
+            e for e in array.elements if e.kind.lower() in ['both', 'txrx']
+        ]
     elif kind.lower() in ['tx', 'transmit']:
         elements = [
             e for e in array.elements
