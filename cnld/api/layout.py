@@ -206,11 +206,11 @@ def generate_control_domains(layout,
 
     if mapping is None:
         gid = cycle(range(len(geometry)))
-        mapping = [next(gid) for i in range(len(layout))]
+        mapping = [next(gid) for i in range(len(layout.Membranes))]
 
     data = []
     cid = 0
-    for i, l in enumerate(layout):
+    for i, mem in enumerate(layout.Membranes):
         g = geometry[mapping[i]]
 
         if g.shape == 'square':
@@ -227,7 +227,7 @@ def generate_control_domains(layout,
                 data.append(
                     ControlDomainData(
                         id=cid,
-                        position=list(l.position + c),
+                        position=list(mem.position + c),
                         shape='square',
                         lengthx=pitchx,
                         lengthy=pitchy,
@@ -249,7 +249,7 @@ def generate_control_domains(layout,
                 data.append(
                     ControlDomainData(
                         id=cid,
-                        position=list(l.position + c),
+                        position=list(mem.position + c),
                         shape='circle',
                         radius_min=rmin[j],
                         radius_max=rmax[j],

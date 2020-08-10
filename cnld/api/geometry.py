@@ -4,7 +4,7 @@ from namedlist import namedlist
 # import json
 from collections import OrderedDict
 # import warnings
-from cnld.baselist import BaseList
+from cnld.datatypes import BaseList
 
 GeometryData = namedlist(
     'GeometryData',
