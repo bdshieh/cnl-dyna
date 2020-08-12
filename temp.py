@@ -16,14 +16,19 @@ lay = layout.matrix_layout(2, 2, 100e-6, 100e-6)
 layout.generate_control_domains(lay, geom2)
 # %%
 import numpy as np
-from cnld import datatypes
+from cnld.api import define
 
-g = datatypes.GeometryData(id=0,
-                           thickness=1e-6,
-                           shape='square',
-                           lengthx=35e-6,
-                           lengthy=35e-6,
-                           prat=np.arange(5),
-                           eps_r=datatypes.GeometryData())
+g = define.GeometryData(id=0,
+                        thickness=1e-6,
+                        shape='square',
+                        lengthx=35e-6,
+                        lengthy=35e-6,
+                        prat=np.arange(5),
+                        eps_r=define.GeometryData())
 print(g)
+
+gl = define.Geometries(2, lengthx=1e-6)
+gl2 = define.Geometries(gl)
+print(gl2)
+
 # %%
