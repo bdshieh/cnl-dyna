@@ -149,10 +149,12 @@ setup(
         'numpy',
         'scipy',
         'matplotlib',
+        'cython',
         'tqdm',
         'pandas',
         'namedlist',
         'pytest',
+        'numba',
         'jupyter',
         'ipywidgets'
     ]

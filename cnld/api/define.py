@@ -266,6 +266,48 @@ def linear_hexagonal_layout(nx, ny, pitch):
     pass
 
 
+def square_cmut_1mhz_geometry(**kwargs):
+    data = GeometryData(id=0,
+                        thickness=1e-6,
+                        shape='square',
+                        lengthx=35e-6,
+                        lengthy=35e-6,
+                        rho=2040,
+                        ymod=110e9,
+                        prat=0.2,
+                        isol_thickness=100e-9,
+                        eps_r=1.2,
+                        gap=50e-9,
+                        electrode_x=35e-6,
+                        electrode_y=35e-6)
+
+    for k, v in kwargs.items():
+        if k in data:
+            data[k] = v
+
+    return Geometries([data])
+
+
+def circle_cmut_1mhz_geometry(**kwargs):
+    data = GeometryData(id=0,
+                        thickness=1e-6,
+                        shape='circle',
+                        radius=35e-6,
+                        rho=2040,
+                        ymod=110e9,
+                        prat=0.2,
+                        isol_thickness=100e-9,
+                        eps_r=1.2,
+                        gap=50e-9,
+                        electrode_r=20e-6)
+
+    for k, v in kwargs.items():
+        if k in data:
+            data[k] = v
+
+    return Geometries([data])
+
+
 BeamformData = register_mapping('BeamformData',
                                 OrderedDict(
                                     id=None,
