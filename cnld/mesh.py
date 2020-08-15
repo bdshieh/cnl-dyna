@@ -308,24 +308,6 @@ def _from_abstract(cls, array, refn=1, **kwargs):
 
     for elem in array.elements:
         for mem in elem.membranes:
-            # for pat in mem.patches:
-            # determine vertices which belong to each patch, using
-            # eps for buffer to account for round-off error
-            # pat_x, pat_y, pat_z = pat.position
-            # length_x, length_y = pat.length_x, pat.length_y
-            # xmin = pat_x - length_x / 2  - 2 * eps
-            # xmax = pat_x + length_x / 2 + 2 * eps
-            # ymin = pat_y - length_y / 2 - 2 * eps
-            # ymax = pat_y + length_y / 2 + 2 * eps
-            # mask_x = np.logical_and(x >= xmin, x <= xmax)
-            # mask_y = np.logical_and(y >= ymin, y <= ymax)
-            # mask = np.logical_and(mask_x, mask_y)
-
-            # patch_ids[mask, patch_counter[mask]] = pat.id
-            # patch_counter[mask] += 1 # increment patch idx
-            # membrane_ids[mask] = mem.id
-            # element_ids[mask] = elem.id
-
             if isinstance(mem, abstract.SquareCmutMembrane):
                 # determine vertices which belong to each membrane
                 mem_x, mem_y, mem_z = mem.position

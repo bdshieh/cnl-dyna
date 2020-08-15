@@ -92,7 +92,7 @@ def mem_k_matrix(mem, refn, type='bpt'):
         return mem_k_matrix_hpb(mem, refn)
 
 
-@numba.njit()
+@numba.njit(nogil=True)
 def mem_k_matrix_bpt(nodes, triangles, triangle_edges, triangle_areas, ob,
                      thickness, h, E, eta):
     def L(x1, y1, x2, y2):
