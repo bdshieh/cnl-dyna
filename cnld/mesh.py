@@ -469,8 +469,8 @@ def geometry_square(xl, yl, refn=1, type=1):
 @util.memoize
 def geometry_circle(rl, n=4, refn=1):
     '''
-    Creates a circle mesh geometry (vertices, triangles etc.) which can be used to
-    construct a mesh object.
+    Creates a circle mesh geometry (vertices, triangles etc.) which can be
+    used to construct a mesh object.
 
     Parameters
     ----------

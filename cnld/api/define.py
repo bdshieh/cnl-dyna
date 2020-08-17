@@ -12,8 +12,8 @@ GeometryData = register_mapping(
         id=None,
         thickness=None,
         shape=None,
-        lengthx=None,
-        lengthy=None,
+        length_x=None,
+        length_y=None,
         radius=None,
         rho=None,
         ymod=None,
@@ -24,6 +24,10 @@ GeometryData = register_mapping(
         electrode_x=None,
         electrode_y=None,
         electrode_r=None,
+        controldomain_nx=None,
+        controldomain_ny=None,
+        controldomain_nr=None,
+        controldomain_ntheta=None,
     ))
 
 Geometries = register_list('Geometries', GeometryData)
@@ -52,8 +56,8 @@ ControlDomainData = register_mapping(
         id=None,
         position=None,
         shape=None,
-        lengthx=None,
-        lengthy=None,
+        length_x=None,
+        length_y=None,
         radius_min=None,
         radius_max=None,
         theta_min=None,
@@ -141,13 +145,16 @@ def generate_control_domains(layout,
         g = geometry[mapping[i]]
 
         if g.shape == 'square':
-            pitchx = g.lengthx / nx
-            pitchy = g.lengthy / ny
+
+            nx = g.controldomain_nx
+            ny = g.controldomain_ny
+            pitch_x = g.length_x / nx
+            pitch_y = g.length_y / ny
             cx, cy, cz = np.meshgrid(
-                np.arange(nx) * pitchx,
-                np.arange(ny) * pitchy, 0)
-            cx -= (nx - 1) * pitchx / 2
-            cy -= (ny - 1) * pitchy / 2
+                np.arange(nx) * pitch_x,
+                np.arange(ny) * pitch_y, 0)
+            cx -= (nx - 1) * pitch_x / 2
+            cy -= (ny - 1) * pitch_y / 2
             centers = np.c_[cx.ravel(), cy.ravel(), cz.ravel()]
 
             for c in centers:
@@ -156,14 +163,16 @@ def generate_control_domains(layout,
                         id=cid,
                         position=list(mem.position + c),
                         shape='square',
-                        lengthx=pitchx,
-                        lengthy=pitchy,
-                        area=pitchx * pitchy,
+                        length_x=pitch_x,
+                        length_y=pitch_y,
+                        area=pitch_x * pitch_y,
                     ))
                 cid += 1
 
         elif g.shape == 'circle':
 
+            nr = g.controldomain_nr
+            ntheta = g.controldomain_ntheta
             r = np.linspace(0, g.radius, nr + 1)
             theta = np.linspace(-np.pi, np.pi, ntheta + 1)
             rmin = [r[i] for i in range(nr) for j in range(ntheta)]
@@ -199,11 +208,13 @@ def generate_control_domains(layout,
 # #     json.dump(open(file, mode), layout.json)
 
 
-def matrix_layout(nx, ny, pitchx, pitchy):
+def matrix_layout(nx, ny, pitch_x, pitch_y):
 
-    cx, cy, cz = np.meshgrid(np.arange(nx) * pitchx, np.arange(ny) * pitchy, 0)
-    cx -= (nx - 1) * pitchx / 2
-    cy -= (ny - 1) * pitchy / 2
+    cx, cy, cz = np.meshgrid(
+        np.arange(nx) * pitch_x,
+        np.arange(ny) * pitch_y, 0)
+    cx -= (nx - 1) * pitch_x / 2
+    cy -= (ny - 1) * pitch_y / 2
     centers = np.c_[cx.ravel(), cy.ravel(), cz.ravel()]
 
     membranes = Membranes()
@@ -217,15 +228,17 @@ def matrix_layout(nx, ny, pitchx, pitchy):
 
 def hexagonal_layout(nx, ny, pitch):
 
-    pitchx = np.sqrt(3) / 2 * pitch
-    pitchy = pitch
+    pitch_x = np.sqrt(3) / 2 * pitch
+    pitch_y = pitch
     offsety = pitch / 2
 
-    cx, cy, cz = np.meshgrid(np.arange(nx) * pitchx, np.arange(ny) * pitchy, 0)
+    cx, cy, cz = np.meshgrid(
+        np.arange(nx) * pitch_x,
+        np.arange(ny) * pitch_y, 0)
     cy[:, ::2, :] += offsety / 2
     cy[:, 1::2, :] -= offsety / 2
-    cx -= (nx - 1) * pitchx / 2
-    cy -= (ny - 1) * pitchy / 2
+    cx -= (nx - 1) * pitch_x / 2
+    cy -= (ny - 1) * pitch_y / 2
 
     centers = np.c_[cx.ravel(), cy.ravel(), cz.ravel()]
 
@@ -270,8 +283,8 @@ def square_cmut_1mhz_geometry(**kwargs):
     data = GeometryData(id=0,
                         thickness=1e-6,
                         shape='square',
-                        lengthx=35e-6,
-                        lengthy=35e-6,
+                        length_x=35e-6,
+                        length_y=35e-6,
                         rho=2040,
                         ymod=110e9,
                         prat=0.2,
@@ -327,26 +340,30 @@ WaveformData = register_mapping(
 
 Waveforms = register_list('Waveforms', WaveformData)
 
-Transmit = register_mapping('Transmit',
-                            OrderedDict(
-                                waveforms=None,
-                                beamforms=None,
-                            ))
+Transmit = register_mapping(
+    'Transmit',
+    OrderedDict(
+        waveforms=None,
+        focus=None,
+        apod=None,
+        delays=None,
+    ))
 
 
-def calculate_delays(transmit, layout, focus, c=1500, fs=None, offset=True):
+def calculate_delays(transmit, layout, c=1500, fs=None, offset=True):
 
-    for elem, bf in zip(layout.Elements, transmit.Beamforms):
-        d = float(distance(elem.center, focus))
+    if transmit.focus is None:
+        delays = [0] * len(layout.elements)
+    else:
+        centers = np.array(layout.elements.center)
+        d = float(distance(centers, transmit.focus))
 
         if fs is None:
-            t = d / c
+            delays = -d / c
         else:
-            t = round(d / c * fs) / fs
-
-        bf.delay = -t
+            delays = round(-d / c * fs) / fs
 
     if offset:
-        tmin = np.min(transmit.Beamforms.delays)
-        new_delays = np.array(transmit.Beamforms.delays) - tmin
-        transmit.Beamforms.delays = new_delays
+        delays -= delays.min()
+
+    transmit.delays = list(delays)
