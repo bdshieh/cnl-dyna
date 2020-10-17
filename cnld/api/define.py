@@ -73,6 +73,7 @@ Layout = register_mapping(
         membranes=FACTORY(Membranes),
         elements=FACTORY(Elements),
         controldomains=FACTORY(ControlDomains),
+        membrane_to_geometry_mapping=None,
     ))
 
 # class Layout(object):
@@ -321,14 +322,14 @@ def circle_cmut_1mhz_geometry(**kwargs):
     return Geometries([data])
 
 
-BeamformData = register_mapping('BeamformData',
-                                OrderedDict(
-                                    id=None,
-                                    apod=1,
-                                    delay=0,
-                                ))
+# BeamformData = register_mapping('BeamformData',
+#                                 OrderedDict(
+#                                     id=None,
+#                                     apod=1,
+#                                     delay=0,
+#                                 ))
 
-Beamforms = register_list('Beamforms', BeamformData)
+# Beamforms = register_list('Beamforms', BeamformData)
 
 WaveformData = register_mapping(
     'WaveformData', OrderedDict(
@@ -343,10 +344,11 @@ Waveforms = register_list('Waveforms', WaveformData)
 Transmit = register_mapping(
     'Transmit',
     OrderedDict(
-        waveforms=None,
+        waveforms=FACTORY(Waveforms),
         focus=None,
         apod=None,
         delays=None,
+        element_to_waveform_mapping=None,
     ))
 
 
