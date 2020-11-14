@@ -79,3 +79,6 @@ cpdef addmul_amatrix(field alpha, bint atrans, AMatrix a, bint btrans, AMatrix b
 cpdef AMatrix new_zero_amatrix(uint rows, uint cols):
     cpdef pamatrix mat = _amatrix.new_zero_amatrix(rows, cols)
     return AMatrix.wrap(mat, True)
+
+cpdef copy_amatrix(bool atrans, AMatrix a, AMatrix b):
+    _amatrix.copy_amatrix(atrans, <pcamatrix> a.ptr, <pamatrix> b.ptr)
