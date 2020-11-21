@@ -18,6 +18,14 @@ class Matrix(abc.ABC):
         if self._mat is not None:
             del self._mat
 
+    def __repr__(self):
+        repr = []
+        repr.append(f'{str(type(self))}\n')
+        repr.append(f'  shape: {self.shape}\n')
+        repr.append(f'  shape: {self.size}\n')
+        repr.append(f'  nbytes: {self.nbytes / 1024 / 1024:.2f} MB\n')
+        return ''.join(repr)
+
     @abc.abstractproperty
     def shape(self):
         pass
@@ -57,10 +65,6 @@ class Matrix(abc.ABC):
     @abc.abstractmethod
     def __radd__(self, x):
         return self.__add__(x)
-
-    @abc.abstractmethod
-    def __iadd__(self, x):
-        pass
 
     @abc.abstractmethod
     def __iadd__(self, x):
@@ -131,7 +135,7 @@ class Matrix(abc.ABC):
         return self.__matmul__(x)
 
     @abc.abstractmethod
-    def lu(self, x):
+    def lu(self):
         pass
 
     @abc.abstractmethod
@@ -139,7 +143,7 @@ class Matrix(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def chol(self, x):
+    def chol(self):
         pass
 
     @abc.abstractmethod
@@ -243,7 +247,7 @@ class FullMatrix(Matrix):
             raise ValueError
 
         start = timer()
-        mat = AMatrix.new_zero_amatrix(shape[0], shape[1])
+        mat = new_zero_amatrix(shape[0], shape[1])
         time_assemble = timer() - start
 
         obj = cls(mat)
@@ -412,9 +416,430 @@ class FullMatrix(Matrix):
         return np.array(x.v)
 
 
-class SparseMatrix(BaseMatrix):
-    pass
+class SparseMatrix(Matrix):
+    @classmethod
+    def array(cls, a):
+
+        if issparse(a):
+            a = a.toarray()
+
+        start = timer()
+        mat = SparseMatrix.from_array(a)
+        time_assemble = timer() - start
+
+        obj = cls(mat)
+        obj._time_assemble = time_assemble
+        return obj
+
+    @classmethod
+    def zeros(cls, shape):
+        raise NotImplementedError
+
+    @classmethod
+    def ones(cls, shape):
+
+        if len(shape) != 2:
+            raise ValueError
+
+        start = timer()
+        mat = new_identity_sparsematrix(shape[0], shape[1])
+        time_assemble = timer() - start
+
+        obj = cls(mat)
+        obj._time_assemble = time_assemble
+        return obj
+
+    @property
+    def time_assemble(self):
+        return self._time_assemble
+
+    @property
+    def shape(self):
+        return self._mat.rows, self._mat.cols
+
+    @property
+    def size(self):
+        return self._mat.rows * self._mat.cols
+
+    @property
+    def nbytes(self):
+        return getsize_sparsematrix(self._mat)
+
+    @property
+    def T(self):
+        raise NotImplementedError
+
+    def __add__(self, x):
+
+        if isinstance(x, FullMatrix):
+            B = clone_amatrix(x._mat)
+            add_sparsematrix_amatrix(1.0, False, self._mat, B)
+            return FullMatrix(B)
+
+        elif isinstance(x, SparseMatrix):
+            return NotImplemented
+
+        elif isinstance(x, HMatrix):
+            return NotImplemented
+
+        elif isinstance(x, np.ndarray):
+            x = FullMatrix.array(x)
+            B = clone_amatrix(x._mat)
+            add_amatrix(1.0, False, self._mat, B)
+            return FullMatrix(B)
+
+        else:
+            return NotImplemented
+
+    def __sub__(self, x):
+
+        if isinstance(x, FullMatrix):
+            B = clone_amatrix(x._mat)
+            add_amatrix(-1.0, False, self._mat, B)
+            return FullMatrix(B)
+
+        elif isinstance(x, SparseMatrix):
+            return NotImplemented
+
+        elif isinstance(x, HMatrix):
+            return NotImplemented
+
+        elif isinstance(x, np.ndarray):
+            x = FullMatrix.array(x)
+            B = clone_amatrix(x._mat)
+            add_amatrix(-1.0, False, self._mat, B)
+            return -1 * FullMatrix(B)
+
+        else:
+            return NotImplemented
+
+    def _smul(self, x):
+        return NotImplemented
+
+    def _matvec(self, x):
+
+        xv = AVector.from_array(x)
+        y = AVector(x.size)
+        clear_avector(y)
+        addeval_sparsematrix_avector(1.0, self._mat, xv, y)
+        return np.array(y.v)
+
+    def _rmatvec(self, x):
+
+        xv = AVector.from_array(x)
+        y = AVector(x.size)
+        clear_avector(y)
+        addevaltrans_amatrix_avector(1.0, self._mat, xv, y)
+        return np.array(y.v)
+
+    def _matmat(self, x):
+
+        if isinstance(x, FullMatrix):
+            return NotImplemented
+
+        elif isinstance(x, SparseMatrix):
+            return NotImplemented
+
+        elif isinstance(x, HMatrix):
+            return NotImplemented
+
+        elif isinstance(x, np.ndarray):
+            return NotImplemented
+
+        else:
+            return NotImplemented
+
+    def _rmatmat(self, x):
+
+        if isinstance(x, FullMatrix):
+            return NotImplemented
+
+        elif isinstance(x, SparseMatrix):
+            return NotImplemented
+
+        elif isinstance(x, HMatrix):
+            return NotImplemented
+
+        elif isinstance(x, np.ndarray):
+            return NotImplemented
+
+        else:
+            return NotImplemented
+
+    def lu(self):
+        raise NotImplementedError
+
+    def chol(self):
+        raise NotImplementedError
+
+    def lusolve(self, b):
+        raise NotImplementedError
+
+    def cholsolve(self, b):
+        raise NotImplementedError
 
 
-class HMatrix(BaseMatrix):
-    pass
+class HMatrix(Matrix):
+
+    eps_add = 1e-12
+
+    @classmethod
+    def array(cls, a):
+        raise NotImplementedError
+
+    @classmethod
+    def zeros(cls, shape):
+        raise NotImplementedError
+
+    @property
+    def time_assemble(self):
+        return self._time_assemble
+
+    @property
+    def shape(self):
+        return getrows_hmatrix(self._mat), getcols_hmatrix(self._mat)
+
+    @property
+    def size(self):
+        return getrows_hmatrix(self._mat) * getcols_hmatrix(self._mat)
+
+    @property
+    def nbytes(self):
+        return getsize_hmatrix(self._mat)
+
+    @property
+    def T(self):
+        raise NotImplementedError
+
+    def __add__(self, x):
+
+        if isinstance(x, FullMatrix):
+            B = clone_hmatrix(self._mat)
+            tm = new_releucl_truncmode()
+            add_amatrix_hmatrix(1.0, False, x._mat, tm, self.eps_add, B)
+            return HMatrix(B)
+
+        elif isinstance(x, SparseMatrix):
+            B = clone_hmatrix(self._mat)
+            tm = new_releucl_truncmode()
+
+            # sparse format is converted to hformat prior to addition
+            hm = clonestructure_hmatrix(self._mat)
+            clear_hmatrix(hm)  # very important to clear hmatrix
+            copy_sparsematrix_hmatrix(x._mat, hm)
+
+            add_hmatrix(1.0, hm, tm, self.eps_add, B)
+            return HMatrix(B)
+
+        elif isinstance(x, HMatrix):
+            B = clone_hmatrix(self._mat)
+            tm = new_releucl_truncmode()
+            add_hmatrix(1.0, x._mat, tm, self.eps_add, B)
+            return HMatrix(B)
+
+        elif isinstance(x, np.ndarray):
+            x = FullMatrix.array(x)
+            B = clone_hmatrix(self._mat)
+            tm = new_releucl_truncmode()
+            add_amatrix_hmatrix(1.0, False, x._mat, tm, self.eps_add, B)
+            return HMatrix(B)
+
+        else:
+            return NotImplemented
+
+    def __sub__(self, x):
+
+        if isinstance(x, FullMatrix):
+            B = clone_hmatrix(self._mat)
+            tm = new_releucl_truncmode()
+            add_amatrix_hmatrix(-1.0, False, x._mat, tm, self.eps_add, B)
+            return HMatrix(B)
+
+        elif isinstance(x, SparseMatrix):
+            B = clone_hmatrix(self._mat)
+            tm = new_releucl_truncmode()
+
+            # sparse format is converted to hformat prior to addition
+            hm = clonestructure_hmatrix(self._mat)
+            clear_hmatrix(hm)  # very important to clear hmatrix
+            copy_sparsematrix_hmatrix(x._mat, hm)
+
+            add_hmatrix(-1.0, hm, tm, self.eps_add, B)
+            return HMatrix(B)
+
+        elif isinstance(x, HMatrix):
+            B = clone_hmatrix(self._mat)
+            tm = new_releucl_truncmode()
+            add_hmatrix(-1.0, x._mat, tm, self.eps_add, B)
+            return HMatrix(B)
+
+        elif isinstance(x, np.ndarray):
+            x = FullMatrix.array(x)
+            B = clone_hmatrix(self._mat)
+            tm = new_releucl_truncmode()
+            add_amatrix_hmatrix(-1.0, False, x._mat, tm, self.eps_add, B)
+            return HMatrix(B)
+
+        else:
+            return NotImplemented
+
+    def _smul(self, x):
+
+        id = clonestructure_hmatrix(self._mat)
+        identity_hmatrix(id)
+        z = clonestructure_hmatrix(self._mat)
+        clear_hmatrix(z)
+        tm = new_releucl_truncmode()
+        addmul_hmatrix(x, False, id, False, self._mat, tm, self.eps_add, z)
+        return HFormat(z)
+
+    def _matvec(self, x):
+
+        xv = AVector.from_array(x)
+        y = AVector(x.size)
+        clear_avector(y)
+        addeval_hmatrix_avector(1.0, self._mat, xv, y)
+        return np.array(y.v)
+
+    def _rmatvec(self, x):
+
+        xv = AVector.from_array(x)
+        y = AVector(x.size)
+        clear_avector(y)
+        addeval_amatrix_avector(1.0, (self.T)._mat, xv, y)
+        return np.array(y.v)
+
+    def _matmat(self, x):
+
+        if isinstance(x, FullMatrix):
+            return NotImplemented
+
+        elif isinstance(x, SparseMatrix):
+            return NotImplemented
+
+        elif isinstance(x, HMatrix):
+            return NotImplemented
+
+        elif isinstance(x, np.ndarray):
+            C = clonestructure_hmatrix(self._mat)
+            clear_hmatrix(C)
+            tm = new_releucl_truncmode()
+            addmul_hmatrix(1.0, False, x._mat, False, self._mat, tm,
+                           self.eps_add, C)
+            return HFormat(C)
+
+        else:
+            return NotImplemented
+
+    def _rmatmat(self, x):
+
+        if isinstance(x, FullMatrix):
+            C = new_zero_amatrix(*self.shape)
+            addmul_amatrix(1.0, True, x._mat, True, self._mat, C)
+            return FullMatrix(C).T
+
+        elif isinstance(x, SparseMatrix):
+            return NotImplemented
+
+        elif isinstance(x, HMatrix):
+            return NotImplemented
+
+        elif isinstance(x, np.ndarray):
+            x = FullMatrix.array(x)
+            C = new_zero_amatrix(*self.shape)
+            addmul_amatrix(1.0, True, x._mat, True, self._mat, C)
+            return FullMatrix(C).T
+
+        else:
+            return NotImplemented
+
+    def lu(self, eps=1e-12):
+        LU = clone_hmatrix(self._mat)
+        tm = new_releucl_truncmode()
+        lrdecomp_hmatrix(LU, tm, eps)
+        return HFormat(LU)
+
+    def chol(self, eps=1e-12):
+        CHOL = clone_hmatrix(self._mat)
+        tm = new_releucl_truncmode()
+        choldecomp_hmatrix(CHOL, tm, eps)
+        return HFormat(CHOL)
+
+    def lusolve(self, b):
+        x = AVector.from_array(b)
+        lrsolve_hmatrix_avector(False, self._mat, x)
+        return np.array(x.v)
+
+    def cholsolve(self, b):
+        x = AVector.from_array(b)
+        cholsolve_hmatrix_avector(self._mat, x)
+        return np.array(x.v)
+
+    def _draw_hmatrix(self, hm, bbox, maxidx, ax):
+        if len(hm.son) == 0:
+            if hm.r:
+                rk = str(hm.r.k)
+                fill = False
+            elif hm.f:
+                rk = None
+                fill = True
+            else:
+                raise Exception
+
+            x0, y0, x1, y1 = bbox
+            width, height = x1 - x0, y1 - y0
+            sq = patches.Rectangle((x0, y0),
+                                   width,
+                                   height,
+                                   edgecolor='black',
+                                   fill=fill,
+                                   facecolor='black')
+            ax.add_patch(sq)
+            if rk:
+                fontsize = int(round((112 - 6) * width + 6))
+                if width > 0.03:
+                    ax.text(x0 + 0.05 * width,
+                            y0 + 0.95 * height,
+                            rk,
+                            fontsize=fontsize)
+
+        else:
+            rmax, cmax = maxidx
+            x0, y0, x1, y1 = bbox
+
+            rsidx = (0, 1, 0, 1)
+            csidx = (0, 0, 1, 1)
+
+            width0 = len(hm.son[0].cc.idx) / cmax
+            height0 = len(hm.son[0].rc.idx) / rmax
+
+            for i, s in enumerate(hm.son):
+                width = len(s.cc.idx) / cmax
+                height = len(s.rc.idx) / rmax
+
+                xnew = x0 if csidx[i] == 0 else x0 + width0
+                ynew = y0 if rsidx[i] == 0 else y0 + height0
+
+                if csidx[i] == 0:
+                    xnew = x0
+                else:
+                    xnew = x0 + width0
+                if rsidx[i] == 0:
+                    ynew = y0
+                else:
+                    ynew = y0 + height0
+
+                bbox = xnew, ynew, xnew + width, ynew + height
+                self._draw_hmatrix(s, bbox, maxidx, ax)
+
+    def draw(self):
+        hm = self._mat
+        maxidx = len(hm.rc.idx), len(hm.cc.idx)
+
+        fig, ax = plt.subplots(figsize=(9, 9))
+        ax.set_xlim(0, 1)
+        ax.set_ylim(0, 1)
+        ax.invert_yaxis()
+        ax.set_aspect('equal')
+        self._draw_hmatrix(hm, (0, 0, 1, 1), maxidx, ax)
+        fig.show()

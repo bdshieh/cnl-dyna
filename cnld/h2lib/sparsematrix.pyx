@@ -107,3 +107,6 @@ cpdef add_sparsematrix_amatrix(field alpha, bint atrans, SparseMatrix a, AMatrix
 
 cpdef addeval_sparsematrix_avector(field alpha, SparseMatrix a, AVector x, AVector y):
     _sparsematrix.addeval_sparsematrix_avector(alpha, <pcsparsematrix> a.ptr, <pcavector> x.ptr, y.ptr)
+
+cpdef addevaltrans_sparsematrix_avector(field alpha, SparseMatrix a, AVector x, AVector y):
+    _sparsematrix.addevaltrans_sparsematrix_avector(alpha, <pcsparsematrix> a.ptr, <pcavector> x.ptr, y.ptr)

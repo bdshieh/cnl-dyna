@@ -28,3 +28,4 @@ cdef extern from 'sparsematrix.h' nogil:
     void clear_sparsematrix(psparsematrix a)
     void add_sparsematrix_amatrix(field alpha, bint atrans, pcsparsematrix a, pamatrix b)
     void addeval_sparsematrix_avector(field alpha, pcsparsematrix a, pcavector x, pavector y)
+    void addevaltrans_sparsematrix_avector(field alpha, pcsparsematrix a, pcavector x, pavector y)
