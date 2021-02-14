@@ -76,57 +76,6 @@ Layout = register_mapping(
         membrane_to_geometry_mapping=None,
     ))
 
-# class Layout(object):
-#     def __init__(self, membranes=None, elements=None, controldomains=None):
-#         self._membranes = Membranes(membranes)
-#         self._elements = Elements(elements)
-#         self._controldomains = ControlDomains(controldomains)
-
-#     @classmethod
-#     def empty(cls, nmembrane, nelement, ncontroldomain):
-#         return cls(membranes=[None] * nmembrane,
-#                    elements=[None] * nelement,
-#                    controldomains=[None] * ncontroldomain)
-
-#     @property
-#     def Membranes(self):
-#         return self._membranes
-
-#     @property
-#     def Elements(self):
-#         return self._elements
-
-#     @property
-#     def ControlDomains(self):
-#         return self._controldomains
-
-#     @property
-#     def nmembrane(self):
-#         return len(self.Membranes)
-
-#     @property
-#     def nelement(self):
-#         return len(self.Elements)
-
-#     @property
-#     def ncontroldomain(self):
-#         return len(self.ControlDomains)
-
-#     @Membranes.setter
-#     def Membranes(self, val):
-#         self._membranes = Membranes(val)
-
-#     @Elements.setter
-#     def Elements(self, val):
-#         self._elements = Elements(val)
-
-#     @ControlDomains.setter
-#     def ControlDomains(self, val):
-#         self._controldomains = ControlDomains(val)
-
-#     def plot(self):
-#         pass
-
 
 def generate_control_domains(layout,
                              geometry,
@@ -135,7 +84,31 @@ def generate_control_domains(layout,
                              nr=3,
                              ntheta=4,
                              mapping=None):
+    '''
+    [summary]
 
+    Parameters
+    ----------
+    layout : [type]
+        [description]
+    geometry : [type]
+        [description]
+    nx : int, optional
+        [description], by default 3
+    ny : int, optional
+        [description], by default 3
+    nr : int, optional
+        [description], by default 3
+    ntheta : int, optional
+        [description], by default 4
+    mapping : [type], optional
+        [description], by default None
+
+    Raises
+    ------
+    TypeError
+        [description]
+    '''
     if mapping is None:
         gid = cycle(range(len(geometry)))
         mapping = [next(gid) for i in range(len(layout.membranes))]
@@ -199,7 +172,7 @@ def generate_control_domains(layout,
         else:
             raise TypeError
 
-    layout.controldomains = ControlDomains(data)
+    return ControlDomains(data)
 
 
 # # def import_layout(file):
@@ -210,7 +183,25 @@ def generate_control_domains(layout,
 
 
 def matrix_layout(nx, ny, pitch_x, pitch_y):
+    '''
+    [summary]
 
+    Parameters
+    ----------
+    nx : [type]
+        [description]
+    ny : [type]
+        [description]
+    pitch_x : [type]
+        [description]
+    pitch_y : [type]
+        [description]
+
+    Returns
+    -------
+    [type]
+        [description]
+    '''
     cx, cy, cz = np.meshgrid(
         np.arange(nx) * pitch_x,
         np.arange(ny) * pitch_y, 0)
@@ -228,7 +219,23 @@ def matrix_layout(nx, ny, pitch_x, pitch_y):
 
 
 def hexagonal_layout(nx, ny, pitch):
+    '''
+    [summary]
 
+    Parameters
+    ----------
+    nx : [type]
+        [description]
+    ny : [type]
+        [description]
+    pitch : [type]
+        [description]
+
+    Returns
+    -------
+    [type]
+        [description]
+    '''
     pitch_x = np.sqrt(3) / 2 * pitch
     pitch_y = pitch
     offsety = pitch / 2
@@ -253,7 +260,25 @@ def hexagonal_layout(nx, ny, pitch):
 
 
 def linear_matrix_layout(nelem, pitch, nmem, mempitch):
+    '''
+    [summary]
 
+    Parameters
+    ----------
+    nelem : [type]
+        [description]
+    pitch : [type]
+        [description]
+    nmem : [type]
+        [description]
+    mempitch : [type]
+        [description]
+
+    Returns
+    -------
+    [type]
+        [description]
+    '''
     cx, cy, cz = np.meshgrid(np.arange(nelem) * pitch, 0, 0)
     cx -= (nelem - 1) * pitch / 2
     centers = np.c_[cx.ravel(), cy.ravel(), cz.ravel()]
@@ -277,10 +302,30 @@ def linear_matrix_layout(nelem, pitch, nmem, mempitch):
 
 
 def linear_hexagonal_layout(nx, ny, pitch):
+    '''
+    [summary]
+
+    Parameters
+    ----------
+    nx : [type]
+        [description]
+    ny : [type]
+        [description]
+    pitch : [type]
+        [description]
+    '''
     pass
 
 
 def square_cmut_1mhz_geometry(**kwargs):
+    '''
+    [summary]
+
+    Returns
+    -------
+    [type]
+        [description]
+    '''
     data = GeometryData(id=0,
                         thickness=1e-6,
                         shape='square',
@@ -303,6 +348,14 @@ def square_cmut_1mhz_geometry(**kwargs):
 
 
 def circle_cmut_1mhz_geometry(**kwargs):
+    '''
+    [summary]
+
+    Returns
+    -------
+    [type]
+        [description]
+    '''
     data = GeometryData(id=0,
                         thickness=1e-6,
                         shape='circle',
@@ -353,7 +406,22 @@ Transmit = register_mapping(
 
 
 def calculate_delays(transmit, layout, c=1500, fs=None, offset=True):
+    '''
+    [summary]
 
+    Parameters
+    ----------
+    transmit : [type]
+        [description]
+    layout : [type]
+        [description]
+    c : int, optional
+        [description], by default 1500
+    fs : [type], optional
+        [description], by default None
+    offset : bool, optional
+        [description], by default True
+    '''
     if transmit.focus is None:
         delays = [0] * len(layout.elements)
     else:

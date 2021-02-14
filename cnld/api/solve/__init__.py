@@ -3,9 +3,8 @@ import numpy as np
 
 
 class DatabaseSolver():
-
-    def __init__(self, layout, geometry)
-    pass
+    def __init__(self, layout, geometry):
+        pass
 
 
 class FixedStepSolver():
