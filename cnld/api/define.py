@@ -405,7 +405,7 @@ Transmit = register_mapping(
     ))
 
 
-def calculate_delays(transmit, layout, c=1500, fs=None, offset=True):
+def generate_delays(transmit, layout, c=1500, fs=None, offset=True):
     '''
     [summary]
 
@@ -436,4 +436,4 @@ def calculate_delays(transmit, layout, c=1500, fs=None, offset=True):
     if offset:
         delays -= delays.min()
 
-    transmit.delays = list(delays)
+    return list(delays)

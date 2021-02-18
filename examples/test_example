@@ -1,0 +1,50 @@
+{
+ "metadata": {
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": 3
+  },
+  "orig_nbformat": 2
+ },
+ "nbformat": 4,
+ "nbformat_minor": 2,
+ "cells": [
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "''''''\n",
+    "import numpy as np\n",
+    "from matplotlib import pyplot as plt\n",
+    "from cnld.api import define, grid, solve\n",
+    "\n",
+    "geom = define.circle_cmut_1mhz_geometry()\n",
+    "lay = define.matrix_layout(nx=2, ny=2, pitch_x=100e-6, pitch_y=100e-6)\n",
+    "lay.controldomains = define.generate_control_domains(lay, geom)\n",
+    "tx = define.Transmit()\n",
+    "tx.focus = 0.03\n",
+    "tx.delays = define.generate_delays(tx, lay)\n",
+    "grid = grid.generate_grids(lay, geom, refn=9)\n",
+    "\n",
+    "dbsolve = solve.DatabaseSolver('mydb.db', lay, geom, grid)\n",
+    "dbsolve.layout = lay\n",
+    "dbsolve.geometry = geom\n",
+    "dbsolve.grid = grid\n",
+    "dbsolve.file = 'mydb.db'\n",
+    "dbsolve.solve()\n",
+    "\n",
+    "tsolve = solve.TimeSolver()\n"
+   ]
+  }
+ ]
+}
