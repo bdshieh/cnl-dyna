@@ -75,6 +75,21 @@ class Grid:
 
         plt.axis('equal')
         plt.show()
+    
+    def _find_triangle_neighbors(self):
+        # determine list of neighbors for each triangle
+        # None indicates neighbor doesn't exist for that edge (boundary edge)
+        triangle_neighbors = []
+        for tt in range(ntriangles):
+            neighbors = []
+            for te in triangle_edges[tt, :]:
+                mask = np.any(triangle_edges == te, axis=1)
+                args = np.nonzero(mask)[0]
+                if len(args) > 1:
+                    neighbors.append(args[args != tt][0])
+                else:
+                    neighbors.append(None)
+            triangle_neighbors.append(neighbors)
 
 
 class BemGrid(Grid):

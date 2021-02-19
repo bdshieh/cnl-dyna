@@ -6,8 +6,8 @@ from itertools import cycle
 from cnld.datatypes import register_mapping, register_list
 from cnld.util import distance
 
-GeometryData = register_mapping(
-    'GeometryData',
+Geometry = register_mapping(
+    'Geometry',
     OrderedDict(
         id=None,
         thickness=None,
@@ -30,28 +30,28 @@ GeometryData = register_mapping(
         controldomain_ntheta=None,
     ))
 
-Geometries = register_list('Geometries', GeometryData)
+GeometryList = register_list('GeometryList', Geometry)
 
-MembraneData = register_mapping('MembraneData',
+Membrane = register_mapping('Membrane',
                                 OrderedDict(
                                     id=None,
                                     position=None,
                                 ))
 
-Membranes = register_list('Membranes', MembraneData)
+MembraneList = register_list('MembraneList', Membrane)
 
-ElementData = register_mapping(
-    'ElementData',
+Element = register_mapping(
+    'Element',
     OrderedDict(
         id=None,
         position=None,
         membrane_ids=FACTORY(list),
     ))
 
-Elements = register_list('Elements', ElementData)
+ElementList = register_list('ElementList', Element)
 
-ControlDomainData = register_mapping(
-    'ControlDomainData',
+ControlDomain = register_mapping(
+    'ControlDomain',
     OrderedDict(
         id=None,
         position=None,
@@ -65,58 +65,91 @@ ControlDomainData = register_mapping(
         area=None,
     ))
 
-ControlDomains = register_list('ControlDomains', ControlDomainData)
+ControlDomainList = register_list('ControlDomainList', ControlDomain)
 
 Layout = register_mapping(
     'Layout',
     OrderedDict(
-        membranes=FACTORY(Membranes),
-        elements=FACTORY(Elements),
-        controldomains=FACTORY(ControlDomains),
+        membranes=FACTORY(MembraneList),
+        elements=FACTORY(ElementList),
+        controldomains=FACTORY(ControlDomainList),
         membrane_to_geometry_mapping=None,
     ))
 
 
-def generate_control_domains(layout,
-                             geometry,
-                             nx=3,
-                             ny=3,
-                             nr=3,
-                             ntheta=4,
-                             mapping=None):
+def geometry_to_controldomainlist(geom):
     '''
-    [summary]
+    '''
+    data = []
 
-    Parameters
-    ----------
-    layout : [type]
-        [description]
-    geometry : [type]
-        [description]
-    nx : int, optional
-        [description], by default 3
-    ny : int, optional
-        [description], by default 3
-    nr : int, optional
-        [description], by default 3
-    ntheta : int, optional
-        [description], by default 4
-    mapping : [type], optional
-        [description], by default None
+    if geom.shape == 'square':
 
-    Raises
-    ------
-    TypeError
-        [description]
+        nx = geom.controldomain_nx
+        ny = geom.controldomain_ny
+        pitch_x = geom.length_x / nx
+        pitch_y = geom.length_y / ny
+        cx, cy, cz = np.meshgrid(
+            np.arange(nx) * pitch_x,
+            np.arange(ny) * pitch_y, 0)
+        cx -= (nx - 1) * pitch_x / 2
+        cy -= (ny - 1) * pitch_y / 2
+        centers = np.c_[cx.ravel(), cy.ravel(), cz.ravel()]
+
+        for c in centers:
+            data.append(
+                ControlDomain(
+                    id=cid,
+                    position=list(c),
+                    shape='square',
+                    length_x=pitch_x,
+                    length_y=pitch_y,
+                    area=pitch_x * pitch_y,
+                ))
+            cid += 1
+
+    elif geom.shape == 'circle':
+
+        nr = geom.controldomain_nr
+        ntheta = geom.controldomain_ntheta
+        r = np.linspace(0, geom.radius, nr + 1)
+        theta = np.linspace(-np.pi, np.pi, ntheta + 1)
+        rmin = [r[i] for i in range(nr) for j in range(ntheta)]
+        rmax = [r[i + 1] for i in range(nr) for j in range(ntheta)]
+        thetamin = [theta[j] for i in range(nr) for j in range(ntheta)]
+        thetamax = [theta[j + 1] for i in range(nr) for j in range(ntheta)]
+        c = np.array([0, 0, 0])
+
+        for j in range(nr * ntheta):
+            data.append(
+                ControlDomain(
+                    id=cid,
+                    position=list(c),
+                    shape='circle',
+                    radius_min=rmin[j],
+                    radius_max=rmax[j],
+                    theta_min=thetamin[j],
+                    theta_max=thetamax[j],
+                    area=(rmax[j]**2 - rmin[j]**2) *
+                    (thetamax[j] - thetamin[j]) / 2,
+                ))
+            cid += 1
+    else:
+        raise TypeError
+
+    return ControlDomainList(data)
+
+
+def generate_controldomainlist(layout, geomlist, mapping=None):
+    '''
     '''
     if mapping is None:
-        gid = cycle(range(len(geometry)))
+        gid = cycle(range(len(geomlist)))
         mapping = [next(gid) for i in range(len(layout.membranes))]
 
-    data = []
+    ctrldomlist = []
     cid = 0
     for i, mem in enumerate(layout.membranes):
-        g = geometry[mapping[i]]
+        g = geomlist[mapping[i]]
 
         if g.shape == 'square':
 
@@ -132,8 +165,8 @@ def generate_control_domains(layout,
             centers = np.c_[cx.ravel(), cy.ravel(), cz.ravel()]
 
             for c in centers:
-                data.append(
-                    ControlDomainData(
+                ctrldomlist.append(
+                    ControlDomain(
                         id=cid,
                         position=list(mem.position + c),
                         shape='square',
@@ -156,8 +189,8 @@ def generate_control_domains(layout,
             c = np.array([0, 0, 0])
 
             for j in range(nr * ntheta):
-                data.append(
-                    ControlDomainData(
+                ctrldomlist.append(
+                    ControlDomain(
                         id=cid,
                         position=list(mem.position + c),
                         shape='circle',
@@ -172,7 +205,7 @@ def generate_control_domains(layout,
         else:
             raise TypeError
 
-    return ControlDomains(data)
+    return ControlDomainList(ctrldomlist)
 
 
 # # def import_layout(file):
@@ -209,8 +242,8 @@ def matrix_layout(nx, ny, pitch_x, pitch_y):
     cy -= (ny - 1) * pitch_y / 2
     centers = np.c_[cx.ravel(), cy.ravel(), cz.ravel()]
 
-    membranes = Membranes()
-    elements = Elements()
+    membranes = MembraneList()
+    elements = ElementList()
     for id, pos in enumerate(centers):
         membranes.append(id=id, position=list(pos))
         elements.append(id=id, position=list(pos), membrane_ids=[id])
@@ -250,8 +283,8 @@ def hexagonal_layout(nx, ny, pitch):
 
     centers = np.c_[cx.ravel(), cy.ravel(), cz.ravel()]
 
-    membranes = Membranes()
-    elements = Elements()
+    membranes = MembraneList()
+    elements = ElementList()
     for id, pos in enumerate(centers):
         membranes.append(id=id, position=list(pos))
         elements.append(id=id, position=list(pos), membrane_ids=[id])
@@ -286,8 +319,8 @@ def linear_matrix_layout(nelem, pitch, nmem, mempitch):
     my -= (nmem - 1) * mempitch / 2
     mem_centers = np.c_[mx.ravel(), my.ravel(), mz.ravel()]
 
-    membranes = Membranes()
-    elements = Elements()
+    membranes = MembraneList()
+    elements = ElementList()
     mid = 0
     for id, pos in enumerate(centers):
         membrane_ids = []
