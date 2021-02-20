@@ -313,3 +313,46 @@ def avg_cd_mat_np(grid, geom):
 #         # fcol.append(-g / u[f_pat > 0].min())
 
 #     return np.array(fcol), np.array(ups)
+
+
+def p_mat_sps_from_layout(layout, grids):
+    '''
+    Construct load vector based on patches of abstract array.
+    '''
+
+    mapping = layout.membrane_to_geometry_mapping
+    if mapping is None:
+        gid = cycle(range(len(layout.geometries)))
+        mapping = [next(gid) for i in range(len(layout.membranes))]
+
+    p_list = [None] * len(layout.geometries)
+    for i, geom, grid in enumarte(layout.geometries):
+        p_list[i] = p_cd_mat_np(grids.fem[i], geom)
+
+    blocks = [None] * len(layout.membranes)
+
+    for i, mem in enumerate(layout.membranes):
+        blocks[i] = p_list[mapping[i]]
+
+    return sps.block_diag(blocks, format='csc')
+
+
+def avg_mat_sps_from_layout(layout, grids):
+    '''
+    Construct load vector based on patches of abstract array.
+    '''
+    mapping = layout.membrane_to_geometry_mapping
+    if mapping is None:
+        gid = cycle(range(len(layout.geometries)))
+        mapping = [next(gid) for i in range(len(layout.membranes))]
+
+    avg_list = [None] * len(layout.geometries)
+    for i, geom, grid in enumarte(layout.geometries):
+        avg_list[i] = avg_cd_mat_np(grids.fem[i], geom)
+
+    blocks = [None] * len(layout.membranes)
+
+    for i, mem in enumerate(layout.membranes):
+        blocks[i] = avg_list[mapping[i]]
+
+    return sps.block_diag(blocks, format='csc')

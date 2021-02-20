@@ -70,6 +70,7 @@ ControlDomainList = register_list('ControlDomainList', ControlDomain)
 Layout = register_mapping(
     'Layout',
     OrderedDict(
+        geometries=FACTORY(GeometryList),
         membranes=FACTORY(MembraneList),
         elements=FACTORY(ElementList),
         controldomains=FACTORY(ControlDomainList),

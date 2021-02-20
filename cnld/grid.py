@@ -6,7 +6,7 @@ from cnld import mesh
 from itertools import cycle
 
 
-class Grid:
+class BaseGrid:
     @property
     def vertices(self):
         return np.asarray(self._mesh.x)
@@ -92,11 +92,12 @@ class Grid:
             triangle_neighbors.append(neighbors)
 
 
-class BemGrid(Grid):
+class BemGrid(BaseGrid):
     def __init__(self, layout, geometry, mapping, refn, square_type=1):
 
+        mapping = layout.membrane_to_geometry_mapping
         if mapping is None:
-            gid = cycle(range(len(geometry)))
+            gid = cycle(range(len(layout.geometries)))
             mapping = [next(gid) for i in range(len(layout.membranes))]
 
         verts, edges, tris, tri_edges = [], [], [], []
@@ -204,7 +205,7 @@ class BemGrid(Grid):
         self._mesh = amesh
 
 
-class FemGrid(Grid):
+class FemGrid(BaseGrid):
     def __init__(self, geometrydata, refn, square_type=1):
 
         g = geometrydata
@@ -224,14 +225,29 @@ class FemGrid(Grid):
         self._mesh = amesh
 
 
-def generate_grids(layout, geometry, mapping, refn, square_type=1):
+class Grids:
+
+    def __init__(self, bem, fem):
+        self._bem = bem
+        self._fem = fem
+
+    @property
+    def bem(self):
+        return self._bem
+
+    @property
+    def fem(self):
+        return self._fem
+
+
+def generate_grids_from_layout(layout, refn, square_type=1):
     bem_grid = BemGrid(layout, geometry, mapping, refn.square_type)
 
     fem_grids = []
     for geom in geometry:
         fem_grids.append(FemGrid(geom, refn, square_type=1))
-
-    return bem_grid, fem_grids
+    
+    return Grids(bem_grid, fem_grids)
 
 
 def import_grid():
