@@ -106,21 +106,16 @@ ext_modules = [
         sources=['cnld/h2lib/matrixnorms.pyx'],
         **ext_opts
     ),
-    Extension(
-        name='cnld.simulation',
-        sources=['cnld/simulation.pyx'],
-        **ext_opts
-    ),
-    Extension(
-        name='cnld.bem_pressure',
-        sources=['cnld/bem_pressure.pyx'],
-        **ext_opts
-    ),
-    Extension(
-        name='cnld.simulation',
-        sources=['cnld/simulation.pyx'],
-        **ext_opts
-    ),
+    # Extension(
+    #     name='cnld.simulation',
+    #     sources=['cnld/simulation.pyx'],
+    #     **ext_opts
+    # ),
+    # Extension(
+    #     name='cnld.bem_pressure',
+    #     sources=['cnld/bem_pressure.pyx'],
+    #     **ext_opts
+    # ),
 ]
 
 

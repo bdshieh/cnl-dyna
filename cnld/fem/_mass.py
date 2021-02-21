@@ -1,4 +1,6 @@
 ''''''
+__all__ = ['m_mat_np']
+
 import numpy as np
 import numba
 

@@ -13,7 +13,7 @@ import pandas as pd
 import scipy as sp
 import scipy.fftpack
 import scipy.signal
-from cnld import abstract
+# from cnld import abstract
 from scipy.spatial.distance import cdist
 ''' GEOMETRY-RELATED FUNCTIONS '''
 
@@ -696,91 +696,91 @@ def update_progress(con, job_id):
 ''' SCRIPTING FUNCTIONS '''
 
 
-def script_parser(main, config_def):
-    '''
-    General script command-line interface with 'config' and 'run' subcommands.
-    '''
-    if isinstance(config_def, dict):
-        # create config abstract type based on supplied dict
-        Config = abstract.register_type('Config', config_def)
-    else:
-        # config abstract type already defined
-        Config = config_def
+# def script_parser(main, config_def):
+#     '''
+#     General script command-line interface with 'config' and 'run' subcommands.
+#     '''
+#     if isinstance(config_def, dict):
+#         # create config abstract type based on supplied dict
+#         Config = abstract.register_type('Config', config_def)
+#     else:
+#         # config abstract type already defined
+#         Config = config_def
 
-    # config subcommand generates a default configuration template
-    def config(args):
-        if args.file:
-            abstract.dump(Config(), args.file)
-        else:
-            print(Config())
+#     # config subcommand generates a default configuration template
+#     def config(args):
+#         if args.file:
+#             abstract.dump(Config(), args.file)
+#         else:
+#             print(Config())
 
-    # run subcommand will load the config file and pass to main
-    def run(args):
-        if args.config:
-            cfg = Config(**abstract.load(args.config))
-        else:
-            cfg = Config()
-        return main(cfg, args)
+#     # run subcommand will load the config file and pass to main
+#     def run(args):
+#         if args.config:
+#             cfg = Config(**abstract.load(args.config))
+#         else:
+#             cfg = Config()
+#         return main(cfg, args)
 
-    # create argument parser
-    parser = argparse.ArgumentParser()
-    # define config subparser
-    subparsers = parser.add_subparsers(help='sub-command help')
-    config_parser = subparsers.add_parser('config', help='config_help')
-    config_parser.add_argument('-f', '--file', nargs='?')
-    config_parser.set_defaults(func=config)
-    # define run subparser
-    run_parser = subparsers.add_parser('run', help='run_help')
-    run_parser.add_argument('config', nargs='?')
-    run_parser.add_argument('-f', '--file', nargs='?')
-    run_parser.add_argument('-t', '--threads', nargs='?', type=int)
-    run_parser.add_argument('-w', '--write-over', action='store_true')
-    run_parser.set_defaults(func=run)
+#     # create argument parser
+#     parser = argparse.ArgumentParser()
+#     # define config subparser
+#     subparsers = parser.add_subparsers(help='sub-command help')
+#     config_parser = subparsers.add_parser('config', help='config_help')
+#     config_parser.add_argument('-f', '--file', nargs='?')
+#     config_parser.set_defaults(func=config)
+#     # define run subparser
+#     run_parser = subparsers.add_parser('run', help='run_help')
+#     run_parser.add_argument('config', nargs='?')
+#     run_parser.add_argument('-f', '--file', nargs='?')
+#     run_parser.add_argument('-t', '--threads', nargs='?', type=int)
+#     run_parser.add_argument('-w', '--write-over', action='store_true')
+#     run_parser.set_defaults(func=run)
 
-    return parser, run_parser
+#     return parser, run_parser
 
 
-def script_parser2(main, config_def):
-    '''
-    General script command-line interface with 'config' and 'run' subcommands.
-    '''
-    if isinstance(config_def, dict):
-        # create config abstract type based on supplied dict
-        Config = abstract.register_type('Config', config_def)
-    else:
-        # config abstract type already defined
-        Config = config_def
+# def script_parser2(main, config_def):
+#     '''
+#     General script command-line interface with 'config' and 'run' subcommands.
+#     '''
+#     if isinstance(config_def, dict):
+#         # create config abstract type based on supplied dict
+#         Config = abstract.register_type('Config', config_def)
+#     else:
+#         # config abstract type already defined
+#         Config = config_def
 
-    # run
-    def run(args):
+#     # run
+#     def run(args):
 
-        if args.show_config:
-            print(Config())
-            return
+#         if args.show_config:
+#             print(Config())
+#             return
 
-        if args.generate_config:
-            abstract.dump(Config(), args.generate_config)
-            return
+#         if args.generate_config:
+#             abstract.dump(Config(), args.generate_config)
+#             return
 
-        if args.file:
-            if args.config:
-                cfg = Config(**abstract.load(args.config))
-            else:
-                cfg = Config()
+#         if args.file:
+#             if args.config:
+#                 cfg = Config(**abstract.load(args.config))
+#             else:
+#                 cfg = Config()
 
-            return main(cfg, args)
+#             return main(cfg, args)
 
-    # create argument parser
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-g', '--generate-config')
-    parser.add_argument('-s', '--show-config', action='store_true')
-    parser.add_argument('file', nargs='?')
-    parser.add_argument('-c', '--config')
-    parser.add_argument('-t', '--threads', type=int)
-    parser.add_argument('-w', '--write-over', action='store_true')
-    parser.set_defaults(func=run)
+#     # create argument parser
+#     parser = argparse.ArgumentParser()
+#     parser.add_argument('-g', '--generate-config')
+#     parser.add_argument('-s', '--show-config', action='store_true')
+#     parser.add_argument('file', nargs='?')
+#     parser.add_argument('-c', '--config')
+#     parser.add_argument('-t', '--threads', type=int)
+#     parser.add_argument('-w', '--write-over', action='store_true')
+#     parser.set_defaults(func=run)
 
-    return parser
+#     return parser
 
 
 ''' MISC FUNCTIONS '''

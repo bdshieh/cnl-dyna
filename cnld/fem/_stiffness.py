@@ -1,4 +1,6 @@
 ''''''
+__all__ = ['k_mat_np']
+
 import numpy as np
 import numpy.linalg
 import numba

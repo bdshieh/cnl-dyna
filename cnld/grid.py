@@ -1,7 +1,6 @@
 ''''''
 import numpy as np
 from matplotlib import pyplot as plt
-from namedlist import namedlist
 from cnld import mesh
 from itertools import cycle
 

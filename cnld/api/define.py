@@ -144,6 +144,9 @@ def generate_controldomainlist(layout, geomlist, mapping=None):
     '''
     '''
     if mapping is None:
+        mapping = layout.membrane_to_geometry_mapping
+    
+    if mapping is None:
         gid = cycle(range(len(geomlist)))
         mapping = [next(gid) for i in range(len(layout.membranes))]
 
@@ -353,14 +356,8 @@ def linear_hexagonal_layout(nx, ny, pitch):
 
 def square_cmut_1mhz_geometry(**kwargs):
     '''
-    [summary]
-
-    Returns
-    -------
-    [type]
-        [description]
     '''
-    data = GeometryData(id=0,
+    data = Geometry(id=0,
                         thickness=1e-6,
                         shape='square',
                         length_x=35e-6,
@@ -372,25 +369,21 @@ def square_cmut_1mhz_geometry(**kwargs):
                         eps_r=1.2,
                         gap=50e-9,
                         electrode_x=35e-6,
-                        electrode_y=35e-6)
+                        electrode_y=35e-6,
+                        controldomain_nx=3,
+                        controldomain_ny=3)
 
     for k, v in kwargs.items():
         if k in data:
             data[k] = v
 
-    return Geometries([data])
+    return GeometryList([data])
 
 
 def circle_cmut_1mhz_geometry(**kwargs):
     '''
-    [summary]
-
-    Returns
-    -------
-    [type]
-        [description]
     '''
-    data = GeometryData(id=0,
+    data = Geometry(id=0,
                         thickness=1e-6,
                         shape='circle',
                         radius=35e-6,
@@ -400,13 +393,15 @@ def circle_cmut_1mhz_geometry(**kwargs):
                         isol_thickness=100e-9,
                         eps_r=1.2,
                         gap=50e-9,
-                        electrode_r=20e-6)
+                        electrode_r=20e-6,
+                        controldomain_nr=3,
+                        controldomain_ntheta=4)
 
     for k, v in kwargs.items():
         if k in data:
             data[k] = v
 
-    return Geometries([data])
+    return GeometryList([data])
 
 
 # BeamformData = register_mapping('BeamformData',
@@ -418,20 +413,20 @@ def circle_cmut_1mhz_geometry(**kwargs):
 
 # Beamforms = register_list('Beamforms', BeamformData)
 
-WaveformData = register_mapping(
-    'WaveformData', OrderedDict(
+Waveform = register_mapping(
+    'Waveform', OrderedDict(
         id=None,
         time=None,
         voltage=None,
         fs=None,
     ))
 
-Waveforms = register_list('Waveforms', WaveformData)
+WaveformList = register_list('WaveformList', Waveform)
 
 Transmit = register_mapping(
     'Transmit',
     OrderedDict(
-        waveforms=FACTORY(Waveforms),
+        waveforms=FACTORY(WaveformList),
         focus=None,
         apod=None,
         delays=None,

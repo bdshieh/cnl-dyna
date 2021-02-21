@@ -1,4 +1,5 @@
 ''''''
+__all__ = ['mbk_mat_sps_from_layout', 'mbk_mat_spm_from_layout']
 import numpy as np
 import numpy.linalg
 from cnld.fem import _mass, _stiffness, _damping
