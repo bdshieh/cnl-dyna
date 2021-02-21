@@ -1,19 +1,17 @@
+'''
+'''
+__all__ = ['p_vec_np', 'p_arb_vec_np', 'p_cd_mat_np', 'avg_cd_mat_np', 'p_cd_mat_sps_from_layout', 'avg_cd_mat_sps_from_layout']
+
 import numpy as np
 import numpy.linalg
-from cnld import abstract, mesh, util
-from scipy import linalg
 from scipy import sparse as sps
-from scipy.constants import epsilon_0 as e_0
 from scipy.integrate import dblquad
 import numba
 
 eps = np.finfo(np.float64).eps
 
-# np
-# sps
-# hm
-# am
-# spm
+# np, sps, hm, fm, spm
+
 
 def p_vec_np(grid, p):
     '''
@@ -315,7 +313,7 @@ def avg_cd_mat_np(grid, geom):
 #     return np.array(fcol), np.array(ups)
 
 
-def p_mat_sps_from_layout(layout, grids):
+def p_cd_mat_sps_from_layout(layout, grids):
     '''
     Construct load vector based on patches of abstract array.
     '''
@@ -337,7 +335,7 @@ def p_mat_sps_from_layout(layout, grids):
     return sps.block_diag(blocks, format='csc')
 
 
-def avg_mat_sps_from_layout(layout, grids):
+def avg_cd_mat_sps_from_layout(layout, grids):
     '''
     Construct load vector based on patches of abstract array.
     '''

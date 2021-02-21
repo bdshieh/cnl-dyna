@@ -1,14 +1,10 @@
 ''''''
 import numpy as np
 import numpy.linalg
-from cnld import abstract, mesh, util
-from scipy.constants import epsilon_0 as e_0
 import numba
 
-eps = np.finfo(np.float64).eps
 
-
-def bm_ndarray(geom, M, K):
+def b_mat_np(geom, M, K):
     '''
     Damping matrix based on Rayleigh damping for damping ratios at two
     frequencies.
@@ -28,7 +24,7 @@ def bm_ndarray(geom, M, K):
     return alpha * M + beta * K
 
 
-def beigm_ndarray(grid, geom, M, K):
+def b_eig_mat_np(grid, geom, M, K):
     '''
     Damping matrix based on Rayleigh damping for damping ratios at two modal
     frequencies.
@@ -39,7 +35,7 @@ def beigm_ndarray(grid, geom, M, K):
     zb = geom.damping_ratio_b
 
     # determine eigenfrequencies of membrane
-    eigf, _ = mem_eig(grid, geom)
+    eigf, _ = geom_eig(grid, geom)
     omga = eigf[ma] * 2 * np.pi
     omgb = eigf[mb] * 2 * np.pi
 
@@ -50,7 +46,7 @@ def beigm_ndarray(grid, geom, M, K):
     return alpha * M + beta * K
 
 
-def mem_eig(grid, geom):
+def geom_eig(grid, geom):
     '''
     Returns the eigenfrequency (in Hz) and eigenmodes of a membrane.
     '''
@@ -58,7 +54,7 @@ def mem_eig(grid, geom):
 
     M = mm_ndarray(grid, geom, mu=0.5)
     K = km_ndarray(grid, geom)
-    w, v = linalg.eig(linalg.inv(M).dot(K)[np.ix_(~ob, ~ob)])
+    w, v = linalg.eigh(linalg.inv(M).dot(K)[np.ix_(~ob, ~ob)])
 
     idx = np.argsort(np.sqrt(np.abs(w)))
     eigf = np.sqrt(np.abs(w))[idx] / (2 * np.pi)

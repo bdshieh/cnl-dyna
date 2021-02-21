@@ -1,11 +1,7 @@
 ''''''
 import numpy as np
 import numpy.linalg
-from cnld import abstract, mesh, util
-from scipy.constants import epsilon_0 as e_0
 import numba
-
-eps = np.finfo(np.float64).eps
 
 
 def k_mat_np(grid, geom, type='bpt'):
@@ -132,7 +128,7 @@ def k_bpt_mat_np(grid, geom):
     return K
 
 
-def k_hpb_mat_np(grid, geom, retmesh=False):
+def k_hpb_mat_np(grid, geom):
     '''
     Stiffness matrix based on 3-dof hinged plate bending (HPB) elements.
 

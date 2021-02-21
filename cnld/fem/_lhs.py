@@ -1,11 +1,9 @@
 ''''''
 import numpy as np
 import numpy.linalg
-from cnld import abstract, mesh, util
-from scipy import linalg
+from cnld.fem import _mass, _stiffness, _damping
+from cnld.matrix import H2SparseMatrix
 from scipy import sparse as sps
-from scipy.constants import epsilon_0 as e_0
-from scipy.integrate import dblquad
 import numba
 
 
@@ -33,9 +31,9 @@ def mbk_mat_sps_from_layout(layout, grids, f, inv=False):
 
     for i, geom in enumerate(layout.geometries):
 
-        M = m_mat_np(grids.fem[i], geom)
-        K = k_mat_np(grids.fem[i], geom)
-        B = b_eig_mat_np(grids.fem[i], geom, M, K)
+        M = _mass.m_mat_np(grids.fem[i], geom)
+        K = _stiffness.k_mat_np(grids.fem[i], geom)
+        B = _damping.b_eig_mat_np(grids.fem[i], geom, M, K)
         mbk = -(omg**2) * M - 1j * omg * B + K
 
         mbk_list[i] = mbk
@@ -58,3 +56,9 @@ def mbk_mat_sps_from_layout(layout, grids, f, inv=False):
                                                             format='csr')
     else:
         return sps.block_diag(blocks, format='csr')
+
+
+def mbk_mat_spm_from_layout(layout, grids, f, inv=False):
+    MBK = mbk_mat_sps_from_layout(layout, grids, f, inv)
+    H2SparseMatrix.array(MBK)
+ 

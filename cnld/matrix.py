@@ -225,7 +225,7 @@ class Matrix(abc.ABC):
         return y
 
 
-class FullMatrix(Matrix):
+class H2FullMatrix(Matrix):
     @classmethod
     def array(cls, a):
 
@@ -416,12 +416,9 @@ class FullMatrix(Matrix):
         return np.array(x.v)
 
 
-class SparseMatrix(Matrix):
+class H2SparseMatrix(Matrix):
     @classmethod
     def array(cls, a):
-
-        if issparse(a):
-            a = a.toarray()
 
         start = timer()
         mat = SparseMatrix.from_array(a)
@@ -579,9 +576,19 @@ class SparseMatrix(Matrix):
         raise NotImplementedError
 
 
-class HMatrix(Matrix):
+class H2HMatrix(Matrix):
 
     eps_add = 1e-12
+
+    def __init__(self, mat, root, broot):
+        self._mat = mat
+        self._root = root
+        self._broot = broot
+
+    def __del__(self):
+        super(self)
+        del self._root
+        del self._broot
 
     @classmethod
     def array(cls, a):

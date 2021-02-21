@@ -1,121 +1,86 @@
 '''Routines for the boundary element method.'''
-
-import cmath
-
 import numpy as np
-import scipy as sp
-from cnld import abstract, mesh, util
-from cnld.compressed_formats import ZFullMatrix, ZHMatrix
-from scipy import linalg
-from scipy import sparse as sps
-from scipy.io import loadmat
+from cnld.matrix import FullMatrix, HMatrix
+from timeit import default_timer as timer
+from . h2lib import *
 
 
-@util.memoize
-def mem_z_matrix(mem, refn, k, *args, **kwargs):
+def z_mat_np(grid, geom, k, **kwargs):
     '''
     Impedance matrix in FullFormat for a membrane.
-
-    Parameters
-    ----------
-    mem : [type]
-        [description]
-    refn : [type]
-        [description]
-    k : [type]
-        [description]
-
-    Returns
-    -------
-    [type]
-        [description]
     '''
-    if isinstance(mem, abstract.SquareCmutMembrane):
-        amesh = mesh.square(mem.length_x, mem.length_y, refn)
+    return np.array(ZFullMatrix(grid, geom, k, **kwargs).data)
+
+
+
+def z_mat_np(grid, geom, k, basis='linear', q_reg=2, q_sing=4):
+    '''
+    Impedance matrix in full format.
+    '''
+
+    if basis.lower() in ['constant']:
+        _basis = basisfunctionbem3d.CONSTANT
+    elif basis.lower() in ['linear']:
+        _basis = basisfunctionbem3d.LINEAR
     else:
-        amesh = mesh.circle(mem.radius, refn)
+        raise ValueError
 
-    return np.array(ZFullMatrix(amesh, k, *args, **kwargs).data)
+    bem = new_slp_helmholtz_bem3d(k, grid.surface3d, q_reg, q_sing, _basis,
+                                    _basis)
+
+    Z = H2FullMatrix.zeros((len(grid.vertices), len(grid.vertices)))
+
+    start = timer()
+    assemble_bem3d_amatrix(bem, Z)
+    time_assemble = timer() - start
+
+    Z._time_assemble = time_assemble
+
+    return np.array(Z.data)
 
 
-def array_z_matrix(array, refn, k, format='HFormat', *args, **kwargs):
+def z_mat_hm(grid, geom, k, basis='linear', m=4, q_reg=2, q_sing=4, aprx='paca',
+    admis='2', eta=1.0, eps_aca=1e-2, strict=False, clf=16, rk=0):
     '''
-    Impedance matrix in either FullFormat or HFormat for an array.
-
-    Parameters
-    ----------
-    array : [type]
-        [description]
-    refn : [type]
-        [description]
-    k : [type]
-        [description]
-    format : str, optional
-        [description], by default 'HFormat'
-
-    Returns
-    -------
-    [type]
-        [description]
+    Impedance matrix in hierarchical format.
     '''
-    amesh = mesh.Mesh.from_abstract(array, refn)
-
-    if format.lower() in ['hformat', 'h']:
-        return ZHMatrix(amesh, k, *args, **kwargs)
+    if basis.lower() in ['constant']:
+        _basis = basisfunctionbem3d.CONSTANT
+    elif basis.lower() in ['linear']:
+        _basis = basisfunctionbem3d.LINEAR
     else:
-        return ZFullMatrix(amesh, k, *args, **kwargs)
+        raise TypeError
 
+    bem = new_slp_helmholtz_bem3d(k, mesh.surface3d, q_reg, q_sing, _basis,
+                                    _basis)
+    root = build_bem3d_cluster(bem, clf, _basis)
 
-def array_z_linop(array, refn, f, c, rho, *args, **kwargs):
-    '''
-    Impedance matrix linear operators for an array.
+    if strict:
+        broot = build_strict_block(root, root, eta, admis)
+    else:
+        broot = build_nonstrict_block(root, root, eta, admis)
 
-    Parameters
-    ----------
-    array : [type]
-        [description]
-    refn : [type]
-        [description]
-    f : [type]
-        [description]
-    c : [type]
-        [description]
-    rho : [type]
-        [description]
+    if aprx.lower() in ['aca']:
+        setup_hmatrix_aprx_inter_row_bem3d(bem, root, root, broot, m)
+    elif aprx.lower() in ['paca']:
+        setup_hmatrix_aprx_paca_bem3d(bem, root, root, broot, eps_aca)
+    elif aprx.lower() in ['hca']:
+        setup_hmatrix_aprx_hca_bem3d(bem, root, root, broot, m, eps_aca)
+    elif aprx.lower() in ['inter_row']:
+        setup_hmatrix_aprx_inter_row_bem3d(bem, root, root, broot, m)
 
-    Returns
-    -------
-    [type]
-        [description]
-    '''
-    k = 2 * np.pi * f / c
-    omg = 2 * np.pi * f
+    mat = build_from_block_hmatrix(broot, rk)
+    start = timer()
+    assemble_bem3d_hmatrix(bem, broot, mat)
+    time_assemble = timer() - start
 
-    Z = array_z_matrix(array, refn, k, *args, **kwargs)
-    Z_LU = Z.lu()
+    Z = H2HMatrix(mat, root, broot)
+    Z.time_assemble = time_assemble
 
-    amesh = mesh.Mesh.from_abstract(array, refn)
-    ob = amesh.on_boundary
-    nnodes = len(amesh.vertices)
+    # keep references to h2lib objects so they don't get garbage collected
+    # Z._root = root
+    # important! don't ref bem and broot otherwise processes fail to terminate (not sure why)
+    # Z._bem = bem
+    # Z._broot = broot
 
-    def mv(x):
-        x[ob] = 0
-        p = Z * x
-        p[ob] = 0
-        return -omg**2 * rho * 2 * p
-
-    linop = sps.linalg.LinearOperator((nnodes, nnodes),
-                                      dtype=np.complex128,
-                                      matvec=mv)
-
-    def inv_mv(x):
-        x[ob] = 0
-        p = Z_LU._triangularsolve(x)
-        p[ob] = 0
-        return -omg**2 * rho * 2 * p
-
-    linop_inv = sps.linalg.LinearOperator((nnodes, nnodes),
-                                          dtype=np.complex128,
-                                          matvec=inv_mv)
-
-    return linop, linop_inv
+    return Z

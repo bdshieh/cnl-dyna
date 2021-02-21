@@ -1,10 +1,6 @@
 ''''''
 import numpy as np
-from cnld.api import grid
-from scipy.constants import epsilon_0 as e_0
 import numba
-
-eps = np.finfo(np.float64).eps
 
 
 def m_mat_np(grid, geom, mu=0.5):
