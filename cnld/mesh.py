@@ -1,9 +1,6 @@
 '''Routines for generation of triangular surface meshes.'''
 import numpy as np
-from cnld import abstract, util
 from cnld.h2lib import *
-from matplotlib import pyplot as plt
-from scipy.interpolate import Rbf
 
 eps = np.finfo(np.float64).eps
 
@@ -195,156 +192,7 @@ class Mesh:
     def translate(self, r):
         translate_surface3d(self._surface, np.array(r, dtype=np.float64))
 
-    # def draw(self):
-    #     vertices = self.vertices
-    #     edges = self.edges
 
-    #     plt.figure()
-    #     plt.plot(vertices[:, 0], vertices[:, 1], '.')
-
-    #     for e in edges:
-    #         x1, y1, z1 = vertices[e[0], :]
-    #         x2, y2, z2 = vertices[e[1], :]
-    #         plt.plot([x1, x2], [y1, y2], 'b-')
-
-    #     plt.axis('equal')
-    #     plt.show()
-
-    # def _memoize():
-    #     return (self.nvertices, self.triangles.tostring(),
-    #             self.edges.tostring(), self.triangle_edges.tostring())
-
-
-def _from_abstract(cls, array, refn=1, **kwargs):
-    '''
-    Generate mesh from abstract representation of an array.
-
-    Parameters
-    ----------
-    array : [type]
-        [description]
-    refn : int, optional
-        [description], by default 1
-
-    Returns
-    -------
-    [type]
-        [description]
-
-    Raises
-    ------
-    TypeError
-        [description]
-    TypeError
-        [description]
-    '''
-    # generate geometry in terms of vertices, edges, and triangles with refinement
-    # (much faster to construct mesh from entire geometry once instead of membrane by
-    # membrane)
-    verts, edges, tris, tri_edges = [], [], [], []
-    vidx = 0
-    eidx = 0
-
-    for elem in array.elements:
-        for mem in elem.membranes:
-
-            if isinstance(mem, abstract.SquareCmutMembrane):
-                v, e, t, s = geometry_square(mem.length_x,
-                                             mem.length_y,
-                                             refn=refn)
-            elif isinstance(mem, abstract.CircularCmutMembrane):
-                v, e, t, s = geometry_circle(mem.radius, n=4, refn=refn)
-            else:
-                raise TypeError
-
-            v += np.array(mem.position)
-            e += vidx
-            t += vidx
-            s += eidx
-
-            vidx += len(v)
-            eidx += len(e)
-
-            verts.append(v)
-            edges.append(e)
-            tris.append(t)
-            tri_edges.append(s)
-
-    verts = np.concatenate(verts, axis=0)
-    edges = np.concatenate(edges, axis=0)
-    tris = np.concatenate(tris, axis=0)
-    tri_edges = np.concatenate(tri_edges, axis=0)
-
-    # construct mesh from geometry
-    mesh = cls.from_geometry(verts, edges, tris, tri_edges)
-
-    # assign mesh vertices to patches, membranes, and elements
-    nverts = len(mesh.vertices)
-    # patch_counter = np.zeros(nverts, dtype=np.int32) # keeps track of current patch idx for each vertex
-    # patch_ids = np.ones((nverts, 4), dtype=np.int32) * np.nan
-    membrane_ids = np.ones(nverts, dtype=np.int32) * np.nan
-    element_ids = np.ones(nverts, dtype=np.int32) * np.nan
-    mesh.on_boundary = np.zeros(nverts, dtype=np.bool)
-    x, y, z = mesh.vertices.T
-
-    for elem in array.elements:
-        for mem in elem.membranes:
-            if isinstance(mem, abstract.SquareCmutMembrane):
-                # determine vertices which belong to each membrane
-                mem_x, mem_y, mem_z = mem.position
-                length_x, length_y = mem.length_x, mem.length_y
-                xmin = mem_x - length_x / 2  # - 2 * eps
-                xmax = mem_x + length_x / 2  # + 2 * eps
-                ymin = mem_y - length_y / 2  # - 2 * eps
-                ymax = mem_y + length_y / 2  # + 2 * eps
-                mask_x = np.logical_and(x >= xmin - 2 * eps,
-                                        x <= xmax + 2 * eps)
-                mask_y = np.logical_and(y >= ymin - 2 * eps,
-                                        y <= ymax + 2 * eps)
-                mem_mask = np.logical_and(mask_x, mask_y)
-                membrane_ids[mem_mask] = mem.id
-                element_ids[mem_mask] = elem.id
-
-                # check and flag boundary vertices
-                mask1 = np.abs(x[mem_mask] - xmin) <= 2 * eps
-                mask2 = np.abs(x[mem_mask] - xmax) <= 2 * eps
-                mask3 = np.abs(y[mem_mask] - ymin) <= 2 * eps
-                mask4 = np.abs(y[mem_mask] - ymax) <= 2 * eps
-                mesh.on_boundary[mem_mask] = np.any(np.c_[mask1, mask2, mask3,
-                                                          mask4],
-                                                    axis=1)
-
-            elif isinstance(mem, abstract.CircularCmutMembrane):
-                # determine vertices which belong to each membrane
-                mem_x, mem_y, mem_z = mem.position
-                radius = mem.radius
-                rmax = radius + 2 * eps
-                r = np.sqrt((x - mem_x)**2 + (y - mem_y)**2)
-                mem_mask = r <= rmax
-                membrane_ids[mem_mask] = mem.id
-                element_ids[mem_mask] = elem.id
-
-                # check and flag boundary vertices
-                mask1 = r[mem_mask] <= radius + 2 * eps
-                mask2 = r[mem_mask] >= radius - 2 * eps
-                mesh.on_boundary[mem_mask] = np.logical_and(mask1, mask2)
-
-            else:
-                raise TypeError
-
-    # check that no vertices were missed
-    # assert ~np.any(np.isnan(patch_ids[:,0])) # check that each vertex is assigned to at least one patch
-    # assert ~np.any(np.isnan(membrane_ids))
-    # assert ~np.any(np.isnan(element_ids))
-
-    # mesh.patch_ids = patch_ids
-    mesh.membrane_ids = membrane_ids
-    mesh.element_ids = element_ids
-
-    return mesh
-
-
-@util.memoize
 def geometry_square(xl, yl, refn=1, type=1):
     '''
     Creates a square mesh geometry (vertices, triangles etc.) which can be used to
@@ -447,7 +295,6 @@ def geometry_square(xl, yl, refn=1, type=1):
     return v, e, t, s
 
 
-@util.memoize
 def geometry_circle(rl, n=4, refn=1):
     '''
     Creates a circle mesh geometry (vertices, triangles etc.) which can be
@@ -750,27 +597,6 @@ def triangle_edges_from_triangles(triangles, edges):
     '''
     Assign edges to triangles based on triangle vertices. Edges must be on opposite side of
     their corresponding vertex.
-
-    Parameters
-    ----------
-    triangles : [type]
-        [description]
-    edges : [type]
-        [description]
-
-    Returns
-    -------
-    [type]
-        [description]
-
-    Raises
-    ------
-    RuntimeError
-        [description]
-    RuntimeError
-        [description]
-    RuntimeError
-        [description]
     '''
     triangle_edges = np.zeros_like(triangles)
     for t, tri in enumerate(triangles):
@@ -805,28 +631,6 @@ def triangle_edges_from_triangles(triangles, edges):
 def matrix_array(nx, ny, pitchx, pitchy, xl, yl, refn=1, **kwargs):
     '''
     Convenience function for a mesh representing a matrix array.
-
-    Parameters
-    ----------
-    nx : [type]
-        [description]
-    ny : [type]
-        [description]
-    pitchx : [type]
-        [description]
-    pitchy : [type]
-        [description]
-    xl : [type]
-        [description]
-    yl : [type]
-        [description]
-    refn : int, optional
-        [description], by default 1
-
-    Returns
-    -------
-    [type]
-        [description]
     '''
     lengthx, lengthy = pitchx * (nx - 1), pitchy * (ny - 1)
     xv = np.linspace(-lengthx / 2, lengthx / 2, nx)
@@ -886,60 +690,25 @@ def matrix_array(nx, ny, pitchx, pitchy, xl, yl, refn=1, **kwargs):
 def linear_array():
     '''
     Convenience function for a mesh representing a linear array.
-
-    Raises
-    ------
-    NotImplementedError
-        [description]
     '''
     raise NotImplementedError
 
 
-def interpolator(mesh, func, function='cubic'):
-    '''
-    Returns an interpolator for function f defined on the nodes of the given mesh.
-
-    Parameters
-    ----------
-    mesh : [type]
-        [description]
-    func : [type]
-        [description]
-    function : str, optional
-        [description], by default 'cubic'
-
-    Returns
-    -------
-    [type]
-        [description]
-    '''
-    if isinstance(mesh, Mesh):
-        return Rbf(mesh.vertices[:, 0],
-                   mesh.vertices[:, 1],
-                   func,
-                   function=function,
-                   smooth=0)
-    else:
-        x, y = mesh
-        return Rbf(x, y, func, function=function, smooth=0)
+# def interpolator(mesh, func, function='cubic'):
+#     '''
+#     '''
+#     if isinstance(mesh, Mesh):
+#         return Rbf(mesh.vertices[:, 0],
+#                    mesh.vertices[:, 1],
+#                    func,
+#                    function=function,
+#                    smooth=0)
+#     else:
+#         x, y = mesh
+#         return Rbf(x, y, func, function=function, smooth=0)
 
 
-def integrator(mesh, func, function='linear'):
-    '''
-    [summary]
-
-    Parameters
-    ----------
-    mesh : [type]
-        [description]
-    func : [type]
-        [description]
-    function : str, optional
-        [description], by default 'linear'
-
-    Raises
-    ------
-    NotImplementedError
-        [description]
-    '''
-    raise NotImplementedError
+# def integrator(mesh, func, function='linear'):
+#     '''
+#     '''
+#     raise NotImplementedError

@@ -78,21 +78,21 @@ class BaseGrid:
     def _find_triangle_neighbors(self):
         # determine list of neighbors for each triangle
         # None indicates neighbor doesn't exist for that edge (boundary edge)
-        triangle_neighbors = []
-        for tt in range(ntriangles):
+        triangle_neighbors = [None] * self.ntriangles
+        for i, tt in enumerate(range(self.ntriangles)):
             neighbors = []
-            for te in triangle_edges[tt, :]:
-                mask = np.any(triangle_edges == te, axis=1)
+            for te in self.triangle_edges[tt, :]:
+                mask = np.any(self.triangle_edges == te, axis=1)
                 args = np.nonzero(mask)[0]
                 if len(args) > 1:
                     neighbors.append(args[args != tt][0])
                 else:
                     neighbors.append(None)
-            triangle_neighbors.append(neighbors)
+            triangle_neighbors[i] = neighbors
 
 
 class BemGrid(BaseGrid):
-    def __init__(self, layout, geometry, mapping, refn, square_type=1):
+    def __init__(self, layout, refn, square_type=1):
 
         mapping = layout.membrane_to_geometry_mapping
         if mapping is None:
