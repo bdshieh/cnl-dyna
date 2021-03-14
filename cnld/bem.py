@@ -1,19 +1,19 @@
 '''Routines for the boundary element method.'''
 import numpy as np
-from cnld.matrix import FullMatrix, HMatrix
 from timeit import default_timer as timer
-from . h2lib import *
+from cnld import mesh
+from cnld.matrix import H2FullMatrix, H2HMatrix
+from .h2lib import *
 
 
 def z_mat_np(grid, geom, k, **kwargs):
     '''
     Impedance matrix in FullFormat for a membrane.
     '''
-    return np.array(ZFullMatrix(grid, geom, k, **kwargs).data)
+    return np.array(z_mat_fm(grid, geom, k, **kwargs).data)
 
 
-
-def z_mat_np(grid, geom, k, basis='linear', q_reg=2, q_sing=4):
+def z_mat_fm(grid, geom, k, basis='linear', q_reg=2, q_sing=4):
     '''
     Impedance matrix in full format.
     '''
@@ -26,7 +26,7 @@ def z_mat_np(grid, geom, k, basis='linear', q_reg=2, q_sing=4):
         raise ValueError
 
     bem = new_slp_helmholtz_bem3d(k, grid.surface3d, q_reg, q_sing, _basis,
-                                    _basis)
+                                  _basis)
 
     Z = H2FullMatrix.zeros((len(grid.vertices), len(grid.vertices)))
 
@@ -39,8 +39,20 @@ def z_mat_np(grid, geom, k, basis='linear', q_reg=2, q_sing=4):
     return np.array(Z.data)
 
 
-def z_mat_hm(grid, geom, k, basis='linear', m=4, q_reg=2, q_sing=4, aprx='paca',
-    admis='2', eta=1.0, eps_aca=1e-2, strict=False, clf=16, rk=0):
+def z_mat_hm(grid,
+             geom,
+             k,
+             basis='linear',
+             m=4,
+             q_reg=2,
+             q_sing=4,
+             aprx='paca',
+             admis='2',
+             eta=1.0,
+             eps_aca=1e-2,
+             strict=False,
+             clf=16,
+             rk=0):
     '''
     Impedance matrix in hierarchical format.
     '''
@@ -52,7 +64,7 @@ def z_mat_hm(grid, geom, k, basis='linear', m=4, q_reg=2, q_sing=4, aprx='paca',
         raise TypeError
 
     bem = new_slp_helmholtz_bem3d(k, mesh.surface3d, q_reg, q_sing, _basis,
-                                    _basis)
+                                  _basis)
     root = build_bem3d_cluster(bem, clf, _basis)
 
     if strict:

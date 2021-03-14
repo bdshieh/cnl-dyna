@@ -50,7 +50,7 @@ def mbk_mat_sps_from_layout(layout, grids, f, inv=False):
         blocks[i] = mbk_list[mapping[i]]
         if inv:
             blocks_inv[i] = mbk_inv_list[mapping[i]]
-            
+
     if inv:
         return sps.block_diag(blocks,
                               format='csr'), sps.block_diag(blocks_inv,
@@ -61,5 +61,4 @@ def mbk_mat_sps_from_layout(layout, grids, f, inv=False):
 
 def mbk_mat_spm_from_layout(layout, grids, f, inv=False):
     MBK = mbk_mat_sps_from_layout(layout, grids, f, inv)
-    H2SparseMatrix.array(MBK)
- 
+    return H2SparseMatrix.array(MBK)

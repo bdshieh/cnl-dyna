@@ -91,18 +91,94 @@ CREATE INDEX patch_to_patch_imp_resp_index ON patch_to_patch_imp_resp (
 source_patch, dest_patch, time
 )
 '''
+''' DATABASE FUNCTIONS '''
 
-# PROGRESS =
-# '''
-# CREATE TABLE progress (
-# job_id integer primary key,
-# is_complete boolean
-# )
-# '''
+
+def open_db(f):
+
+    def decorator(firstarg, *args, **kwargs):
+        if isinstance(firstarg, sql.Connection):
+            return f(firstarg, *args, **kwargs)
+        else:
+            # if os.path.isfile(firstarg):
+            with closing(sql.connect(firstarg)) as con:
+                return f(con, *args, **kwargs)
+            # else:
+            #     raise IOError
+
+    return decorator
+
+
+def read_db(f):
+
+    def decorator(firstarg, *args, **kwargs):
+        if isinstance(firstarg, sql.Connection):
+            return f(firstarg, *args, **kwargs)
+        else:
+            if os.path.isfile(firstarg):
+                with closing(sql.connect(firstarg)) as con:
+                    return f(con, *args, **kwargs)
+            else:
+                raise IOError('File does not exist')
+
+    return decorator
+
+
+@open_db
+def table_exists(con, name):
+
+    query = '''SELECT count(*) FROM sqlite_master WHERE type='table' and name=?'''
+    return con.execute(query, (name,)).fetchone()[0] != 0
+
+
+@open_db
+def create_metadata_table(con, **kwargs):
+
+    table = [[str(v) for v in list(kwargs.values())]]
+    columns = list(kwargs.keys())
+    pd.DataFrame(table, columns=columns, dtype=str).to_sql('metadata',
+                                                           con,
+                                                           if_exists='replace',
+                                                           index=False)
+
+
+@open_db
+def create_progress_table(con, njobs):
+
+    with con:
+        # create table
+        con.execute(
+            'CREATE TABLE progress (job_id INTEGER PRIMARY KEY, is_complete boolean)'
+        )
+        # insert values
+        con.executemany('INSERT INTO progress (is_complete) VALUES (?)',
+                        repeat((False,), njobs))
+
+
+@open_db
+def get_progress(con):
+
+    table = pd.read_sql('SELECT is_complete FROM progress ORDER BY job_id', con)
+
+    is_complete = np.array(table).squeeze()
+    ijob = sum(is_complete) + 1
+
+    return is_complete, ijob
+
+
+@open_db
+def update_progress(con, job_id):
+
+    with con:
+        con.execute('UPDATE progress SET is_complete=1 WHERE job_id=?', [
+            job_id,
+        ])
+
+
 ''' CREATING DATABASE '''
 
 
-@util.open_db
+@open_db
 def create_table(con, table_defn, index_defn=None):
     '''
     Create table from table definition.
@@ -113,7 +189,7 @@ def create_table(con, table_defn, index_defn=None):
             con.execute(index_defn)
 
 
-@util.open_db
+@open_db
 def create_metadata_table(con, **kwargs):
     '''
     Metadata table stores key-value pairs representing the simulation parameters.
@@ -126,7 +202,7 @@ def create_metadata_table(con, **kwargs):
                                                            index=False)
 
 
-@util.open_db
+@open_db
 def create_db(con, **kwargs):
     '''
     Create database file and all tables.
@@ -142,7 +218,7 @@ def create_db(con, **kwargs):
 ''' UPDATING DATABASE '''
 
 
-@util.read_db
+@read_db
 def append_node(con, **kwargs):
     '''
     '''
@@ -154,7 +230,7 @@ def append_node(con, **kwargs):
         con.executemany(query, zip(*row_data))
 
 
-@util.read_db
+@read_db
 def append_patch_to_patch_freq_resp(con, **kwargs):
     '''
     '''
@@ -169,7 +245,7 @@ def append_patch_to_patch_freq_resp(con, **kwargs):
         con.executemany(query, zip(*row_data))
 
 
-@util.read_db
+@read_db
 def append_patch_to_node_freq_resp(con, **kwargs):
     '''
     '''
@@ -184,7 +260,7 @@ def append_patch_to_node_freq_resp(con, **kwargs):
         con.executemany(query, zip(*row_data))
 
 
-@util.read_db
+@read_db
 def append_patch_to_patch_imp_resp(con, **kwargs):
     '''
     '''
@@ -199,7 +275,7 @@ def append_patch_to_patch_imp_resp(con, **kwargs):
 ''' READ FROM DATABASE '''
 
 
-@util.read_db
+@read_db
 def read_metadata(con, as_dict=False):
     '''
     '''
@@ -216,7 +292,7 @@ def read_metadata(con, as_dict=False):
         return table
 
 
-@util.read_db
+@read_db
 def read_node(con):
     '''
     '''
@@ -231,7 +307,7 @@ def read_node(con):
     return np.array([table['x'], table['y'], table['z']])
 
 
-@util.read_db
+@read_db
 def read_patch_to_patch_freq_resp(con):
     '''
     '''
@@ -257,7 +333,7 @@ def read_patch_to_patch_freq_resp(con):
     return freqs, disp
 
 
-@util.read_db
+@read_db
 def read_patch_to_node_freq_resp(con):
     '''
     '''
@@ -285,7 +361,7 @@ def read_patch_to_node_freq_resp(con):
     return freqs, disp, nodes
 
 
-@util.read_db
+@read_db
 def read_patch_to_patch_imp_resp(con):
     '''
     '''
