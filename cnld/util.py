@@ -1,19 +1,11 @@
 '''Utility functions.'''
-import argparse
 import functools
 import itertools
-import os
-import sqlite3 as sql
-from contextlib import closing
 from copy import deepcopy
-from itertools import repeat
-
 import numpy as np
-import pandas as pd
 import scipy as sp
 import scipy.fftpack
 import scipy.signal
-# from cnld import abstract
 from scipy.spatial.distance import cdist
 ''' GEOMETRY-RELATED FUNCTIONS '''
 
@@ -606,95 +598,11 @@ def create_jobs(*args, mode='zip', is_complete=None):
 
         res = r + p
         # reorder vals according to input order
-        yield job_id + 1, tuple(res[i]
-                                for i in np.argsort(static_idx + iterable_idx))
-
-
-''' DATABASE FUNCTIONS '''
-
-
-def open_db(f):
-    def decorator(firstarg, *args, **kwargs):
-        if isinstance(firstarg, sql.Connection):
-            return f(firstarg, *args, **kwargs)
-        else:
-            # if os.path.isfile(firstarg):
-            with closing(sql.connect(firstarg)) as con:
-                return f(con, *args, **kwargs)
-            # else:
-            #     raise IOError
-
-    return decorator
-
-
-def read_db(f):
-    def decorator(firstarg, *args, **kwargs):
-        if isinstance(firstarg, sql.Connection):
-            return f(firstarg, *args, **kwargs)
-        else:
-            if os.path.isfile(firstarg):
-                with closing(sql.connect(firstarg)) as con:
-                    return f(con, *args, **kwargs)
-            else:
-                raise IOError('File does not exist')
-
-    return decorator
-
-
-@open_db
-def table_exists(con, name):
-
-    query = '''SELECT count(*) FROM sqlite_master WHERE type='table' and name=?'''
-    return con.execute(query, (name, )).fetchone()[0] != 0
-
-
-@open_db
-def create_metadata_table(con, **kwargs):
-
-    table = [[str(v) for v in list(kwargs.values())]]
-    columns = list(kwargs.keys())
-    pd.DataFrame(table, columns=columns, dtype=str).to_sql('metadata',
-                                                           con,
-                                                           if_exists='replace',
-                                                           index=False)
-
-
-@open_db
-def create_progress_table(con, njobs):
-
-    with con:
-        # create table
-        con.execute(
-            'CREATE TABLE progress (job_id INTEGER PRIMARY KEY, is_complete boolean)'
-        )
-        # insert values
-        con.executemany('INSERT INTO progress (is_complete) VALUES (?)',
-                        repeat((False, ), njobs))
-
-
-@open_db
-def get_progress(con):
-
-    table = pd.read_sql('SELECT is_complete FROM progress ORDER BY job_id',
-                        con)
-
-    is_complete = np.array(table).squeeze()
-    ijob = sum(is_complete) + 1
-
-    return is_complete, ijob
-
-
-@open_db
-def update_progress(con, job_id):
-
-    with con:
-        con.execute('UPDATE progress SET is_complete=1 WHERE job_id=?', [
-            job_id,
-        ])
+        yield job_id + 1, tuple(
+            res[i] for i in np.argsort(static_idx + iterable_idx))
 
 
 ''' SCRIPTING FUNCTIONS '''
-
 
 # def script_parser(main, config_def):
 #     '''
@@ -739,7 +647,6 @@ def update_progress(con, job_id):
 
 #     return parser, run_parser
 
-
 # def script_parser2(main, config_def):
 #     '''
 #     General script command-line interface with 'config' and 'run' subcommands.
@@ -781,8 +688,6 @@ def update_progress(con, job_id):
 #     parser.set_defaults(func=run)
 
 #     return parser
-
-
 ''' MISC FUNCTIONS '''
 
 
@@ -797,6 +702,7 @@ def memoize(func, maxsize=20):
     maxsize : int, optional
         [description], by default 20
     '''
+
     def ishashable(obj):
         try:
             hash(obj)
@@ -836,6 +742,7 @@ def memoize(func, maxsize=20):
 
 
 class Counter:
+
     def __init__(self):
         self.count = 0
 

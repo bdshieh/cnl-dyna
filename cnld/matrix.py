@@ -1,16 +1,16 @@
 '''Data-sparse (compressed) formats for matrices using H2Lib data structures.'''
+__all__ = ['H2FullMatrix', 'H2SparseMatrx', 'H2HMatrix']
 from timeit import default_timer as timer
 import abc
-
 import numpy as np
 from matplotlib import patches
 from matplotlib import pyplot as plt
-from scipy.sparse import csr_matrix, issparse
-
+from scipy.sparse import issparse
 from .h2lib import *
 
 
 class Matrix(abc.ABC):
+
     def __init__(self, mat):
         self._mat = mat
 
@@ -185,7 +185,7 @@ class Matrix(abc.ABC):
     def matvec(self, x):
 
         M, N = self.shape
-        if x.shape != (N, ) or x.shape != (N, 1):
+        if x.shape != (N,) or x.shape != (N, 1):
             raise ValueError('Dimension mismatch')
 
         y = self._matvec(x)
@@ -212,7 +212,7 @@ class Matrix(abc.ABC):
     def rmatvec(self, x):
 
         M, N = self.shape
-        if x.shape != (M, ) or x.shape != (1, M):
+        if x.shape != (M,) or x.shape != (1, M):
             raise ValueError('Dimension mismatch')
 
         y = self._rmatvec(x)
@@ -226,6 +226,7 @@ class Matrix(abc.ABC):
 
 
 class H2FullMatrix(Matrix):
+
     @classmethod
     def array(cls, a):
 
@@ -271,59 +272,103 @@ class H2FullMatrix(Matrix):
         return getsize_amatrix(self._mat)
 
     @property
+    def ndim(self):
+        return 2
+
+    @property
+    def data(self):
+        return np.array(self._mat.a)
+
+    @property
     def T(self):
         B = new_zero_amatrix(*self.shape)
         copy_amatrix(True, self._mat, B)
-        return FullMatrix(B)
+        return H2FullMatrix(B)
+
+    def __pos__(self):
+        return super().__pos__()
+
+    def __neg__(self):
+        return super().__neg__()
+
+    def __radd__(self, x):
+        return super().__radd__(x)
+
+    def __iadd__(self, x):
+        return super().__iadd__(x)
+
+    def __rsub__(self, x):
+        return super().__rsub__(x)
+
+    def __isub__(self, x):
+        return super().__isub__(x)
+
+    def __mul__(self, x):
+        return super().__mul__(x)
+
+    def __rmul__(self, x):
+        return super().__rmul__(x)
+
+    def __imul__(self, x):
+        return super().__imul__(x)
+
+    def __matmul__(self, x):
+        return super().__matmul__(x)
+
+    def __rmatmul__(self, x):
+        return super().__rmatmul__(x)
+
+    def __imatmul__(self, x):
+        return super().__imatmul__(x)
 
     def __add__(self, x):
 
-        if isinstance(x, FullMatrix):
+        if isinstance(x, H2FullMatrix):
             B = clone_amatrix(self._mat)
             add_amatrix(1.0, False, x._mat, B)
-            return FullMatrix(B)
+            return H2FullMatrix(B)
 
-        elif isinstance(x, SparseMatrix):
+        elif isinstance(x, H2SparseMatrix):
             B = clone_amatrix(self._mat)
             add_sparsematrix_amatrix(1.0, False, x._mat, B)
-            return FullMatrix(B)
+            return H2FullMatrix(B)
 
-        elif isinstance(x, HMatrix):
+        elif isinstance(x, H2HMatrix):
             B = clone_amatrix(self._mat)
             add_hmatrix_amatrix(1.0, False, x._mat, B)
-            return FullMatrix(B)
+            return H2FullMatrix(B)
 
         elif isinstance(x, np.ndarray):
-            x = FullMatrix.array(x)
+            x = H2FullMatrix.array(x)
             B = clone_amatrix(self._mat)
             add_amatrix(1.0, False, x._mat, B)
-            return FullMatrix(B)
+            return H2FullMatrix(B)
 
         else:
             return NotImplemented
 
     def __sub__(self, x):
 
-        if isinstance(x, FullMatrix):
+        if isinstance(x, H2FullMatrix):
             B = clone_amatrix(self._mat)
             add_amatrix(-1.0, False, x._mat, B)
-            return FullMatrix(B)
+            return H2FullMatrix(B)
 
-        elif isinstance(x, SparseMatrix):
+        elif isinstance(x, H2SparseMatrix):
             B = clone_amatrix(self._mat)
             add_sparsematrix_amatrix(-1.0, False, x._mat, B)
-            return FullMatrix(B)
+            return H2FullMatrix(B)
 
-        elif isinstance(x, HMatrix):
+        elif isinstance(x, H2HMatrix):
             B = clone_amatrix(self._mat)
             add_hmatrix_amatrix(-1.0, False, x._mat, B)
-            return FullMatrix(B)
+            return H2FullMatrix(B)
 
         elif isinstance(x, np.ndarray):
-            x = FullMatrix.array(x)
+            x = H2FullMatrix.array(x)
             B = clone_amatrix(self._mat)
             add_amatrix(-1.0, False, x._mat, B)
-            return FullMatrix(B)
+            return H2FullMatrix(B)
 
         else:
             return NotImplemented
@@ -332,7 +377,7 @@ class H2FullMatrix(Matrix):
 
         B = clone_amatrix(self._mat)
         scale_amatrix(x, B)
-        return FullMatrix(B)
+        return H2FullMatrix(B)
 
     def _matvec(self, x):
 
@@ -352,43 +397,43 @@ class H2FullMatrix(Matrix):
 
     def _matmat(self, x):
 
-        if isinstance(x, FullMatrix):
+        if isinstance(x, H2FullMatrix):
             C = new_zero_amatrix(*self.shape)
             addmul_amatrix(1.0, False, self._mat, False, x._mat, C)
-            return FullMatrix(C)
+            return H2FullMatrix(C)
 
-        elif isinstance(x, SparseMatrix):
+        elif isinstance(x, H2SparseMatrix):
             return NotImplemented
 
-        elif isinstance(x, HMatrix):
+        elif isinstance(x, H2HMatrix):
             return NotImplemented
 
         elif isinstance(x, np.ndarray):
-            x = FullMatrix.array(x)
+            x = H2FullMatrix.array(x)
             C = new_zero_amatrix(*self.shape)
             addmul_amatrix(1.0, False, self._mat, False, x._mat, C)
-            return FullMatrix(C)
+            return H2FullMatrix(C)
         else:
             return NotImplemented
 
     def _rmatmat(self, x):
 
-        if isinstance(x, FullMatrix):
+        if isinstance(x, H2FullMatrix):
             C = new_zero_amatrix(*self.shape)
             addmul_amatrix(1.0, True, x._mat, True, self._mat, C)
-            return FullMatrix(C).T
+            return H2FullMatrix(C).T
 
-        elif isinstance(x, SparseMatrix):
+        elif isinstance(x, H2SparseMatrix):
             return NotImplemented
 
-        elif isinstance(x, HMatrix):
+        elif isinstance(x, H2HMatrix):
             return NotImplemented
 
         elif isinstance(x, np.ndarray):
-            x = FullMatrix.array(x)
+            x = H2FullMatrix.array(x)
             C = new_zero_amatrix(*self.shape)
             addmul_amatrix(1.0, True, x._mat, True, self._mat, C)
-            return FullMatrix(C).T
+            return H2FullMatrix(C).T
 
         else:
             return NotImplemented
@@ -398,12 +443,12 @@ class H2FullMatrix(Matrix):
         succ = lrdecomp_amatrix(LU)
         if succ != 0:
             raise RuntimeError('failed to calculate LU decomposition')
-        return FullMatrix(LU)
+        return H2FullMatrix(LU)
 
     def chol(self):
         CH = clone_amatrix(self._mat)
         choldecomp_amatrix(CH)
-        return FullMatrix(CH)
+        return H2FullMatrix(CH)
 
     def lusolve(self, b):
         x = AVector.from_array(b)
@@ -417,6 +462,7 @@ class H2FullMatrix(Matrix):
 
 
 class H2SparseMatrix(Matrix):
+
     @classmethod
     def array(cls, a):
 
@@ -466,46 +512,90 @@ class H2SparseMatrix(Matrix):
     def T(self):
         raise NotImplementedError
 
+    @property
+    def ndim(self):
+        return 2
+
+    @property
+    def data(self):
+        raise NotImplementedError
+
+    def __pos__(self):
+        return super().__pos__()
+
+    def __neg__(self):
+        return super().__neg__()
+
+    def __radd__(self, x):
+        return super().__radd__(x)
+
+    def __iadd__(self, x):
+        return super().__iadd__(x)
+
+    def __rsub__(self, x):
+        return super().__rsub__(x)
+
+    def __isub__(self, x):
+        return super().__isub__(x)
+
+    def __mul__(self, x):
+        return super().__mul__(x)
+
+    def __rmul__(self, x):
+        return super().__rmul__(x)
+
+    def __imul__(self, x):
+        return super().__imul__(x)
+
+    def __matmul__(self, x):
+        return super().__matmul__(x)
+
+    def __rmatmul__(self, x):
+        return super().__rmatmul__(x)
+
+    def __imatmul__(self, x):
+        return super().__imatmul__(x)
+
     def __add__(self, x):
 
-        if isinstance(x, FullMatrix):
+        if isinstance(x, H2FullMatrix):
             B = clone_amatrix(x._mat)
             add_sparsematrix_amatrix(1.0, False, self._mat, B)
-            return FullMatrix(B)
+            return H2FullMatrix(B)
 
-        elif isinstance(x, SparseMatrix):
+        elif isinstance(x, H2SparseMatrix):
             return NotImplemented
 
-        elif isinstance(x, HMatrix):
+        elif isinstance(x, H2HMatrix):
             return NotImplemented
 
         elif isinstance(x, np.ndarray):
-            x = FullMatrix.array(x)
+            x = H2FullMatrix.array(x)
             B = clone_amatrix(x._mat)
             add_amatrix(1.0, False, self._mat, B)
-            return FullMatrix(B)
+            return H2FullMatrix(B)
 
         else:
             return NotImplemented
 
     def __sub__(self, x):
 
-        if isinstance(x, FullMatrix):
+        if isinstance(x, H2FullMatrix):
             B = clone_amatrix(x._mat)
             add_amatrix(-1.0, False, self._mat, B)
-            return FullMatrix(B)
+            return H2FullMatrix(B)
 
-        elif isinstance(x, SparseMatrix):
+        elif isinstance(x, H2SparseMatrix):
             return NotImplemented
 
-        elif isinstance(x, HMatrix):
+        elif isinstance(x, H2HMatrix):
             return NotImplemented
 
         elif isinstance(x, np.ndarray):
-            x = FullMatrix.array(x)
+            x = H2FullMatrix.array(x)
             B = clone_amatrix(x._mat)
             add_amatrix(-1.0, False, self._mat, B)
-            return -1 * FullMatrix(B)
+            return -1 * H2FullMatrix(B)
 
         else:
             return NotImplemented
@@ -531,13 +621,13 @@ class H2SparseMatrix(Matrix):
 
     def _matmat(self, x):
 
-        if isinstance(x, FullMatrix):
+        if isinstance(x, H2FullMatrix):
             return NotImplemented
 
-        elif isinstance(x, SparseMatrix):
+        elif isinstance(x, H2SparseMatrix):
             return NotImplemented
 
-        elif isinstance(x, HMatrix):
+        elif isinstance(x, H2HMatrix):
             return NotImplemented
 
         elif isinstance(x, np.ndarray):
@@ -548,13 +638,13 @@ class H2SparseMatrix(Matrix):
 
     def _rmatmat(self, x):
 
-        if isinstance(x, FullMatrix):
+        if isinstance(x, H2FullMatrix):
             return NotImplemented
 
-        elif isinstance(x, SparseMatrix):
+        elif isinstance(x, H2SparseMatrix):
             return NotImplemented
 
-        elif isinstance(x, HMatrix):
+        elif isinstance(x, H2HMatrix):
             return NotImplemented
 
         elif isinstance(x, np.ndarray):
@@ -618,15 +708,59 @@ class H2HMatrix(Matrix):
     def T(self):
         raise NotImplementedError
 
+    @property
+    def ndim(self):
+        return 2
+
+    @property
+    def data(self):
+        raise NotImplementedError
+
+    def __pos__(self):
+        return super().__pos__()
+
+    def __neg__(self):
+        return super().__neg__()
+
+    def __radd__(self, x):
+        return super().__radd__(x)
+
+    def __iadd__(self, x):
+        return super().__iadd__(x)
+
+    def __rsub__(self, x):
+        return super().__rsub__(x)
+
+    def __isub__(self, x):
+        return super().__isub__(x)
+
+    def __mul__(self, x):
+        return super().__mul__(x)
+
+    def __rmul__(self, x):
+        return super().__rmul__(x)
+
+    def __imul__(self, x):
+        return super().__imul__(x)
+
+    def __matmul__(self, x):
+        return super().__matmul__(x)
+
+    def __rmatmul__(self, x):
+        return super().__rmatmul__(x)
+
+    def __imatmul__(self, x):
+        return super().__imatmul__(x)
+
     def __add__(self, x):
 
-        if isinstance(x, FullMatrix):
+        if isinstance(x, H2FullMatrix):
             B = clone_hmatrix(self._mat)
             tm = new_releucl_truncmode()
             add_amatrix_hmatrix(1.0, False, x._mat, tm, self.eps_add, B)
-            return HMatrix(B)
+            return H2HMatrix(B)
 
-        elif isinstance(x, SparseMatrix):
+        elif isinstance(x, H2SparseMatrix):
             B = clone_hmatrix(self._mat)
             tm = new_releucl_truncmode()
 
@@ -636,33 +770,33 @@ class H2HMatrix(Matrix):
             copy_sparsematrix_hmatrix(x._mat, hm)
 
             add_hmatrix(1.0, hm, tm, self.eps_add, B)
-            return HMatrix(B)
+            return H2HMatrix(B)
 
-        elif isinstance(x, HMatrix):
+        elif isinstance(x, H2HMatrix):
             B = clone_hmatrix(self._mat)
             tm = new_releucl_truncmode()
             add_hmatrix(1.0, x._mat, tm, self.eps_add, B)
-            return HMatrix(B)
+            return H2HMatrix(B)
 
         elif isinstance(x, np.ndarray):
-            x = FullMatrix.array(x)
+            x = H2FullMatrix.array(x)
             B = clone_hmatrix(self._mat)
             tm = new_releucl_truncmode()
             add_amatrix_hmatrix(1.0, False, x._mat, tm, self.eps_add, B)
-            return HMatrix(B)
+            return H2HMatrix(B)
 
         else:
             return NotImplemented
 
     def __sub__(self, x):
 
-        if isinstance(x, FullMatrix):
+        if isinstance(x, H2FullMatrix):
             B = clone_hmatrix(self._mat)
             tm = new_releucl_truncmode()
             add_amatrix_hmatrix(-1.0, False, x._mat, tm, self.eps_add, B)
-            return HMatrix(B)
+            return H2HMatrix(B)
 
-        elif isinstance(x, SparseMatrix):
+        elif isinstance(x, H2SparseMatrix):
             B = clone_hmatrix(self._mat)
             tm = new_releucl_truncmode()
 
@@ -672,20 +806,20 @@ class H2HMatrix(Matrix):
             copy_sparsematrix_hmatrix(x._mat, hm)
 
             add_hmatrix(-1.0, hm, tm, self.eps_add, B)
-            return HMatrix(B)
+            return H2HMatrix(B)
 
-        elif isinstance(x, HMatrix):
+        elif isinstance(x, H2HMatrix):
             B = clone_hmatrix(self._mat)
             tm = new_releucl_truncmode()
             add_hmatrix(-1.0, x._mat, tm, self.eps_add, B)
-            return HMatrix(B)
+            return H2HMatrix(B)
 
         elif isinstance(x, np.ndarray):
-            x = FullMatrix.array(x)
+            x = H2FullMatrix.array(x)
             B = clone_hmatrix(self._mat)
             tm = new_releucl_truncmode()
             add_amatrix_hmatrix(-1.0, False, x._mat, tm, self.eps_add, B)
-            return HMatrix(B)
+            return H2HMatrix(B)
 
         else:
             return NotImplemented
@@ -718,13 +852,13 @@ class H2HMatrix(Matrix):
 
     def _matmat(self, x):
 
-        if isinstance(x, FullMatrix):
+        if isinstance(x, H2FullMatrix):
             return NotImplemented
 
-        elif isinstance(x, SparseMatrix):
+        elif isinstance(x, H2SparseMatrix):
             return NotImplemented
 
-        elif isinstance(x, HMatrix):
+        elif isinstance(x, H2HMatrix):
             return NotImplemented
 
         elif isinstance(x, np.ndarray):
@@ -740,22 +874,22 @@ class H2HMatrix(Matrix):
 
     def _rmatmat(self, x):
 
-        if isinstance(x, FullMatrix):
+        if isinstance(x, H2FullMatrix):
             C = new_zero_amatrix(*self.shape)
             addmul_amatrix(1.0, True, x._mat, True, self._mat, C)
-            return FullMatrix(C).T
+            return H2FullMatrix(C).T
 
-        elif isinstance(x, SparseMatrix):
+        elif isinstance(x, H2SparseMatrix):
             return NotImplemented
 
-        elif isinstance(x, HMatrix):
+        elif isinstance(x, H2HMatrix):
             return NotImplemented
 
         elif isinstance(x, np.ndarray):
-            x = FullMatrix.array(x)
+            x = H2FullMatrix.array(x)
             C = new_zero_amatrix(*self.shape)
             addmul_amatrix(1.0, True, x._mat, True, self._mat, C)
-            return FullMatrix(C).T
+            return H2FullMatrix(C).T
 
         else:
             return NotImplemented

@@ -3,22 +3,23 @@ __all__ = ['k_mat_np']
 
 import numpy as np
 import numpy.linalg
-import numba
+# import numba
 
 
 def k_mat_np(grid, geom, type='bpt'):
     '''
     Stiffness matrix.
     '''
-    if type.lower() in ['bpt',]:
-        return mem_k_matrix_bpt(mem, refn)
+    if type.lower() in ['bpt']:
+        return k_bpt_mat_np(grid, geom)
     else:
-        return mem_k_matrix_hpb(mem, refn)
+        return k_hpb_mat_np(grid, geom)
 
 
 def k_bpt_mat_np(grid, geom):
     '''
     '''
+
     def L(x1, y1, x2, y2):
         # calculates edge length
         return np.sqrt((x2 - x1)**2 + (y2 - y1)**2)
@@ -36,7 +37,7 @@ def k_bpt_mat_np(grid, geom):
     # get mesh information
     nodes = grid.vertices
     triangles = grid.triangles
-    triangle_edges = grid.triangle_edges
+    # triangle_edges = grid.triangle_edges
     triangle_areas = grid.triangle_areas
     triangle_neighbors = grid.triangle_neighbors
     ntriangles = len(triangles)
@@ -139,6 +140,7 @@ def k_hpb_mat_np(grid, geom):
     [1] R. Phaal and C. R. Calladine, Int. J. Numer. Meth. Engng.,
     vol. 35, no. 5, pp. 955–977, (1992).
     '''
+
     def norm(r1, r2):
         # calculates edge length
         return np.sqrt((r2[0] - r1[0])**2 + (r2[1] - r1[1])**2)
@@ -327,9 +329,9 @@ def k_hpb_mat_np(grid, geom):
 
             # modify row for mirrored node
             K_be[4,
-                 4] = (K_be[0, 0] + K_be[0, 4] + K_be[4, 0] + K_be[4, 4])  #/ 2
-            K_be[4, 1] = (K_be[4, 1] + K_be[0, 1])  #/ 2
-            K_be[4, 2] = (K_be[4, 2] + K_be[0, 2])  #/ 2
+                 4] = (K_be[0, 0] + K_be[0, 4] + K_be[4, 0] + K_be[4, 4])  # / 2
+            K_be[4, 1] = (K_be[4, 1] + K_be[0, 1])  # / 2
+            K_be[4, 2] = (K_be[4, 2] + K_be[0, 2])  # / 2
             # K_be[4, 1] /= 2
             # K_be[1, 4] /= 2
             # K_be[4, 2] /= 2
@@ -338,10 +340,10 @@ def k_hpb_mat_np(grid, geom):
             # K_be[4, 5] = (K_be[4, 5] + K_be[0, 5]) / 2
 
             # modify row of first non-boundary node
-            K_be[1, 4] = (K_be[1, 4] + K_be[1, 0])  #/ 2
+            K_be[1, 4] = (K_be[1, 4] + K_be[1, 0])  # / 2
 
             # modify row of second non-boundary node
-            K_be[2, 4] = (K_be[2, 4] + K_be[2, 0])  #/ 2
+            K_be[2, 4] = (K_be[2, 4] + K_be[2, 0])  # / 2
 
             # modify row of first boundary node
             # K_be[3, 3] = K_be[3, 3] / 2
@@ -363,9 +365,9 @@ def k_hpb_mat_np(grid, geom):
 
             # modify row for mirrored node
             K_be[5,
-                 5] = (K_be[1, 1] + K_be[1, 5] + K_be[5, 1] + K_be[5, 5])  #/ 2
-            K_be[5, 0] = (K_be[5, 0] + K_be[1, 0])  #/ 2
-            K_be[5, 2] = (K_be[5, 2] + K_be[1, 2])  #/ 2
+                 5] = (K_be[1, 1] + K_be[1, 5] + K_be[5, 1] + K_be[5, 5])  # / 2
+            K_be[5, 0] = (K_be[5, 0] + K_be[1, 0])  # / 2
+            K_be[5, 2] = (K_be[5, 2] + K_be[1, 2])  # / 2
             # K_be[5, 0] /= 2
             # K_be[0, 5] /= 2
             # K_be[5, 2] /= 2
@@ -374,10 +376,10 @@ def k_hpb_mat_np(grid, geom):
             # K_be[5, 4] = (K_be[5, 4] + K_be[1, 4]) / 2
 
             # modify row of first non-boundary node
-            K_be[0, 5] = (K_be[0, 5] + K_be[0, 1])  #/ 2
+            K_be[0, 5] = (K_be[0, 5] + K_be[0, 1])  # / 2
 
             # modify row of second non-boundary node
-            K_be[2, 5] = (K_be[2, 5] + K_be[2, 1])  #/ 2
+            K_be[2, 5] = (K_be[2, 5] + K_be[2, 1])  # / 2
 
             # modify row of first boundary node
             # K_be[3, 3] = K_be[3, 3] / 2
@@ -399,9 +401,9 @@ def k_hpb_mat_np(grid, geom):
 
             # modify row for mirrored node
             K_be[3,
-                 3] = (K_be[2, 2] + K_be[2, 3] + K_be[3, 2] + K_be[3, 3])  #/ 2
-            K_be[3, 0] = (K_be[3, 0] + K_be[2, 0])  #/ 2
-            K_be[3, 1] = (K_be[3, 1] + K_be[2, 1])  #/ 2
+                 3] = (K_be[2, 2] + K_be[2, 3] + K_be[3, 2] + K_be[3, 3])  # / 2
+            K_be[3, 0] = (K_be[3, 0] + K_be[2, 0])  # / 2
+            K_be[3, 1] = (K_be[3, 1] + K_be[2, 1])  # / 2
             # K_be[3, 0] /= 2
             # K_be[0, 3] /= 2
             # K_be[3, 1] /= 2
@@ -410,10 +412,10 @@ def k_hpb_mat_np(grid, geom):
             # K_be[3, 5] = (K_be[3, 5] + K_be[2, 5]) / 2
 
             # modify row of first non-boundary node
-            K_be[0, 3] = (K_be[0, 3] + K_be[0, 2])  #/ 2
+            K_be[0, 3] = (K_be[0, 3] + K_be[0, 2])  # / 2
 
             # modify row of second non-boundary node
-            K_be[1, 3] = (K_be[1, 3] + K_be[1, 2])  #/ 2
+            K_be[1, 3] = (K_be[1, 3] + K_be[1, 2])  # / 2
         else:
 
             K_idx.append(neighbors[2])
@@ -434,6 +436,7 @@ def k_hyb_mat_np(grid, geom):
     *Experimental* Stiffness matrix based on HPB for interior triangles and
     BPT for boundary triangles.
     '''
+
     def norm(r1, r2):
         # calculates edge length
         return np.sqrt((r2[0] - r1[0])**2 + (r2[1] - r1[1])**2)
@@ -499,7 +502,7 @@ def k_hyb_mat_np(grid, geom):
     grid.neighbors_node = neighbors_node
 
     # construct constitutive matrix for material
-    h = geom.thickness # no support for composite membranes yet
+    h = geom.thickness  # no support for composite membranes yet
     E = geom.y_modulus
     eta = geom.p_ratio
 
@@ -692,4 +695,3 @@ def k_hyb_mat_np(grid, geom):
     K[ob, ob] = 1
 
     return K
-

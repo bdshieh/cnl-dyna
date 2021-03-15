@@ -6,25 +6,26 @@ from itertools import cycle
 
 
 class BaseGrid:
+
     @property
     def vertices(self):
-        return np.asarray(self._mesh.x)
+        return np.asarray(self._mesh.vertices)
 
     @property
     def edges(self):
-        return np.asarray(self._mesh.e)
+        return np.asarray(self._mesh.edges)
 
     @property
     def triangles(self):
-        return np.asarray(self._mesh.t)
+        return np.asarray(self._mesh.triangles)
 
     @property
     def triangle_edges(self):
-        return np.asarray(self._mesh.s)
+        return np.asarray(self._mesh.triangle_edges)
 
     @property
     def normals(self):
-        return np.asarray(self._mesh.n)
+        return np.asarray(self._mesh.normals)
 
     @property
     def g(self):
@@ -32,7 +33,15 @@ class BaseGrid:
 
     @property
     def triangle_areas(self):
-        return np.asarray(self._mesh.g) / 2
+        return np.asarray(self._mesh.triangle_areas)
+
+    @property
+    def on_boundary(self):
+        return np.asarray(self._mesh.on_boundary)
+
+    @property
+    def triangle_neighbors(self):
+        return self._triangle_neighbors
 
     @property
     def hmin(self):
@@ -74,7 +83,7 @@ class BaseGrid:
 
         plt.axis('equal')
         plt.show()
-    
+
     def _find_triangle_neighbors(self):
         # determine list of neighbors for each triangle
         # None indicates neighbor doesn't exist for that edge (boundary edge)
@@ -90,8 +99,11 @@ class BaseGrid:
                     neighbors.append(None)
             triangle_neighbors[i] = neighbors
 
+        self._triangle_neighbors = triangle_neighbors
+
 
 class BemGrid(BaseGrid):
+
     def __init__(self, layout, refn, square_type=1):
 
         mapping = layout.membrane_to_geometry_mapping
@@ -104,7 +116,7 @@ class BemGrid(BaseGrid):
         eidx = 0
 
         for i, mem in enumerate(layout.membranes):
-            g = geometry[mapping[i]]
+            g = layout.geometries[mapping[i]]
 
             if g.shape == 'circle':
                 v, e, t, s = mesh.geometry_circle(g.radius, n=4, refn=refn)
@@ -146,7 +158,7 @@ class BemGrid(BaseGrid):
         x, y, z = amesh.vertices.T
 
         for i, mem in enumerate(layout.membranes):
-            g = geometry[mapping[i]]
+            g = layout.geometries[mapping[i]]
 
             if g.shape == 'square':
                 # determine vertices which belong to each membrane
@@ -202,26 +214,23 @@ class BemGrid(BaseGrid):
         # amesh.element_ids = element_ids
 
         self._mesh = amesh
+        self._find_triangle_neighbors()
 
 
 class FemGrid(BaseGrid):
-    def __init__(self, geometrydata, refn, square_type=1):
 
-        g = geometrydata
-        if g.shape == 'circle':
-            verts, edges, tris, tri_edges = mesh.geometry_circle(g.radius,
-                                                                 n=4,
-                                                                 refn=refn)
-        elif g.shape == 'square':
-            verts, edges, tris, tri_edges = mesh.geometry_square(g.length_x,
-                                                                 g.length_y,
-                                                                 refn=refn)
+    def __init__(self, geom, refn, square_type=1):
+
+        if geom.shape == 'circle':
+            amesh = mesh.circle(geom.radius, refn=refn)
+        elif geom.shape == 'square':
+            amesh = mesh.square(geom.length_x, geom.length_y, refn=refn)
         else:
             raise ValueError
 
         # construct mesh from geometry
-        amesh = mesh.Mesh.from_geometry(verts, edges, tris, tri_edges)
         self._mesh = amesh
+        self._find_triangle_neighbors()
 
 
 class Grids:
@@ -240,12 +249,12 @@ class Grids:
 
 
 def generate_grids_from_layout(layout, refn, square_type=1):
-    bem_grid = BemGrid(layout, geometry, mapping, refn.square_type)
+    bem_grid = BemGrid(layout, refn, square_type)
 
     fem_grids = []
-    for geom in geometry:
-        fem_grids.append(FemGrid(geom, refn, square_type=1))
-    
+    for geom in layout.geometries:
+        fem_grids.append(FemGrid(geom, refn, square_type))
+
     return Grids(bem_grid, fem_grids)
 
 

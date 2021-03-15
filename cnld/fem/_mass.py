@@ -2,7 +2,7 @@
 __all__ = ['m_mat_np']
 
 import numpy as np
-import numba
+# import numba
 
 
 def m_mat_np(grid, geom, mu=0.5):
@@ -10,8 +10,8 @@ def m_mat_np(grid, geom, mu=0.5):
     Mass matrix based on average of lumped and consistent mass matrix
     (lumped-consistent).
     '''
-    DLM = mem_dlm_matrix(grid, geom)
-    CMM = mem_cm_matrix(mem, geom)
+    DLM = m_dl_mat_np(grid, geom)
+    CMM = m_con_mat_np(grid, geom)
 
     return mu * DLM + (1 - mu) * CMM
 
@@ -38,8 +38,11 @@ def m_con_mat_np(grid, geom):
 
         # da = ((xj - x5) * (yk - yi) - (xk - x5) * (yj - yi))
         da = triangle_areas[tt]
-        Mt = np.array([[1, 1 / 2, 1 / 2], [1 / 2, 1, 1 / 2], [1 / 2, 1 / 2, 1]
-                       ]) / 12
+        Mt = np.array([
+            [1, 1 / 2, 1 / 2],
+            [1 / 2, 1, 1 / 2],
+            [1 / 2, 1 / 2, 1],
+        ]) / 12
         M[np.ix_(tri, tri)] += 2 * Mt * mass * da
 
     ob = grid.on_boundary
@@ -60,7 +63,7 @@ def m_dl_mat_np(grid, geom):
     triangles = grid.triangles
     triangle_areas = grid.triangle_areas
 
-    mass = mem.density * mem.thickness
+    mass = geom.density * geom.thickness
 
     # construct M matrix by adding contribution from each element
     M = np.zeros((len(nodes), len(nodes)))

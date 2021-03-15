@@ -1,6 +1,6 @@
 ''''''
 import numpy as np
-from namedlist import namedlist, FACTORY
+from namedlist import FACTORY
 from collections import OrderedDict
 from itertools import cycle
 from cnld.datatypes import register_mapping, register_list
@@ -15,9 +15,9 @@ Geometry = register_mapping(
         length_x=None,
         length_y=None,
         radius=None,
-        rho=None,
-        ymod=None,
-        prat=None,
+        density=None,
+        y_modulus=None,
+        p_ratio=None,
         isol_thickness=None,
         eps_r=None,
         gap=None,
@@ -28,21 +28,25 @@ Geometry = register_mapping(
         controldomain_ny=None,
         controldomain_nr=None,
         controldomain_ntheta=None,
+        damping_mode1=None,
+        damping_mode2=None,
+        damping_freq1=None,
+        damping_freq2=None,
+        damping_ratio1=None,
+        damping_ratio2=None,
     ))
 
 GeometryList = register_list('GeometryList', Geometry)
 
-Membrane = register_mapping('Membrane',
-                                OrderedDict(
-                                    id=None,
-                                    position=None,
-                                ))
+Membrane = register_mapping('Membrane', OrderedDict(
+    id=None,
+    position=None,
+))
 
 MembraneList = register_list('MembraneList', Membrane)
 
 Element = register_mapping(
-    'Element',
-    OrderedDict(
+    'Element', OrderedDict(
         id=None,
         position=None,
         membrane_ids=FACTORY(list),
@@ -78,11 +82,11 @@ Layout = register_mapping(
     ))
 
 
-def geometry_to_controldomainlist(geom):
+def controldomainlist_from_geometry(geom):
     '''
     '''
-    data = []
-
+    ctrldomlist = []
+    cid = 0
     if geom.shape == 'square':
 
         nx = geom.controldomain_nx
@@ -97,7 +101,7 @@ def geometry_to_controldomainlist(geom):
         centers = np.c_[cx.ravel(), cy.ravel(), cz.ravel()]
 
         for c in centers:
-            data.append(
+            ctrldomlist.append(
                 ControlDomain(
                     id=cid,
                     position=list(c),
@@ -121,7 +125,7 @@ def geometry_to_controldomainlist(geom):
         c = np.array([0, 0, 0])
 
         for j in range(nr * ntheta):
-            data.append(
+            ctrldomlist.append(
                 ControlDomain(
                     id=cid,
                     position=list(c),
@@ -137,23 +141,25 @@ def geometry_to_controldomainlist(geom):
     else:
         raise TypeError
 
-    return ControlDomainList(data)
+    return ControlDomainList(ctrldomlist)
 
 
-def generate_controldomainlist(layout, geomlist, mapping=None):
+def generate_controldomainlist(layout, mapping=None):
     '''
     '''
+    geometries = layout.geometries
+
     if mapping is None:
         mapping = layout.membrane_to_geometry_mapping
-    
+
     if mapping is None:
-        gid = cycle(range(len(geomlist)))
+        gid = cycle(range(len(geometries)))
         mapping = [next(gid) for i in range(len(layout.membranes))]
 
     ctrldomlist = []
     cid = 0
     for i, mem in enumerate(layout.membranes):
-        g = geomlist[mapping[i]]
+        g = geometries[mapping[i]]
 
         if g.shape == 'square':
 
@@ -358,20 +364,26 @@ def square_cmut_1mhz_geometry(**kwargs):
     '''
     '''
     data = Geometry(id=0,
-                        thickness=1e-6,
-                        shape='square',
-                        length_x=35e-6,
-                        length_y=35e-6,
-                        rho=2040,
-                        ymod=110e9,
-                        prat=0.2,
-                        isol_thickness=100e-9,
-                        eps_r=1.2,
-                        gap=50e-9,
-                        electrode_x=35e-6,
-                        electrode_y=35e-6,
-                        controldomain_nx=3,
-                        controldomain_ny=3)
+                    thickness=1e-6,
+                    shape='square',
+                    length_x=35e-6,
+                    length_y=35e-6,
+                    density=2040,
+                    y_modulus=110e9,
+                    p_ratio=0.2,
+                    isol_thickness=100e-9,
+                    eps_r=1.2,
+                    gap=50e-9,
+                    electrode_x=35e-6,
+                    electrode_y=35e-6,
+                    controldomain_nx=3,
+                    controldomain_ny=3,
+                    damping_mode1=1,
+                    damping_mode2=2,
+                    damping_freq1=1e6,
+                    damping_freq2=10e6,
+                    damping_ratio1=0.03,
+                    damping_ratio2=0.03)
 
     for k, v in kwargs.items():
         if k in data:
@@ -384,18 +396,24 @@ def circle_cmut_1mhz_geometry(**kwargs):
     '''
     '''
     data = Geometry(id=0,
-                        thickness=1e-6,
-                        shape='circle',
-                        radius=35e-6,
-                        rho=2040,
-                        ymod=110e9,
-                        prat=0.2,
-                        isol_thickness=100e-9,
-                        eps_r=1.2,
-                        gap=50e-9,
-                        electrode_r=20e-6,
-                        controldomain_nr=3,
-                        controldomain_ntheta=4)
+                    thickness=1e-6,
+                    shape='circle',
+                    radius=35e-6,
+                    density=2040,
+                    y_modulus=110e9,
+                    p_ratio=0.2,
+                    isol_thickness=100e-9,
+                    eps_r=1.2,
+                    gap=50e-9,
+                    electrode_r=20e-6,
+                    controldomain_nr=3,
+                    controldomain_ntheta=4,
+                    damping_mode1=1,
+                    damping_mode2=2,
+                    damping_freq1=1e6,
+                    damping_freq2=10e6,
+                    damping_ratio1=0.03,
+                    damping_ratio2=0.03)
 
     for k, v in kwargs.items():
         if k in data:

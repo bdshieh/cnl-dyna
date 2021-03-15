@@ -1,12 +1,16 @@
 '''
 '''
-__all__ = ['p_vec_np', 'p_arb_vec_np', 'p_cd_mat_np', 'avg_cd_mat_np', 'p_cd_mat_sps_from_layout', 'avg_cd_mat_sps_from_layout']
-
+__all__ = [
+    'p_vec_np', 'p_arb_vec_np', 'p_cd_mat_np', 'avg_cd_mat_np',
+    'p_cd_mat_sps_from_layout', 'avg_cd_mat_sps_from_layout'
+]
+from itertools import cycle
 import numpy as np
 import numpy.linalg
 from scipy import sparse as sps
 from scipy.integrate import dblquad
-import numba
+from cnld.api.define import controldomainlist_from_geometry
+# import numba
 
 eps = np.finfo(np.float64).eps
 
@@ -70,7 +74,7 @@ def p_arb_vec_np(grid, pfun):
 
         f[tri] += 1 / bfac * frac * da
 
-    ob = amesh.on_boundary
+    ob = grid.on_boundary
     f[ob] = 0
 
     return f
@@ -85,16 +89,16 @@ def p_cd_mat_np(grid, geom):
     triangle_areas = grid.triangle_areas
     ob = grid.on_boundary
 
-    ctrldomlist = geometry_to_controldomainlist(geom)
+    ctrldomlist = controldomainlist_from_geometry(geom)
 
     f = []
-    for pat in mem.patches:
+    for cd in ctrldomlist:
 
-        if isinstance(mem, abstract.SquareCmutMembrane):
+        if geom.shape == 'square':
 
-            px, py, pz = pat.position
-            plx = pat.length_x
-            ply = pat.length_y
+            px, py, pz = cd.position
+            plx = cd.length_x
+            ply = cd.length_y
 
             def load_func(x, y):
                 # use 2 * eps to account for potential round-off error
@@ -105,11 +109,11 @@ def p_cd_mat_np(grid, geom):
                                 return 1
                 return 0
         else:
-            px, py, pz = pat.position
-            prmin = pat.radius_min
-            prmax = pat.radius_max
-            pthmin = pat.theta_min
-            pthmax = pat.theta_max
+            px, py, pz = cd.position
+            prmin = cd.radius_min
+            prmax = cd.radius_max
+            pthmin = cd.theta_min
+            pthmax = cd.theta_max
 
             def load_func(x, y):
                 r = np.sqrt((x - px)**2 + (y - py)**2)
@@ -184,19 +188,20 @@ def avg_cd_mat_np(grid, geom):
     Averaging vector for a patch.
     '''
 
-
-    nodes = amesh.vertices
-    triangles = amesh.triangles
-    triangle_areas = amesh.triangle_areas
+    nodes = grid.vertices
+    triangles = grid.triangles
+    triangle_areas = grid.triangle_areas
     # ob = amesh.on_boundary
 
-    avg = []
-    for pat in mem.patches:
-        if isinstance(mem, abstract.SquareCmutMembrane):
+    ctrldomlist = controldomainlist_from_geometry(geom)
 
-            px, py, pz = pat.position
-            plx = pat.length_x
-            ply = pat.length_y
+    avg = []
+    for cd in ctrldomlist:
+        if geom.shape == 'square':
+
+            px, py, pz = cd.position
+            plx = cd.length_x
+            ply = cd.length_y
 
             def load_func(x, y):
                 # use 2 * eps to account for potential round-off error
@@ -207,11 +212,11 @@ def avg_cd_mat_np(grid, geom):
                                 return 1
                 return 0
         else:
-            px, py, pz = pat.position
-            prmin = pat.radius_min
-            prmax = pat.radius_max
-            pthmin = pat.theta_min
-            pthmax = pat.theta_max
+            px, py, pz = cd.position
+            prmin = cd.radius_min
+            prmax = cd.radius_max
+            pthmin = cd.theta_min
+            pthmax = cd.theta_max
 
             def load_func(x, y):
                 r = np.sqrt((x - px)**2 + (y - py)**2)
@@ -273,7 +278,7 @@ def avg_cd_mat_np(grid, geom):
 
                 avg_pat[tri] += 1 / 3 * frac * da
 
-        avg.append(avg_pat / pat.area)
+        avg.append(avg_pat / cd.area)
 
     return np.array(avg).T
 
@@ -324,7 +329,7 @@ def p_cd_mat_sps_from_layout(layout, grids):
         mapping = [next(gid) for i in range(len(layout.membranes))]
 
     p_list = [None] * len(layout.geometries)
-    for i, geom, grid in enumarte(layout.geometries):
+    for i, geom, grid in enumerate(layout.geometries):
         p_list[i] = p_cd_mat_np(grids.fem[i], geom)
 
     blocks = [None] * len(layout.membranes)
@@ -345,7 +350,7 @@ def avg_cd_mat_sps_from_layout(layout, grids):
         mapping = [next(gid) for i in range(len(layout.membranes))]
 
     avg_list = [None] * len(layout.geometries)
-    for i, geom, grid in enumarte(layout.geometries):
+    for i, geom, grid in enumerate(layout.geometries):
         avg_list[i] = avg_cd_mat_np(grids.fem[i], geom)
 
     blocks = [None] * len(layout.membranes)

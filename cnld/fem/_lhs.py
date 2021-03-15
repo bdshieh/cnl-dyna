@@ -2,10 +2,11 @@
 __all__ = ['mbk_mat_sps_from_layout', 'mbk_mat_spm_from_layout']
 import numpy as np
 import numpy.linalg
+from scipy import sparse as sps
+from itertools import cycle
 from cnld.fem import _mass, _stiffness, _damping
 from cnld.matrix import H2SparseMatrix
-from scipy import sparse as sps
-import numba
+# import numba
 
 
 def inv_block(a):
@@ -45,7 +46,7 @@ def mbk_mat_sps_from_layout(layout, grids, f, inv=False):
     if inv:
         blocks_inv = [None] * len(layout.membranes)
 
-    for i, mem in layout.membranes:
+    for i, mem in enumerate(layout.membranes):
 
         blocks[i] = mbk_list[mapping[i]]
         if inv:

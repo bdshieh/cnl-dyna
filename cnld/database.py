@@ -1,10 +1,8 @@
 '''Database routines for storing and retrieving impulse/frequency response data.'''
 import sqlite3 as sql
 from contextlib import closing
-
 import numpy as np
 import pandas as pd
-from cnld import util
 
 # register adapters so sqlite can convert numpy types
 sql.register_adapter(np.float64, float)

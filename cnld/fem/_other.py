@@ -4,23 +4,21 @@ __all__ = []
 
 import numpy as np
 import numpy.linalg
+from scipy.constants import epsilon_0 as e_0
+from . import _stiffness as stiffness, _rhs as rhs
 
 
-def mem_static_x_vector(mem, refn, vdc, type='bpt', atol=1e-10, maxiter=100):
+def x_stat_vec_np(grid, geom, vdc, type='bpt', atol=1e-10, maxiter=100):
     '''
     Static deflection of membrane calculated via fixed-point iteration.
     '''
+
     def pes(v, x, g_eff):
         return -e_0 / 2 * v**2 / (g_eff + x)**2
 
-    if isinstance(mem, abstract.SquareCmutMembrane):
-        amesh = mesh.square(mem.length_x, mem.length_y, refn)
-    else:
-        amesh = mesh.circle(mem.radius, refn)
-
-    K = mem_k_matrix(mem, refn, type=type)
-    g_eff = mem.gap + mem.isolation / mem.permittivity
-    F = mem_f_vector(mem, refn, 1)
+    K = stiffness.k_mat_np(grid, geom, type=type)
+    g_eff = geom.gap + geom.isolation / geom.permittivity
+    F = rhs.p_vec_np(grid, geom, 1)
     Kinv = np.linalg.inv(K)
     nnodes = K.shape[0]
     x0 = np.zeros(nnodes)

@@ -3,7 +3,8 @@ __all__ = ['b_mat_np', 'b_eig_mat_np']
 
 import numpy as np
 import numpy.linalg
-import numba
+# import numba
+from . import _mass as mass, _stiffness as stiffness
 
 
 def b_mat_np(geom, M, K):
@@ -11,17 +12,17 @@ def b_mat_np(geom, M, K):
     Damping matrix based on Rayleigh damping for damping ratios at two
     frequencies.
     '''
-    fa = geom.damping_freq_a
-    fb = geom.damping_freq_b
-    za = geom.damping_ratio_a
-    zb = geom.damping_ratio_b
+    fa = geom.damping_freq1
+    fb = geom.damping_freq2
+    za = geom.damping_ratio1
+    zb = geom.damping_ratio2
 
     omga = 2 * np.pi * fa
     omgb = 2 * np.pi * fb
 
     # solve for alpha and beta
     A = 1 / 2 * np.array([[1 / omga, omga], [1 / omgb, omgb]])
-    alpha, beta = linalg.inv(A).dot([za, zb])
+    alpha, beta = np.linalg.inv(A).dot([za, zb])
 
     return alpha * M + beta * K
 
@@ -31,10 +32,10 @@ def b_eig_mat_np(grid, geom, M, K):
     Damping matrix based on Rayleigh damping for damping ratios at two modal
     frequencies.
     '''
-    ma = geom.damping_mode_a
-    mb = geom.damping_mode_b
-    za = geom.damping_ratio_a
-    zb = geom.damping_ratio_b
+    ma = geom.damping_mode1
+    mb = geom.damping_mode2
+    za = geom.damping_ratio1
+    zb = geom.damping_ratio2
 
     # determine eigenfrequencies of membrane
     eigf, _ = geom_eig(grid, geom)
@@ -43,7 +44,7 @@ def b_eig_mat_np(grid, geom, M, K):
 
     # solve for alpha and beta
     A = 1 / 2 * np.array([[1 / omga, omga], [1 / omgb, omgb]])
-    alpha, beta = linalg.inv(A).dot([za, zb])
+    alpha, beta = np.linalg.inv(A).dot([za, zb])
 
     return alpha * M + beta * K
 
@@ -54,9 +55,9 @@ def geom_eig(grid, geom):
     '''
     ob = grid.on_boundary
 
-    M = mm_ndarray(grid, geom, mu=0.5)
-    K = km_ndarray(grid, geom)
-    w, v = linalg.eigh(linalg.inv(M).dot(K)[np.ix_(~ob, ~ob)])
+    M = mass.m_mat_np(grid, geom, mu=0.5)
+    K = stiffness.k_mat_np(grid, geom)
+    w, v = np.linalg.eigh(np.linalg.inv(M).dot(K)[np.ix_(~ob, ~ob)])
 
     idx = np.argsort(np.sqrt(np.abs(w)))
     eigf = np.sqrt(np.abs(w))[idx] / (2 * np.pi)

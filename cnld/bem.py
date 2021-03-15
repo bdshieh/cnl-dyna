@@ -1,19 +1,22 @@
 '''Routines for the boundary element method.'''
+__all__ = [
+    'z_mat_np', 'z_mat_fm', 'z_mat_hm', 'z_mat_hm_from_grid',
+    'z_mat_fm_from_grid', 'z_mat_np_from_grid'
+]
 import numpy as np
 from timeit import default_timer as timer
-from cnld import mesh
 from cnld.matrix import H2FullMatrix, H2HMatrix
 from .h2lib import *
 
 
-def z_mat_np(grid, geom, k, **kwargs):
+def z_mat_np_from_grid(grid, k, **kwargs):
     '''
     Impedance matrix in FullFormat for a membrane.
     '''
-    return np.array(z_mat_fm(grid, geom, k, **kwargs).data)
+    return np.array(z_mat_fm_from_grid(grid, k, **kwargs).data)
 
 
-def z_mat_fm(grid, geom, k, basis='linear', q_reg=2, q_sing=4):
+def z_mat_fm_from_grid(grid, k, basis='linear', q_reg=2, q_sing=4):
     '''
     Impedance matrix in full format.
     '''
@@ -25,10 +28,10 @@ def z_mat_fm(grid, geom, k, basis='linear', q_reg=2, q_sing=4):
     else:
         raise ValueError
 
-    bem = new_slp_helmholtz_bem3d(k, grid.surface3d, q_reg, q_sing, _basis,
-                                  _basis)
+    bem = new_slp_helmholtz_bem3d(k, grid._mesh.surface3d, q_reg, q_sing,
+                                  _basis, _basis)
 
-    Z = H2FullMatrix.zeros((len(grid.vertices), len(grid.vertices)))
+    Z = H2FullMatrix.zeros((grid.nvertices, grid.vertices))
 
     start = timer()
     assemble_bem3d_amatrix(bem, Z)
@@ -39,23 +42,23 @@ def z_mat_fm(grid, geom, k, basis='linear', q_reg=2, q_sing=4):
     return np.array(Z.data)
 
 
-def z_mat_hm(grid,
-             geom,
-             k,
-             basis='linear',
-             m=4,
-             q_reg=2,
-             q_sing=4,
-             aprx='paca',
-             admis='2',
-             eta=1.0,
-             eps_aca=1e-2,
-             strict=False,
-             clf=16,
-             rk=0):
+def z_mat_hm_from_grid(grid,
+                       k,
+                       basis='linear',
+                       m=4,
+                       q_reg=2,
+                       q_sing=4,
+                       aprx='paca',
+                       admis='2',
+                       eta=1.0,
+                       eps_aca=1e-2,
+                       strict=False,
+                       clf=16,
+                       rk=0):
     '''
     Impedance matrix in hierarchical format.
     '''
+
     if basis.lower() in ['constant']:
         _basis = basisfunctionbem3d.CONSTANT
     elif basis.lower() in ['linear']:
@@ -63,8 +66,8 @@ def z_mat_hm(grid,
     else:
         raise TypeError
 
-    bem = new_slp_helmholtz_bem3d(k, mesh.surface3d, q_reg, q_sing, _basis,
-                                  _basis)
+    bem = new_slp_helmholtz_bem3d(k, grid._mesh.surface3d, q_reg, q_sing,
+                                  _basis, _basis)
     root = build_bem3d_cluster(bem, clf, _basis)
 
     if strict:
@@ -87,7 +90,7 @@ def z_mat_hm(grid,
     time_assemble = timer() - start
 
     Z = H2HMatrix(mat, root, broot)
-    Z.time_assemble = time_assemble
+    Z._time_assemble = time_assemble
 
     # keep references to h2lib objects so they don't get garbage collected
     # Z._root = root
