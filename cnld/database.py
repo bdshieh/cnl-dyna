@@ -1,6 +1,8 @@
 '''Database routines for storing and retrieving impulse/frequency response data.'''
 import sqlite3 as sql
 from contextlib import closing
+from itertools import repeat
+import os
 import numpy as np
 import pandas as pd
 
@@ -188,25 +190,12 @@ def create_table(con, table_defn, index_defn=None):
 
 
 @open_db
-def create_metadata_table(con, **kwargs):
-    '''
-    Metadata table stores key-value pairs representing the simulation parameters.
-    '''
-    table = [[str(v) for v in list(kwargs.values())]]
-    columns = list(kwargs.keys())
-    pd.DataFrame(table, columns=columns, dtype=str).to_sql('metadata',
-                                                           con,
-                                                           if_exists='replace',
-                                                           index=False)
-
-
-@open_db
 def create_db(con, **kwargs):
     '''
     Create database file and all tables.
     '''
     # create_table(con, PROGRESS)
-    create_metadata_table(con, **kwargs)
+    # create_metadata_table(con, **kwargs)
     create_table(con, NODE)
     create_table(con, PATCH_TO_PATCH_FREQ_RESP, PATCH_TO_PATCH_FREQ_RESP_INDEX)
     create_table(con, PATCH_TO_NODE_FREQ_RESP, PATCH_TO_NODE_FREQ_RESP_INDEX)

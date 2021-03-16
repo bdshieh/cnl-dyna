@@ -3,7 +3,7 @@ import numpy as np
 from concurrent.futures import ProcessPoolExecutor
 import multiprocessing
 from itertools import repeat
-from time import default_timer as timer
+from timeit import default_timer as timer
 import os
 from cnld import fem, bem, database, util, impulse_response
 from tqdm import tqdm
@@ -37,17 +37,17 @@ class DatabaseSolver:
         self._fluid_rho = fluid_rho
         self._refn = refn
         self._overwrite = overwrite
-        self._threads = threads
+        self.threads = threads
         self._notebook = notebook
 
         self.hmargs = kwargs
 
     @property
     def file(self):
-        self._file
+        return self._file
 
     @file.setter
-    def set_file(self, f):
+    def file(self, f):
         self._file = os.path.normpath(f)
 
     @property
@@ -63,11 +63,11 @@ class DatabaseSolver:
         return self._freqs
 
     @freqs.setter
-    def set_freqs(self, *args):
-        if len(args) == 3:
-            self._freqs = np.arange(*args)
+    def freqs(self, arg):
+        if len(arg) == 3:
+            self._freqs = np.arange(*arg)
         elif len(args) == 1:
-            self.freqs = np.array(args[0])
+            self._freqs = np.array(arg)
         else:
             raise TypeError
 
@@ -100,7 +100,7 @@ class DatabaseSolver:
         return self._threads
 
     @threads.setter
-    def set_threads(self, th):
+    def threads(self, th):
         if th is None:
             self._threads = multiprocessing.cpu_count()
         else:
@@ -111,8 +111,8 @@ class DatabaseSolver:
         return self._hmargs
 
     @hmargs.setter
-    def set_hmargs(self, args):
-        hmargs = dict('linear',
+    def hmargs(self, arg):
+        hmargs = dict(basis='linear',
                       m=4,
                       q_reg=2,
                       q_sing=4,
@@ -123,31 +123,27 @@ class DatabaseSolver:
                       strict=False,
                       clf=16,
                       rk=0)
-        for k, v in args.items():
+        for k, v in arg.items():
             if k in hmargs:
                 hmargs[k] = v
 
         self._hmargs = hmargs
 
     @staticmethod
-    def _init_process(_write_lock):
+    def _init_process(*args):
 
-        global write_lock
-        write_lock = _write_lock
+        global write_lock, rho, layout, grids, hmargs, file
+        write_lock, rho, layout, grids, hmargs, file = args
 
-    def _process(self, job):
+    @staticmethod
+    def _process(job):
         '''
         Process which executes a job.
         '''
         # get options and parameters
         # c = self.fluid_c
-        rho = self.fluid_rho
-        layout = self.layout
-        grids = self.grids
-        hmargs = self.hmargs
-        file = self.file
 
-        job_id, f, k = job
+        job_id, (f, k) = job
         omg = 2 * np.pi * f
         # k = omg / c
 
@@ -155,7 +151,7 @@ class DatabaseSolver:
         Gfem = fem.mbk_mat_spm_from_layout(layout, grids, f)
 
         # generate bem lhs matrix
-        Z = bem.z_mat_hm_from_layout(layout, grids, k, **hmargs)
+        Z = bem.z_mat_hm_from_grid(grids.bem, k, **hmargs)
         Gbem = -omg**2 * 2 * rho * Z
 
         # define total lhs and find LU decomposition
@@ -163,12 +159,12 @@ class DatabaseSolver:
         Glu = G.lu()
 
         # create patch pressure loads
-        P = fem.p_mat_sps_from_layout(layout, grids)
-        AVG = fem.avg_mat_sps_from_layout(layout, grids)
+        P = fem.p_cd_mat_sps_from_layout(layout, grids)
+        AVG = fem.avg_cd_mat_sps_from_layout(layout, grids)
         ob = grids.bem.on_boundary
 
         # solve for each source patch
-        nctrldom = len(layout.controldomainlist)
+        nctrldom = len(layout.controldomains)
         cd_source = np.arange(nctrldom)
         cd_dest = np.arange(nctrldom)
 
@@ -304,6 +300,11 @@ class DatabaseSolver:
         # get parameters from config and args
         threads = self.threads
         freqs = self.freqs
+        rho = self.fluid_rho
+        layout = self.layout
+        grids = self.grids
+        hmargs = self.hmargs
+        file = self.file
         c = self.fluid_c
         notebook = self.notebook
 
@@ -320,10 +321,11 @@ class DatabaseSolver:
         # start multiprocessing pool and run process
         write_lock = multiprocessing.Lock()
 
+        initargs = write_lock, rho, layout, grids, hmargs, file
+
         with ProcessPoolExecutor(threads,
                                  initializer=DatabaseSolver._init_process,
-                                 initargs=(write_lock,),
-                                 maxtasksperchild=1) as executor:
+                                 initargs=initargs) as executor:
 
             result = executor.map(self._process, jobs, chunksize=1)
 

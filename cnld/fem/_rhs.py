@@ -329,7 +329,7 @@ def p_cd_mat_sps_from_layout(layout, grids):
         mapping = [next(gid) for i in range(len(layout.membranes))]
 
     p_list = [None] * len(layout.geometries)
-    for i, geom, grid in enumerate(layout.geometries):
+    for i, geom in enumerate(layout.geometries):
         p_list[i] = p_cd_mat_np(grids.fem[i], geom)
 
     blocks = [None] * len(layout.membranes)
@@ -350,7 +350,7 @@ def avg_cd_mat_sps_from_layout(layout, grids):
         mapping = [next(gid) for i in range(len(layout.membranes))]
 
     avg_list = [None] * len(layout.geometries)
-    for i, geom, grid in enumerate(layout.geometries):
+    for i, geom in enumerate(layout.geometries):
         avg_list[i] = avg_cd_mat_np(grids.fem[i], geom)
 
     blocks = [None] * len(layout.membranes)

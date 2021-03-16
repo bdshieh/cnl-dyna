@@ -670,15 +670,17 @@ class H2HMatrix(Matrix):
 
     eps_add = 1e-12
 
-    def __init__(self, mat, root, broot):
+    def __init__(self, mat, root=None, broot=None):
         self._mat = mat
         self._root = root
         self._broot = broot
 
     def __del__(self):
-        super(self)
-        del self._root
-        del self._broot
+        super().__del__()
+        if self._root is not None:
+            del self._root
+        if self._broot is not None:
+            del self._broot
 
     @classmethod
     def array(cls, a):
@@ -832,7 +834,7 @@ class H2HMatrix(Matrix):
         clear_hmatrix(z)
         tm = new_releucl_truncmode()
         addmul_hmatrix(x, False, id, False, self._mat, tm, self.eps_add, z)
-        return HFormat(z)
+        return H2HMatrix(z)
 
     def _matvec(self, x):
 
@@ -867,7 +869,7 @@ class H2HMatrix(Matrix):
             tm = new_releucl_truncmode()
             addmul_hmatrix(1.0, False, x._mat, False, self._mat, tm,
                            self.eps_add, C)
-            return HFormat(C)
+            return H2HMatrix(C)
 
         else:
             return NotImplemented
@@ -898,13 +900,13 @@ class H2HMatrix(Matrix):
         LU = clone_hmatrix(self._mat)
         tm = new_releucl_truncmode()
         lrdecomp_hmatrix(LU, tm, eps)
-        return HFormat(LU)
+        return H2HMatrix(LU)
 
     def chol(self, eps=1e-12):
         CHOL = clone_hmatrix(self._mat)
         tm = new_releucl_truncmode()
         choldecomp_hmatrix(CHOL, tm, eps)
-        return HFormat(CHOL)
+        return H2HMatrix(CHOL)
 
     def lusolve(self, b):
         x = AVector.from_array(b)
