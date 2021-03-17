@@ -34,6 +34,10 @@ Geometry = register_mapping(
         damping_freq2=None,
         damping_ratio1=None,
         damping_ratio2=None,
+        contact_k=None,
+        contact_n=None,
+        contact_z0=None,
+        contact_lmd=None,
     ))
 
 GeometryList = register_list('GeometryList', Geometry)
@@ -58,6 +62,8 @@ ControlDomain = register_mapping(
     'ControlDomain',
     OrderedDict(
         id=None,
+        membrane_id=None,
+        element_id=None,
         position=None,
         shape=None,
         length_x=None,
@@ -148,6 +154,7 @@ def generate_controldomainlist(layout, mapping=None):
     '''
     '''
     geometries = layout.geometries
+    elements = layout.elements
 
     if mapping is None:
         mapping = layout.membrane_to_geometry_mapping
@@ -156,10 +163,16 @@ def generate_controldomainlist(layout, mapping=None):
         gid = cycle(range(len(geometries)))
         mapping = [next(gid) for i in range(len(layout.membranes))]
 
+    mem_ids = np.array(elements.membrane_ids)
     ctrldomlist = []
     cid = 0
+
     for i, mem in enumerate(layout.membranes):
         g = geometries[mapping[i]]
+
+        idx = np.argwhere(mem_ids == mem.id)
+        assert len(idx) == 1
+        eid = idx[0, 0]
 
         if g.shape == 'square':
 
@@ -178,6 +191,8 @@ def generate_controldomainlist(layout, mapping=None):
                 ctrldomlist.append(
                     ControlDomain(
                         id=cid,
+                        membrane_id=mem.id,
+                        element_id=eid,
                         position=list(mem.position + c),
                         shape='square',
                         length_x=pitch_x,
@@ -202,6 +217,8 @@ def generate_controldomainlist(layout, mapping=None):
                 ctrldomlist.append(
                     ControlDomain(
                         id=cid,
+                        membrane_id=mem.id,
+                        element_id=eid,
                         position=list(mem.position + c),
                         shape='circle',
                         radius_min=rmin[j],
@@ -431,13 +448,10 @@ def circle_cmut_1mhz_geometry(**kwargs):
 
 # Beamforms = register_list('Beamforms', BeamformData)
 
-Waveform = register_mapping(
-    'Waveform', OrderedDict(
-        id=None,
-        time=None,
-        voltage=None,
-        fs=None,
-    ))
+Waveform = register_mapping('Waveform', OrderedDict(
+    id=None,
+    voltage=None,
+))
 
 WaveformList = register_list('WaveformList', Waveform)
 
@@ -449,10 +463,11 @@ Transmit = register_mapping(
         apod=None,
         delays=None,
         element_to_waveform_mapping=None,
+        fs=None,
     ))
 
 
-def generate_delays(transmit, layout, c=1500, fs=None, offset=True):
+def generate_delays(layout, transmit, c=1500, fs=None, offset=True):
     '''
     [summary]
 
