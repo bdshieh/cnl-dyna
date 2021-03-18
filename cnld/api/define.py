@@ -37,7 +37,7 @@ Geometry = register_mapping(
         contact_k=None,
         contact_n=None,
         contact_z0=None,
-        contact_lmd=None,
+        contact_lmda=None,
     ))
 
 GeometryList = register_list('GeometryList', Geometry)

@@ -1,4 +1,5 @@
 ''''''
+__all__ = ['TimeSolver']
 import numpy as np
 from itertools import cycle
 from cnld import database, impulse_response, simulation
@@ -46,13 +47,13 @@ class TimeSolver(simulation.FixedStepSolver):
         for i, ctrldom in enumerate(layout.controldomains):
             geom = layout.geometries[mapping[ctrldom.membrane_id]]
             gap[i] = geom.gap
-            gap_eff[i] = geom.gap + geom.isolation_thickness / geom.permittivity
+            gap_eff[i] = geom.gap + geom.isol_thickness / geom.eps_r
 
         nelem = len(layout.elements)
         if transmit.apod is None:
             apod = np.ones(nelem)
         if transmit.delays is None:
-            delays = np.zeros(nelem)
+            delays = np.zeros(nelem, dtype=int)
 
         if transmit.element_to_waveform_mapping is None:
             wid = cycle(range(len(transmit.waveforms)))
@@ -75,10 +76,10 @@ class TimeSolver(simulation.FixedStepSolver):
         #         v[:, idx] = waveforms[:, elem.id]
 
         # lazy support for one set of contact parameters
-        k = layout.geometries[0]['contact_k']
-        n = layout.geometries[0]['contact_n']
-        x0 = layout.geometries[0]['contact_x0']
-        lmbd = layout.geometries[0]['contact_lmbd']
+        k = layout.geometries[0].contact_k
+        n = layout.geometries[0].contact_n
+        x0 = layout.geometries[0].contact_z0
+        lmbd = layout.geometries[0].contact_lmda
 
         super().__init__((fir_t, fir), (t, v), gap, gap_eff, times, k, n, x0,
                          lmbd, atol, maxiter)
@@ -98,6 +99,9 @@ class TimeSolver(simulation.FixedStepSolver):
     @property
     def dbfile(self):
         return self._dbfile
+
+    def recalculate_fir(self):
+        pass
 
 
 def concatenate_with_padding(*data):

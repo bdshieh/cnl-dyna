@@ -1,4 +1,5 @@
 ''''''
+__all__ = ['DatabaseSolver']
 import numpy as np
 from concurrent.futures import ProcessPoolExecutor
 import multiprocessing

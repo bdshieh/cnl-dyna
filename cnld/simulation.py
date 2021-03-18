@@ -1,12 +1,11 @@
 '''Routines for time-domain simulation.'''
 import numpy as np
-import scipy as sp
-import scipy.signal
+# import scipy as sp
+# import scipy.signal
 from scipy.constants import epsilon_0 as e_0
 from scipy.interpolate import interp1d
 import numba
 from namedlist import namedlist
-from cnld import database, fem, impulse_response
 
 
 @numba.vectorize(cache=True, nopython=True)
@@ -292,49 +291,6 @@ class FixedStepSolver:
         # set initial state
         self._update_all(self.get_previous_state(), self.get_previous_state())
 
-    @classmethod
-    def from_array_and_db(cls,
-                          array,
-                          dbfile,
-                          t_v,
-                          t_lim,
-                          k,
-                          n,
-                          x0,
-                          lmbd,
-                          atol=1e-10,
-                          maxiter=5,
-                          calc_fir=False,
-                          use_kkr=True,
-                          interp=4):
-        '''
-        Initialize solver from array object and its corresponding database.
-        '''
-        if calc_fir:
-            # postprocess and convert frequency response to impulse response
-            freqs, ppfr = database.read_patch_to_patch_freq_resp(dbfile)
-            fir_t, fir = impulse_response.fft_to_fir(freqs,
-                                                     ppfr,
-                                                     interp=interp,
-                                                     axis=-1,
-                                                     use_kkr=use_kkr)
-
-        else:
-            # read fir database
-            fir_t, fir = database.read_patch_to_patch_imp_resp(dbfile)
-
-        # create gap and gap eff
-        gap = []
-        gap_eff = []
-        for elem in array.elements:
-            for mem in elem.membranes:
-                for pat in mem.patches:
-                    gap.append(mem.gap)
-                    gap_eff.append(mem.gap + mem.isolation / mem.permittivity)
-
-        return cls((fir_t, fir), t_v, gap, gap_eff, t_lim, k, n, x0, lmbd, atol,
-                   maxiter)
-
     @property
     def time(self):
         return self._db.t[:self.current_step]
@@ -507,7 +463,7 @@ class FixedStepSolver:
         '''
         Solve for all time samples.
         '''
-        stop = len(self._time) - 1
+        stop = len(self._db.t) - 1
         while True:
             self.step()
 
@@ -532,7 +488,7 @@ class FixedStepSolver:
 
     def __next__(self):
 
-        if self.current_step >= len(self._time) - 1:
+        if self.current_step >= len(self._db.t) - 1:
             raise StopIteration
 
         self.step()
