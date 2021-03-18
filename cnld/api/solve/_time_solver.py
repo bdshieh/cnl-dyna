@@ -7,34 +7,165 @@ from cnld import database, impulse_response, simulation
 # def __init__(self, t_fir, t_v, gap, gap_eff, t_lim, k, n, x0, lmbd, atol=1e-10,
 #                 maxiter=5):
 
+# class TimeSolver(simulation.FixedStepSolver):
 
-class TimeSolver(simulation.FixedStepSolver):
+#     def __init__(self,
+#                  layout,
+#                  transmit,
+#                  dbfile,
+#                  times,
+#                  atol=1e-10,
+#                  maxiter=5,
+#                  calc_fir=False,
+#                  use_kkr=True,
+#                  interp=4):
+#         '''
+#         Initialize solver from array object and its corresponding database.
+#         '''
+#         if calc_fir:
+#             # postprocess and convert frequency response to impulse response
+#             freqs, ppfr = database.read_patch_to_patch_freq_resp(dbfile)
+#             fir_t, fir = impulse_response.fft_to_fir(freqs,
+#                                                      ppfr,
+#                                                      interp=interp,
+#                                                      axis=-1,
+#                                                      use_kkr=use_kkr)
 
-    def __init__(self,
-                 layout,
-                 transmit,
-                 dbfile,
-                 times,
-                 atol=1e-10,
-                 maxiter=5,
-                 calc_fir=False,
-                 use_kkr=True,
-                 interp=4):
+#         else:
+#             # read fir database
+#             fir_t, fir = database.read_patch_to_patch_imp_resp(dbfile)
+
+#         # create gap and gap eff
+#         gap = [None] * len(layout.controldomains)
+#         gap_eff = [None] * len(layout.controldomains)
+
+#         if layout.membrane_to_geometry_mapping is None:
+#             gid = cycle(range(len(layout.geometries)))
+#             mapping = [next(gid) for i in range(len(layout.membranes))]
+
+#         for i, ctrldom in enumerate(layout.controldomains):
+#             geom = layout.geometries[mapping[ctrldom.membrane_id]]
+#             gap[i] = geom.gap
+#             gap_eff[i] = geom.gap + geom.isol_thickness / geom.eps_r
+
+#         nelem = len(layout.elements)
+#         if transmit.apod is None:
+#             apod = np.ones(nelem)
+#         if transmit.delays is None:
+#             delays = np.zeros(nelem, dtype=int)
+
+#         if transmit.element_to_waveform_mapping is None:
+#             wid = cycle(range(len(transmit.waveforms)))
+#             wf_mapping = [next(wid) for i in range(nelem)]
+
+#         waveforms = [None] * nelem
+#         for i in range(nelem):
+#             wf = transmit.waveforms[wf_mapping[i]]
+#             waveforms[i] = apod[i] + np.pad(wf.voltage, (delays[i], 0))
+
+#         waveforms = concatenate_with_padding(*waveforms)
+#         t = np.arange(waveforms.shape[0]) / transmit.fs
+
+#         v = np.zeros((waveforms.shape[0], len(layout.controldomains)))
+#         for i, ctrldom in enumerate(layout.controldomains):
+#             v[:, i] = waveforms[:, ctrldom.element_id]
+#         # for elem in layout.elements:
+#         #     for mid in elem.membrane_ids:
+#         #         idx = ctrldomlist.id[ctrldomlist.membrane_id == mid]
+#         #         v[:, idx] = waveforms[:, elem.id]
+
+#         # lazy support for one set of contact parameters
+#         k = layout.geometries[0].contact_k
+#         n = layout.geometries[0].contact_n
+#         x0 = layout.geometries[0].contact_z0
+#         lmbd = layout.geometries[0].contact_lmda
+
+#         super().__init__((fir_t, fir), (t, v), gap, gap_eff, times, k, n, x0,
+#                          lmbd, atol, maxiter)
+
+#     @property
+#     def layout(self):
+#         return self._layout
+
+#     @property
+#     def transmit(self):
+#         return self._transmit
+
+#     @property
+#     def times(self):
+#         return self._times
+
+#     @property
+#     def dbfile(self):
+#         return self._dbfile
+
+
+class TimeSolver():
+
+    def __init__(self, layout, transmit, dbfile, times, atol=1e-10, maxiter=5):
+
+        self._layout = layout
+        self._transmit = transmit
+        self._times = times
+        self._atol = atol
+        self._maxiter = maxiter
+        self.dbfile = dbfile
+
+    @property
+    def layout(self):
+        return self._layout
+
+    @property
+    def transmit(self):
+        return self._transmit
+
+    @property
+    def times(self):
+        return self._times
+
+    @property
+    def dbfile(self):
+        return self._dbfile
+
+    @dbfile.setter
+    def dbfile(self, f):
+        fir_t, fir = database.read_patch_to_patch_imp_resp(f)
+        self._fir = fir
+        self._fir_t = fir_t
+
+    @property
+    def atol(self):
+        return self._atol
+
+    @property
+    def maxiter(self):
+        return self._maxiter
+
+    def recalculate_fir(self, use_kkr=True, interp=4):
+
+        dbfile = self.dbfile
+
+        # postprocess and convert frequency response to impulse response
+        freqs, ppfr = database.read_patch_to_patch_freq_resp(dbfile)
+        fir_t, fir = impulse_response.fft_to_fir(freqs,
+                                                 ppfr,
+                                                 interp=interp,
+                                                 axis=-1,
+                                                 use_kkr=use_kkr)
+        self._fir = fir
+        self._fir_t = fir_t
+
+    def setup(self):
         '''
         Initialize solver from array object and its corresponding database.
         '''
-        if calc_fir:
-            # postprocess and convert frequency response to impulse response
-            freqs, ppfr = database.read_patch_to_patch_freq_resp(dbfile)
-            fir_t, fir = impulse_response.fft_to_fir(freqs,
-                                                     ppfr,
-                                                     interp=interp,
-                                                     axis=-1,
-                                                     use_kkr=use_kkr)
-
-        else:
-            # read fir database
-            fir_t, fir = database.read_patch_to_patch_imp_resp(dbfile)
+        layout = self.layout
+        transmit = self.transmit
+        times = self.times
+        atol = self.atol
+        maxiter = self.maxiter
+        fir = self._fir
+        fir_t = self._fir_t
 
         # create gap and gap eff
         gap = [None] * len(layout.controldomains)
@@ -70,10 +201,6 @@ class TimeSolver(simulation.FixedStepSolver):
         v = np.zeros((waveforms.shape[0], len(layout.controldomains)))
         for i, ctrldom in enumerate(layout.controldomains):
             v[:, i] = waveforms[:, ctrldom.element_id]
-        # for elem in layout.elements:
-        #     for mid in elem.membrane_ids:
-        #         idx = ctrldomlist.id[ctrldomlist.membrane_id == mid]
-        #         v[:, idx] = waveforms[:, elem.id]
 
         # lazy support for one set of contact parameters
         k = layout.geometries[0].contact_k
@@ -81,27 +208,61 @@ class TimeSolver(simulation.FixedStepSolver):
         x0 = layout.geometries[0].contact_z0
         lmbd = layout.geometries[0].contact_lmda
 
-        super().__init__((fir_t, fir), (t, v), gap, gap_eff, times, k, n, x0,
-                         lmbd, atol, maxiter)
+        self._solver = simulation.FixedStepSolver(
+            (fir_t, fir), (t, v), gap, gap_eff, times, k, n, x0, lmbd, atol,
+            maxiter)
+
+    def step(self):
+        self._solver.step()
+
+    def solve(self):
+        self._solver.solve()
+
+    def __iter__(self):
+        return self._solver.__iter__()
+
+    def __next__(self):
+        return self._solver.__next__()
 
     @property
-    def layout(self):
-        return self._layout
+    def time(self):
+        return self._solver.time
 
     @property
-    def transmit(self):
-        return self._transmit
+    def voltage(self):
+        return self._solver.voltage
 
     @property
-    def times(self):
-        return self._times
+    def displacement(self):
+        return self._solver.displacement
 
     @property
-    def dbfile(self):
-        return self._dbfile
+    def velocity(self):
+        return self._solver.velocity
 
-    def recalculate_fir(self):
-        pass
+    @property
+    def pressure_electrostatic(self):
+        return self._solver.pressure_electrostatic
+
+    @property
+    def pressure_contact_spring(self):
+        return self._solver.pressure_contact_spring
+
+    @property
+    def pressure_contact_damper(self):
+        return self._solver.pressure_contact_damper
+
+    @property
+    def pressure_total(self):
+        return self._solver.pressure_total
+
+    @property
+    def error(self):
+        return self._solver.error
+
+    @property
+    def iters(self):
+        return self._solver.iters
 
 
 def concatenate_with_padding(*data):
