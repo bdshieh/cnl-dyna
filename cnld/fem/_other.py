@@ -1,6 +1,6 @@
 '''
 '''
-__all__ = []
+__all__ = ['x_stat_vec_np']
 
 import numpy as np
 import numpy.linalg

@@ -1,5 +1,5 @@
 ''''''
-__all__ = ['b_mat_np', 'b_eig_mat_np']
+__all__ = ['b_mat_np', 'b_eig_mat_np', 'geom_eig']
 
 import numpy as np
 import numpy.linalg
