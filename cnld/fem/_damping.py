@@ -55,12 +55,15 @@ def geom_eig(grid, geom):
     '''
     ob = grid.on_boundary
 
-    M = mass.m_mat_np(grid, geom, mu=0.5)
+    M = mass.m_mat_np(grid, geom)
     K = stiffness.k_mat_np(grid, geom)
-    w, v = np.linalg.eigh(np.linalg.inv(M).dot(K)[np.ix_(~ob, ~ob)])
+    w, v = np.linalg.eig(np.linalg.inv(M).dot(K)[np.ix_(~ob, ~ob)])
 
     idx = np.argsort(np.sqrt(np.abs(w)))
     eigf = np.sqrt(np.abs(w))[idx] / (2 * np.pi)
     eigv = v[:, idx]
 
-    return eigf, eigv
+    eigv_full = np.zeros((grid.nvertices, len(eigf)))
+    eigv_full[~ob, :] = eigv
+
+    return eigf, eigv_full

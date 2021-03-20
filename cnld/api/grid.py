@@ -1,6 +1,6 @@
 ''''''
 import numpy as np
-from scipy.interpolate import Rbf
+from scipy.interpolate import griddata
 from matplotlib import pyplot as plt
 from cnld import mesh
 from itertools import cycle
@@ -233,10 +233,12 @@ class FemGrid(BaseGrid):
         self._mesh = amesh
         self._find_triangle_neighbors()
 
-    def interpolate(self, xi, yi, d, function='cubic'):
+    def interpolate(self, xi, yi, d, method='cubic', fill_value=0):
         x, y, _ = self.vertices.T
-        rbfi = Rbf(x, y, d, function=function, smooth=0)
-        return rbfi(xi, yi)
+        return griddata((x, y),
+                        d, (xi, yi),
+                        method=method,
+                        fill_value=fill_value)
 
 
 class Grids:
