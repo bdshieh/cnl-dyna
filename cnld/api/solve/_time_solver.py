@@ -102,26 +102,44 @@ from cnld import database, impulse_response, simulation
 
 class TimeSolver():
 
-    def __init__(self, layout, transmit, dbfile, times, atol=1e-10, maxiter=5):
+    def __init__(self,
+                 layout=None,
+                 transmit=None,
+                 dbfile=None,
+                 times=None,
+                 atol=1e-10,
+                 maxiter=5):
 
-        self._layout = layout
-        self._transmit = transmit
-        self._times = times
-        self._atol = atol
-        self._maxiter = maxiter
+        self.layout = layout
+        self.transmit = transmit
+        self.times = times
+        self.atol = atol
+        self.maxiter = maxiter
         self.dbfile = dbfile
 
     @property
     def layout(self):
         return self._layout
 
+    @layout.setter
+    def layout(self, arg):
+        self._layout = arg
+
     @property
     def transmit(self):
         return self._transmit
 
+    @transmit.setter
+    def transmit(self, arg):
+        self._transmit = arg
+
     @property
     def times(self):
         return self._times
+
+    @times.setter
+    def times(self, arg):
+        self._times = arg
 
     @property
     def dbfile(self):
@@ -129,17 +147,27 @@ class TimeSolver():
 
     @dbfile.setter
     def dbfile(self, f):
-        fir_t, fir = database.read_patch_to_patch_imp_resp(f)
-        self._fir = fir
-        self._fir_t = fir_t
+        if f is not None:
+            fir_t, fir = database.read_patch_to_patch_imp_resp(f)
+            self._fir = fir
+            self._fir_t = fir_t
+            self._dbfile = f
 
     @property
     def atol(self):
         return self._atol
 
+    @atol.setter
+    def atol(self, arg):
+        self._atol = arg
+
     @property
     def maxiter(self):
         return self._maxiter
+
+    @maxiter.setter
+    def maxiter(self, arg):
+        self._maxiter = arg
 
     def recalculate_fir(self, use_kkr=True, interp=4):
 

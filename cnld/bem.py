@@ -31,15 +31,15 @@ def z_mat_fm_from_grid(grid, k, basis='linear', q_reg=2, q_sing=4):
     bem = new_slp_helmholtz_bem3d(k, grid._mesh.surface3d, q_reg, q_sing,
                                   _basis, _basis)
 
-    Z = H2FullMatrix.zeros((grid.nvertices, grid.vertices))
+    Z = H2FullMatrix.zeros((grid.nvertices, grid.nvertices))
 
     start = timer()
-    assemble_bem3d_amatrix(bem, Z)
+    assemble_bem3d_amatrix(bem, Z._mat)
     time_assemble = timer() - start
 
     Z._time_assemble = time_assemble
 
-    return np.array(Z.data)
+    return Z
 
 
 def z_mat_hm_from_grid(grid,

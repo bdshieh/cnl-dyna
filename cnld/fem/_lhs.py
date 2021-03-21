@@ -35,8 +35,9 @@ def mbk_mat_sps_from_layout(layout, grids, f, inv=False):
 
         M = _mass.m_mat_np(grids.fem[i], geom)
         K = _stiffness.k_mat_np(grids.fem[i], geom)
-        B = _damping.b_eig_mat_np(grids.fem[i], geom, M, K)
-        mbk = -(omg**2) * M - 1j * omg * B + K
+        # B = _damping.b_eig_mat_np(grids.fem[i], geom, M, K)
+        # mbk = -(omg**2) * M - 1j * omg * B + K
+        mbk = -(omg**2) * M + K
 
         mbk_list[i] = mbk
         if inv:

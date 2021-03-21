@@ -29,17 +29,17 @@ class DatabaseSolver:
                  notebook=False,
                  **kwargs):
 
-        self._layout = layout
-        self._grids = grids
+        self.layout = layout
+        self.grids = grids
         self.file = file
         self.freqs = freqs
-        self._freq_interp = freq_interp
-        self._fluid_c = fluid_c
-        self._fluid_rho = fluid_rho
-        self._refn = refn
-        self._overwrite = overwrite
+        self.freq_interp = freq_interp
+        self.fluid_c = fluid_c
+        self.fluid_rho = fluid_rho
+        self.refn = refn
+        self.overwrite = overwrite
         self.threads = threads
-        self._notebook = notebook
+        self.notebook = notebook
 
         self.hmargs = kwargs
 
@@ -49,15 +49,24 @@ class DatabaseSolver:
 
     @file.setter
     def file(self, f):
-        self._file = os.path.normpath(f)
+        if f is not None:
+            self._file = os.path.normpath(f)
 
     @property
     def layout(self):
         return self._layout
 
+    @layout.setter
+    def layout(self, arg):
+        self._layout = arg
+
     @property
     def grids(self):
         return self._grids
+
+    @grids.setter
+    def grids(self, arg):
+        self._grids = arg
 
     @property
     def freqs(self):
@@ -65,36 +74,61 @@ class DatabaseSolver:
 
     @freqs.setter
     def freqs(self, arg):
-        if len(arg) == 3:
-            self._freqs = np.arange(*arg)
-        elif len(args) == 1:
-            self._freqs = np.array(arg)
-        else:
-            raise TypeError
+        if arg is not None:
+            if len(arg) == 3:
+                self._freqs = np.arange(*arg)
+            elif len(arg) == 1:
+                self._freqs = np.array(arg)
+            else:
+                raise TypeError
 
     @property
     def freq_interp(self):
         return self._freq_interp
 
+    @freq_interp.setter
+    def freq_interp(self, arg):
+        self._freq_interp = arg
+
     @property
     def fluid_c(self):
         return self._fluid_c
+
+    @fluid_c.setter
+    def fluid_c(self, arg):
+        self._fluid_c = arg
 
     @property
     def fluid_rho(self):
         return self._fluid_rho
 
+    @fluid_rho.setter
+    def fluid_rho(self, arg):
+        self._fluid_rho = arg
+
     @property
     def refn(self):
         return self._refn
+
+    @refn.setter
+    def refn(self, arg):
+        self._refn = arg
 
     @property
     def overwrite(self):
         return self._overwrite
 
+    @overwrite.setter
+    def overwrite(self, arg):
+        self._overwrite = arg
+
     @property
     def notebook(self):
         return self._notebook
+
+    @notebook.setter
+    def notebook(self, arg):
+        self._notebook = arg
 
     @property
     def threads(self):
@@ -119,9 +153,9 @@ class DatabaseSolver:
                       q_sing=4,
                       aprx='paca',
                       admis='2',
-                      eta=1.0,
+                      eta=0.8,
                       eps_aca=1e-2,
-                      strict=False,
+                      strict=True,
                       clf=16,
                       rk=0)
         for k, v in arg.items():
@@ -152,7 +186,9 @@ class DatabaseSolver:
         Gfem = fem.mbk_mat_spm_from_layout(layout, grids, f)
 
         # generate bem lhs matrix
-        Z = bem.z_mat_hm_from_grid(grids.bem, k, **hmargs)
+        # Z = bem.z_mat_hm_from_grid(grids.bem, k, **hmargs)
+        Z = bem.z_mat_fm_from_grid(grids.bem, k)
+
         Gbem = -omg**2 * 2 * rho * Z
 
         # define total lhs and find LU decomposition
