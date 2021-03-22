@@ -1,19 +1,17 @@
 ''''''
-__all__ = ['analyze_geometry']
+__all__ = [
+    'analyze_geometry_modes', 'analyze_geometry_spectrum',
+    'analyze_geometry_snapin'
+]
 
 import numpy as np
 from matplotlib import pyplot as plt, patches
-from cnld import fem
+from tqdm import tqdm
+from cnld import fem, bem
 from cnld.api.grid import FemGrid
 
 
-def analyze_geometry(geom,
-                     refn=7,
-                     nmode=6,
-                     vstop=200,
-                     plot_modes=True,
-                     atol=1e-10,
-                     maxiter=50):
+def analyze_geometry_modes(geom, refn=7, nmode=6, plot_modes=True):
 
     grid = FemGrid(geom, refn)
     eigf, eigv = fem.geom_eig(grid, geom)
@@ -61,11 +59,69 @@ def analyze_geometry(geom,
             ax.set_xlabel('x (m)')
             ax.set_ylabel('y (m)')
             ax.set_title(f'Mode {i}, f = {f:0.0f} Hz')
+            plt.show()
 
         print(f'Mode {i} freq: {f:0.0f} Hz')
 
+
+def analyze_geometry_spectrum(geom,
+                              refn=7,
+                              rho=1000,
+                              c=1500,
+                              show_progress=True):
+
+    grid = FemGrid(geom, refn)
+
+    M = fem.m_mat_np(grid, geom)
+    K = fem.k_mat_np(grid, geom)
+    B = fem.b_eig_mat_np(grid, geom, M, K)
+    P = fem.p_vec_np(grid, 1)
+
+    freqs = np.linspace(0, 50e6, 1000)
+    x = np.zeros(len(freqs))
+
+    if show_progress:
+        prog = tqdm
+    else:
+        prog = lambda x: x
+
+    for i, f in prog(enumerate(freqs), total=len(freqs)):
+
+        omg = 2 * np.pi * f
+        k = omg / c
+        Z = bem.z_mat_np_from_grid(grid, k)
+        G = -(omg**2) * M - 1j * omg * B + K - omg**2 * 2 * rho * Z
+
+        xf = np.linalg.solve(G, P)
+        xf[grid.on_boundary] = 0
+        x[i] = np.mean(np.abs(xf))
+
+    fig, ax = plt.subplots()
+    ax.plot(freqs / 1e6, 20 * np.log10(x / x.max()))
+    ax.set_xlim(0, 50)
+    ax.set_ylim(-100, 0)
+    ax.set_xlabel('Frequency (MHz)')
+    ax.set_ylabel('Magnitude (dB re max)')
+    ax.set_title('Mean displacement spectrum')
+    plt.show()
+
+
+def analyze_geometry_snapin(geom,
+                            refn=7,
+                            vstop=200,
+                            atol=1e-10,
+                            maxiter=50,
+                            show_progress=True):
+
+    grid = FemGrid(geom, refn)
+
+    if show_progress:
+        prog = tqdm
+    else:
+        prog = lambda x: x
+
     # determine collapse voltage
-    for vdc in np.arange(vstop):
+    for vdc in prog(np.arange(vstop)):
 
         x0, is_collapsed = fem.x_stat_vec_np(grid,
                                              geom,

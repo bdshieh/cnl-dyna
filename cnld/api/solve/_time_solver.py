@@ -180,6 +180,13 @@ class TimeSolver():
                                                  interp=interp,
                                                  axis=-1,
                                                  use_kkr=use_kkr)
+
+        # remove uneccessary second half due to kkr
+        if use_kkr:
+            nfir = len(fir_t)
+            fir_t = fir_t[:(nfir // 2)]
+            fir = fir[..., :(nfir // 2)]
+
         self._fir = fir
         self._fir_t = fir_t
 
@@ -246,8 +253,14 @@ class TimeSolver():
     def solve(self):
         self._solver.solve()
 
+    def reset(self):
+        self._solver.reset()
+
     def __iter__(self):
         return self._solver.__iter__()
+
+    def __len__(self):
+        return self._solver.__len__()
 
     def __next__(self):
         return self._solver.__next__()

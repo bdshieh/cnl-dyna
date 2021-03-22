@@ -278,7 +278,7 @@ def matrix_layout(nx, ny, pitch_x, pitch_y):
     return Layout(membranes=membranes, elements=elements)
 
 
-def hexagonal_layout(nx, ny, pitch):
+def hexagonal_layout(nx, ny, pitch, radius=None):
     '''
     [summary]
 
@@ -309,6 +309,10 @@ def hexagonal_layout(nx, ny, pitch):
     cy -= (ny - 1) * pitch_y / 2
 
     centers = np.c_[cx.ravel(), cy.ravel(), cz.ravel()]
+
+    if radius is not None:
+        r = np.sqrt(np.sum(centers**2, axis=1))
+        centers = centers[r <= radius, :]
 
     membranes = MembraneList()
     elements = ElementList()
@@ -445,14 +449,14 @@ def circular_cmut_1mhz_geometry(**kwargs):
     data = Geometry(id=0,
                     thickness=1e-6,
                     shape='circle',
-                    radius=50e-6,
+                    radius=32e-6,
                     density=3000,
                     y_modulus=160e9,
                     p_ratio=0.28,
                     isol_thickness=100e-9,
                     eps_r=7.5,
                     gap=500e-9,
-                    electrode_r=50e-6,
+                    electrode_r=32e-6,
                     controldomain_nr=3,
                     controldomain_ntheta=4,
                     damping_mode1=0,
@@ -529,3 +533,129 @@ def generate_delays(layout, transmit, c=1500, fs=None, offset=True):
         delays -= delays.min()
 
     return list(delays)
+
+
+def logistic_ramp(tr, dt, td=0, tstop=None, tpr=-60):
+    '''
+    DC ramp defined by rise time using the logistic function.
+
+    Parameters
+    ----------
+    tr : [type]
+        [description]
+    dt : [type]
+        [description]
+    td : int, optional
+        [description], by default 0
+    tstop : [type], optional
+        [description], by default None
+    tpr : int, optional
+        [description], by default -60
+
+    Returns
+    -------
+    [type]
+        [description]
+    '''
+    k = 2 * np.log(10**(-tpr / 20)) / tr
+    cutoff = np.ceil(tr / 2 / dt) * dt
+    if tstop is None:
+        t = np.arange(-cutoff, cutoff + dt / 2, dt)
+    else:
+        t = np.arange(-cutoff, tstop - td + dt / 2, dt)
+
+    v = 1 / (1 + np.exp(-k * t))
+    t += td
+    return t, v
+
+
+def linear_ramp(tr, dt, td=0, tstop=None):
+    '''
+    DC linear ramp.
+
+    Parameters
+    ----------
+    tr : [type]
+        [description]
+    dt : [type]
+        [description]
+    td : int, optional
+        [description], by default 0
+    tstop : [type], optional
+        [description], by default None
+    '''
+
+    def f(t):
+        if t > tr:
+            return 1
+        else:
+            return 1 / tr * t
+
+    fv = np.vectorize(f)
+
+    cutoff = np.ceil(tr / dt) * dt
+    if tstop is None:
+        t = np.arange(0, cutoff, dt)
+    else:
+        t = np.arange(0, tstop - td + dt / 2, dt)
+
+    v = fv(t)
+    t += td
+    return t, v
+
+
+def winsin(f, ncycle, dt, td=0):
+    '''
+    Windowed sine.
+
+    Parameters
+    ----------
+    f : [type]
+        [description]
+    ncycle : [type]
+        [description]
+    dt : [type]
+        [description]
+    td : int, optional
+        [description], by default 0
+
+    Returns
+    -------
+    [type]
+        [description]
+    '''
+    cutoff = round(ncycle * 1 / f / 2 / dt) * dt
+    t = np.arange(-cutoff, cutoff + dt / 2, dt)
+
+    v = np.sin(2 * np.pi * f * t)
+    v[0] = 0
+    v[-1] = 0
+    t += td
+    return t, v
+
+
+def sigadd(*args):
+    '''
+    Add multiple time signals together, zero-padding when necessary.
+
+    Returns
+    -------
+    [type]
+        [description]
+    '''
+    t0 = [t[0] for t, v in args]
+    tmin = min(t0)
+
+    t = args[0][0]
+    dt = t[1] - t[0]
+
+    frontpad = [int(round((_t0 - tmin) / dt)) for _t0 in t0]
+    maxlen = max([fpad + len(v) for fpad, (_, v) in zip(frontpad, args)])
+    backpad = [maxlen - (fpad + len(v)) for fpad, (_, v) in zip(frontpad, args)]
+
+    tnew = np.arange(0, maxlen) * dt + tmin
+    vnew = np.zeros(len(tnew))
+    for fpad, bpad, (t, v) in zip(frontpad, backpad, args):
+        vnew += np.pad(v, ((fpad, bpad)), mode='edge')
+
+    return tnew, vnew

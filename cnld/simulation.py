@@ -6,6 +6,9 @@ from scipy.constants import epsilon_0 as e_0
 from scipy.interpolate import interp1d
 import numba
 from namedlist import namedlist
+import warnings
+
+warnings.filterwarnings("ignore")
 
 
 @numba.vectorize(cache=True, nopython=True)
@@ -19,21 +22,33 @@ def fir_conv_cy(fir, p, dt, offset):
     nsrc, ndest, nfir = fir.shape
     nsample = p.shape[0]
     x = np.zeros(ndest, dtype=np.float64)
+    ndot = min(nsample, nfir - offset)
+    prev = np.flipud(p)
 
     for j in range(ndest):
 
         c = 0
         for i in range(nsrc):
 
-            s = 0
-            for k in range(min(nsample, nfir - offset)):
-                s += fir[i, j, k + offset] * p[nsample - 1 - k, i]
-
+            s = fir[i, j, offset:(ndot + offset)] @ prev[:ndot, i]
             c += s
 
-        x[j] = c * dt
+        x[j] = c
 
-    return x
+    return x * dt
+
+
+# @numba.njit(cache=True)
+# def fir_conv2(fir, p, dt, offset):
+#     '''Matrix math version, not faster ...'''
+#     nsrc, ndest, nfir = fir.shape
+#     nsample, _ = p.shape
+#     ndot = min(nsample, nfir - offset)
+#     prev = p[::-1, :].T
+
+#     x = np.sum(np.sum(fir[:, :, offset:(ndot - offset)] * prev[:, :ndot], axis=2), axis=0)
+
+#     return x * dt
 
 
 def make_p_cont_spr(k, n, x0):
@@ -463,7 +478,7 @@ class FixedStepSolver:
         '''
         Solve for all time samples.
         '''
-        stop = len(self._db.t) - 1
+        stop = len(self._db.t)
         while True:
             self.step()
 
@@ -488,12 +503,15 @@ class FixedStepSolver:
 
     def __next__(self):
 
-        if self.current_step >= len(self._db.t) - 1:
+        if self.current_step >= len(self._db.t):
             raise StopIteration
 
         self.step()
 
         return self.current_step
+
+    def __len__(self):
+        return len(self._db.t) - 2
 
 
 # class CompensationSolver(FixedStepSolver):

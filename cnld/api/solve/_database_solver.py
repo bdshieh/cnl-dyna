@@ -186,8 +186,8 @@ class DatabaseSolver:
         Gfem = fem.mbk_mat_spm_from_layout(layout, grids, f)
 
         # generate bem lhs matrix
-        # Z = bem.z_mat_hm_from_grid(grids.bem, k, **hmargs)
-        Z = bem.z_mat_fm_from_grid(grids.bem, k)
+        Z = bem.z_mat_hm_from_grid(grids.bem, k, **hmargs)
+        # Z = bem.z_mat_fm_from_grid(grids.bem, k)
 
         Gbem = -omg**2 * 2 * rho * Z
 
@@ -268,6 +268,12 @@ class DatabaseSolver:
                                               interp=freq_interp,
                                               axis=-1,
                                               use_kkr=True)
+
+        # remove uneccessary second half due to kkr
+        nfir = len(t)
+        t = t[:(nfir // 2)]
+        ppir = ppir[..., :(nfir // 2)]
+
         source_patches, dest_patches, times = np.meshgrid(
             np.arange(ppir.shape[0]),
             np.arange(ppir.shape[1]),
