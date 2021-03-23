@@ -278,7 +278,7 @@ def matrix_layout(nx, ny, pitch_x, pitch_y):
     return Layout(membranes=membranes, elements=elements)
 
 
-def hexagonal_layout(nx, ny, pitch, radius=None):
+def hexagonal_layout(nx, ny, pitch):
     '''
     [summary]
 
@@ -310,9 +310,51 @@ def hexagonal_layout(nx, ny, pitch, radius=None):
 
     centers = np.c_[cx.ravel(), cy.ravel(), cz.ravel()]
 
-    if radius is not None:
+    membranes = MembraneList()
+    elements = ElementList()
+    for id, pos in enumerate(centers):
+        membranes.append(id=id, position=list(pos))
+        elements.append(id=id, position=list(pos), membrane_ids=[id])
+
+    return Layout(membranes=membranes, elements=elements)
+
+
+def hexagonal_layout2(n, pitch):
+    '''
+    [summary]
+
+    Parameters
+    ----------
+    nx : [type]
+        [description]
+    ny : [type]
+        [description]
+    pitch : [type]
+        [description]
+
+    Returns
+    -------
+    [type]
+        [description]
+    '''
+    if n % 2 == 0:
+        raise ValueError('n must be odd')
+
+    pitch_x = np.sqrt(3) / 2 * pitch
+    pitch_y = pitch
+    offsety = pitch / 2
+
+    cx, cy, cz = np.meshgrid(np.arange(n) * pitch_x, np.arange(n) * pitch_y, 0)
+    if n != 1:
+        cy[:, ::2, :] += offsety
+    cx -= cx[(n - 1) // 2, (n - 1) // 2, 0]
+    cy -= cy[(n - 1) // 2, (n - 1) // 2, 0]
+
+    centers = np.c_[cx.ravel(), cy.ravel(), cz.ravel()]
+
+    if n != 1:
         r = np.sqrt(np.sum(centers**2, axis=1))
-        centers = centers[r <= radius, :]
+        centers = centers[r < (n - 1) * pitch / 2 * 1.02, :]
 
     membranes = MembraneList()
     elements = ElementList()

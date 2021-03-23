@@ -74,16 +74,16 @@ class BaseGrid:
         vertices = self.vertices
         edges = self.edges
 
-        plt.figure()
-        plt.plot(vertices[:, 0], vertices[:, 1], '.')
+        fig, ax = plt.subplots()
+        ax.plot(vertices[:, 0], vertices[:, 1], '.')
 
         for e in edges:
             x1, y1, z1 = vertices[e[0], :]
             x2, y2, z2 = vertices[e[1], :]
-            plt.plot([x1, x2], [y1, y2], 'b-')
+            ax.plot([x1, x2], [y1, y2], 'b-')
 
-        plt.axis('equal')
-        plt.show()
+        ax.set_aspect('equal')
+        fig.show()
 
     def _find_triangle_neighbors(self):
         # determine list of neighbors for each triangle

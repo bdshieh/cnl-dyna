@@ -511,7 +511,7 @@ class FixedStepSolver:
         return self.current_step
 
     def __len__(self):
-        return len(self._db.t) - 2
+        return len(self._db.t) - 1
 
 
 # class CompensationSolver(FixedStepSolver):
