@@ -3,6 +3,7 @@ import numpy as np
 from namedlist import FACTORY
 from collections import OrderedDict
 from itertools import cycle
+import json
 from cnld.datatypes import register_mapping, register_list
 from cnld.util import distance
 
@@ -235,11 +236,24 @@ def generate_controldomainlist(layout, mapping=None):
     return ControlDomainList(ctrldomlist)
 
 
-# # def import_layout(file):
-# #     return Layout(json.load(open(file, 'r')))
+def import_layout(file):
 
-# # def export_layout(layout, file, mode='w'):
-# #     json.dump(open(file, mode), layout.json)
+    layout_json = json.load(open(file, 'r'))
+
+    layout = Layout()
+    layout.geometries = GeometryList(layout_json['geometries'])
+    layout.membranes = MembraneList(layout_json['membranes'])
+    layout.elements = ElementList(layout_json['elements'])
+    layout.controldomains = ControlDomainList(layout_json['controldomains'])
+    layout.membrane_to_geometry_mapping = layout_json[
+        'membrane_to_geometry_mapping']
+
+    return layout
+
+
+def export_layout(layout, file, mode='w'):
+    with open(file, mode) as f:
+        json.dump(layout.json, f, indent=2)
 
 
 def matrix_layout(nx, ny, pitch_x, pitch_y):
