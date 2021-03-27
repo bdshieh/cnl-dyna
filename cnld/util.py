@@ -451,60 +451,77 @@ def qfirwin(x,
     return fx
 
 
-def qfft(s, nfft=None, fs=1, dr=100, fig=None, **kwargs):
-    '''
-    [summary]
+# def qfft(s, nfft=None, fs=1, dr=100, fig=None, **kwargs):
 
-    Parameters
-    ----------
-    s : [type]
-        [description]
-    nfft : [type], optional
-        [description], by default None
-    fs : int, optional
-        [description], by default 1
-    dr : int, optional
-        [description], by default 100
-    fig : [type], optional
-        [description], by default None
+#     nsig, nsample = s.shape
 
-    Returns
-    -------
-    [type]
-        [description]
-    '''
-    s = np.atleast_2d(s)
+#     if nfft is None:
+#         nfft = nsample
 
-    nsig, nsample = s.shape
+#     # if fig is None:
+#     #     fig = plt.figure(tight_layout=1)
+#     #     ax = fig.add_subplot(111)
+#     # else:
+#     #     ax = fig.get_axes()[0]
 
-    if nfft is None:
-        nfft = nsample
+#     if nfft > nsample:
+#         s = np.pad(s, ((0, 0), (0, nfft - nsample)), mode='constant')
+#     elif nfft < nsample:
+#         s = s[:, :nfft]
 
-    # if fig is None:
-    #     fig = plt.figure(tight_layout=1)
-    #     ax = fig.add_subplot(111)
-    # else:
-    #     ax = fig.get_axes()[0]
+#     ft = sp.fftpack.fft(s, axis=1)
+#     freqs = sp.fftpack.fftfreq(nfft, 1 / fs)
 
-    if nfft > nsample:
-        s = np.pad(s, ((0, 0), (0, nfft - nsample)), mode='constant')
-    elif nfft < nsample:
-        s = s[:, :nfft]
+#     ftdb = 20 * np.log10(np.abs(ft) / (np.max(np.abs(ft), axis=1)[..., None]))
+#     ftdb[ftdb < -dr] = -dr
 
-    ft = sp.fftpack.fft(s, axis=1)
-    freqs = sp.fftpack.fftfreq(nfft, 1 / fs)
+#     cutoff = (nfft + 1) // 2
 
-    ftdb = 20 * np.log10(np.abs(ft) / (np.max(np.abs(ft), axis=1)[..., None]))
-    ftdb[ftdb < -dr] = -dr
+#     # ax.plot(freqs[:cutoff], ftdb[:, :cutoff].T, **kwargs)
+#     # ax.set_xlabel('Frequency (Hz)')
+#     # ax.set_ylabel('Magnitude (dB re max)')
+#     # fig.show()
 
-    cutoff = (nfft + 1) // 2
+#     return freqs[:cutoff], ftdb[:, :cutoff]
 
-    # ax.plot(freqs[:cutoff], ftdb[:, :cutoff].T, **kwargs)
-    # ax.set_xlabel('Frequency (Hz)')
-    # ax.set_ylabel('Magnitude (dB re max)')
-    # fig.show()
 
-    return freqs[:cutoff], ftdb[:, :cutoff]
+def qfft(s, n=None, fs=1, axis=-1, full=False):
+
+    ndim = s.ndim
+    shape = s.shape
+    nsample = shape[axis]
+
+    if n is None:
+        n = nsample
+
+    if n > nsample:
+        pw = [(0, 0)] * ndim
+        pw[axis] = (0, n - nsample)
+        s = np.pad(s, pw, mode='constant')
+    elif n < nsample:
+        s = np.take(s, range(n), axis=axis)
+
+    ft = sp.fftpack.fft(s, axis=axis)
+    freqs = sp.fftpack.fftfreq(n, 1 / fs)
+
+    cutoff = (n + 1) // 2
+
+    if full:
+        return freqs, ft
+    else:
+        return freqs[:cutoff], np.take(ft, range(cutoff), axis=axis)
+
+
+def qesd(s, n=None, fs=1, axis=-1, win=None):
+    if win is None:
+        win = np.ones(s.shape[axis])
+
+    dims = np.ones(s.ndim, int)
+    dims[axis] = -1
+    win = win.reshape(dims)
+
+    freqs, ft = qfft(s * win, n=n, fs=fs, full=False, axis=axis)
+    return freqs, np.abs(ft)**2 * 2 / fs**2
 
 
 ''' JOB-RELATED FUNCTIONS '''

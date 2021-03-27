@@ -260,7 +260,7 @@ class TimeSolver():
         return self._solver.__iter__()
 
     def __len__(self):
-        return self._solver.__len__()
+        return len(self._solver)
 
     def __next__(self):
         return self._solver.__next__()
