@@ -383,3 +383,85 @@ class DatabaseSolver:
                     pass
 
             self.postprocess()
+
+
+class Database:
+
+    def __init__(self, dbfile):
+        self._dbfile = os.path.normpath(dbfile)
+        self._ppfr = None
+        self._ppir = None
+
+    @property
+    def dbfile(self):
+        return self._dbfile
+
+    @property
+    def frequency_table(self):
+
+        if self._ppfr is None:
+            freqs, ppfr = database.read_patch_to_patch_freq_resp(self.dbfile)
+            self._ppfr = freqs, ppfr
+
+         return self._ppfr
+
+    @property
+    def impulse_table(self):
+
+        if self._ppir is None:
+            times, ppir = database.read_patch_to_patch_imp_resp(self.dbfile)
+            self._ppir = times, ppir
+        return self._ppir
+
+    @property
+    def nctrldom(self):
+        return self.frequency_table.shape[0]
+
+    @property
+    def nfreq(self):
+        return self.frequency_table.shape[-1]
+
+    @property
+    def ntime(self):
+        return self.impulse_table.shape[-1]
+
+    @property
+    def xfr(self, p, pix=None):
+        freqs, ppfr = self.frequency_table
+
+        if pix is not None:
+            _p = np.zeros(self.nctrldom)
+            _p[pix] = p
+        else:
+            _p = p
+
+        return freqs, np.sum(_p[:, None, None] * ppfr, axis=0)
+
+    @property
+    def xim(self, p, pix=None):
+        times, ppir = self.impulse_table
+
+        if pix is not None:
+            _p = np.zeros(self.nctrldom)
+            _p[pix] = p
+        else:
+            _p = p
+
+        return times, np.sum(_p[:, None, None] * ppir, axis=0)
+
+    def recalculate_fir(self, use_kkr=True, interp=4):
+
+        freqs, ppfr = self.frequency_table
+        times, ppir = impulse_response.fft_to_fir(freqs,
+                                                 ppfr,
+                                                 interp=interp,
+                                                 axis=-1,
+                                                 use_kkr=use_kkr)
+
+        # remove uneccessary second half due to kkr
+        if use_kkr:
+            nfir = len(times)
+            times = firtimes_t[:(nfir // 2)]
+            ppir = ppir[..., :(nfir // 2)]
+
+        self._ppir = times, ppir
