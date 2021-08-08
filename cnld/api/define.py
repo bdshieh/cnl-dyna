@@ -4,6 +4,7 @@ from namedlist import FACTORY
 from collections import OrderedDict
 from itertools import cycle
 import json
+from matplotlib import pyplot as plt, patches
 from cnld.datatypes import register_mapping, register_list
 from cnld.util import distance
 
@@ -234,6 +235,94 @@ def generate_controldomainlist(layout, mapping=None):
             raise TypeError
 
     return ControlDomainList(ctrldomlist)
+
+
+def draw_layout(layout, axs=None, fig_kwargs=None):
+
+    if fig_kwargs is None:
+        fig_kwargs = dict()
+
+    mapping = layout.membrane_to_geometry_mapping
+    if mapping is None:
+        gid = cycle(range(len(layout.geometries)))
+        mapping = [next(gid) for i in range(len(layout.membranes))]
+
+    if axs is None:
+        fig1, ax1 = plt.subplots(**fig_kwargs)
+    else:
+        ax1 = axs[0]
+        fig1 = ax1.get_figure()
+
+    for i, mem in enumerate(layout.membranes):
+
+        geom = layout.geometries[mapping[i]]
+
+        if geom.shape.lower() in ['circle', 'circular', 'c']:
+            patch = patches.Circle(radius=geom.radius,
+                                   xy=(mem.position[0], mem.position[1]),
+                                   ec='black',
+                                   fill=False)
+        elif geom.shape.lower() in ['square', 's']:
+            patch = patches.Rectangle(width=geom.length_x,
+                                      height=geom.length_y,
+                                      xy=(mem.position[0], mem.position[1]),
+                                      ec='black',
+                                      fill=False)
+        ax1.add_patch(patch)
+
+    ax1.set_aspect('equal')
+    ax1.autoscale()
+    ax1.set_xlabel('x (m)')
+    ax1.set_ylabel('y (m)')
+    ax1.set_title('Layout Membranes')
+
+    if axs is None:
+        fig2, ax2 = plt.subplots(**fig_kwargs)
+    else:
+        ax2 = axs[1]
+        fig2 = ax2.get_figure()
+
+    for i, ctrldom in enumerate(layout.controldomains):
+        if ctrldom.shape.lower() in ['circle', 'circular', 'c']:
+
+            arc1 = patches.Arc(width=2 * ctrldom.radius_max,
+                               height=2 * ctrldom.radius_max,
+                               xy=(ctrldom.position[0], ctrldom.position[1]),
+                               angle=0,
+                               theta1=np.rad2deg(ctrldom.theta_min),
+                               theta2=np.rad2deg(ctrldom.theta_max),
+                               ec='black',
+                               lw=1)
+            ax2.add_patch(arc1)
+
+            x0 = ctrldom.position[0] + ctrldom.radius_min * np.cos(
+                ctrldom.theta_min)
+            y0 = ctrldom.position[1] + ctrldom.radius_min * np.sin(
+                ctrldom.theta_min)
+            x1 = ctrldom.position[0] + ctrldom.radius_max * np.cos(
+                ctrldom.theta_min)
+            y1 = ctrldom.position[1] + ctrldom.radius_max * np.sin(
+                ctrldom.theta_min)
+            line0 = plt.Line2D([x0, x1], [y0, y1], c='black', lw=1)
+            ax2.add_artist(line0)
+
+        elif ctrldom.shape.lower() in ['square', 's']:
+
+            patch = patches.Rectangle(width=ctrldom.length_x,
+                                      height=ctrldom.length_y,
+                                      xy=(ctrldom.position[0],
+                                          ctrldom.position[1]),
+                                      ec='black',
+                                      fill=False)
+            ax2.add_patch(patch)
+
+    ax2.set_aspect('equal')
+    ax2.autoscale()
+    ax2.set_xlabel('x (m)')
+    ax2.set_ylabel('y (m)')
+    ax2.set_title('Layout Control Domains')
+
+    return (fig1, fig2), (ax1, ax2)
 
 
 def import_layout(file):

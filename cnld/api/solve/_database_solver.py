@@ -1,5 +1,5 @@
 ''''''
-__all__ = ['DatabaseSolver']
+__all__ = ['DatabaseSolver', 'Database']
 import numpy as np
 from concurrent.futures import ProcessPoolExecutor
 import multiprocessing
@@ -386,6 +386,8 @@ class DatabaseSolver:
 
 
 class Database:
+    '''[summary]
+    '''
 
     def __init__(self, dbfile):
         self._dbfile = os.path.normpath(dbfile)
@@ -403,7 +405,7 @@ class Database:
             freqs, ppfr = database.read_patch_to_patch_freq_resp(self.dbfile)
             self._ppfr = freqs, ppfr
 
-         return self._ppfr
+        return self._ppfr
 
     @property
     def impulse_table(self):
@@ -415,18 +417,26 @@ class Database:
 
     @property
     def nctrldom(self):
-        return self.frequency_table.shape[0]
+        return self.frequency_table[1].shape[0]
 
     @property
     def nfreq(self):
-        return self.frequency_table.shape[-1]
+        return self.frequency_table[1].shape[-1]
 
     @property
     def ntime(self):
-        return self.impulse_table.shape[-1]
+        return self.impulse_table[1].shape[-1]
 
-    @property
     def xfr(self, p, pix=None):
+        '''Calculates frequency-domain displacement from pressure vector.
+
+        Args:
+            p (1-D array-like): pressure vector (RHS)
+            pix ([type], optional): [description]. Defaults to None.
+
+        Returns:
+            [type]: [description]
+        '''
         freqs, ppfr = self.frequency_table
 
         if pix is not None:
@@ -435,10 +445,19 @@ class Database:
         else:
             _p = p
 
+        assert (len(_p) == ppfr.shape[0])
         return freqs, np.sum(_p[:, None, None] * ppfr, axis=0)
 
-    @property
     def xim(self, p, pix=None):
+        '''Calculates time-domain displacement from pressure vector.
+
+        Args:
+            p ([type]): [description]
+            pix ([type], optional): [description]. Defaults to None.
+
+        Returns:
+            [type]: [description]
+        '''
         times, ppir = self.impulse_table
 
         if pix is not None:
@@ -447,16 +466,17 @@ class Database:
         else:
             _p = p
 
+        assert (len(_p) == ppir.shape[0])
         return times, np.sum(_p[:, None, None] * ppir, axis=0)
 
     def recalculate_fir(self, use_kkr=True, interp=4):
 
         freqs, ppfr = self.frequency_table
         times, ppir = impulse_response.fft_to_fir(freqs,
-                                                 ppfr,
-                                                 interp=interp,
-                                                 axis=-1,
-                                                 use_kkr=use_kkr)
+                                                  ppfr,
+                                                  interp=interp,
+                                                  axis=-1,
+                                                  use_kkr=use_kkr)
 
         # remove uneccessary second half due to kkr
         if use_kkr:
