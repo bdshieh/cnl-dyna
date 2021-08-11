@@ -149,7 +149,7 @@ setup(
         'pandas',
         'namedlist',
         'pytest',
-        'numba',
+        # 'numba',
         'jupyter',
         'ipywidgets'
     ]
